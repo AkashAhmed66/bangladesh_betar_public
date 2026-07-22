@@ -1,65 +1,153 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { ArrowRight, Play, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { useMemo } from "react";
+import SectionRow from "@/components/cards/SectionRow";
+import Artwork from "@/components/ui/Artwork";
+import { PlayCircle, SectionHeading, Skeleton } from "@/components/ui/Misc";
+import { BRAND } from "@/config/theme";
+import { displayTitle, formatDuration } from "@/lib/format";
+import { useContinueListening, useForYou, useHome } from "@/lib/hooks";
+import { toTrack } from "@/lib/tracks";
+import { useAuth } from "@/stores/auth";
+import { usePlayer } from "@/stores/player";
+import { useUi } from "@/stores/ui";
+import type { AudioAsset } from "@/lib/types";
+
+function greeting(): string {
+  const h = new Date().getHours();
+  if (h < 5) return "Late night listening";
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+export default function HomePage() {
+  const { data: home, isLoading } = useHome();
+  const { data: forYou } = useForYou();
+  const { data: continueListening } = useContinueListening();
+  const user = useAuth((s) => s.user);
+  const locale = useUi((s) => s.locale);
+  const playTrack = usePlayer((s) => s.playTrack);
+
+  const heroBanner = home?.banners?.[0];
+
+  const resumeItems = useMemo(
+    () => (continueListening?.data ?? []).filter((e) => e.asset),
+    [continueListening],
+  );
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="flex flex-col gap-8">
+      {/* Hero banner */}
+      {isLoading ? (
+        <Skeleton className="h-56 w-full rounded-panel" />
+      ) : heroBanner ? (
+        <section className="relative overflow-hidden rounded-panel border border-edge bg-raised">
+          <div
+            aria-hidden
+            className="ambient-drift pointer-events-none absolute -right-24 -top-32 size-96 rounded-full opacity-30 blur-3xl"
+            style={{ background: "radial-gradient(closest-side, var(--accent), transparent 70%)" }}
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -bottom-40 -left-24 size-96 rounded-full opacity-15 blur-3xl"
+            style={{ background: "radial-gradient(closest-side, var(--flag-red), transparent 70%)" }}
+          />
+          <div className="relative flex flex-col gap-4 p-8 sm:p-10">
+            <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-accent">
+              <Sparkles className="size-3.5" /> {BRAND.tagline}
+            </p>
+            <h1 className="max-w-2xl font-display text-3xl font-bold leading-tight tracking-tight sm:text-5xl">
+              {locale === "bn" && heroBanner.title_bn ? heroBanner.title_bn : heroBanner.title}
+            </h1>
+            {heroBanner.subtitle && (
+              <p className="max-w-xl text-sm leading-relaxed text-ink-soft sm:text-base">{heroBanner.subtitle}</p>
+            )}
+            <div className="mt-2 flex flex-wrap items-center gap-3">
+              <Link
+                href={heroBanner.target_type === "url" && heroBanner.target_value ? heroBanner.target_value : "/browse"}
+                className="flex items-center gap-2 rounded-full bg-accent px-6 py-2.5 text-sm font-bold text-accent-fg transition hover:scale-105 hover:bg-accent-hover"
+              >
+                <Play className="size-4 fill-current" /> Start listening
+              </Link>
+              <Link
+                href="/browse"
+                className="flex items-center gap-2 rounded-full border border-edge-strong px-6 py-2.5 text-sm font-bold transition hover:border-ink"
+              >
+                Explore the archive <ArrowRight className="size-4" />
+              </Link>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {/* Continue listening */}
+      {resumeItems.length > 0 && (
+        <section>
+          <SectionHeading title={`${greeting()}${user ? `, ${user.name.split(" ")[0]}` : ""}`} />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {resumeItems.slice(0, 6).map(({ asset, progress_seconds }) => {
+              const a = asset as AudioAsset;
+              const track = toTrack(a);
+              const pct = a.duration_seconds ? Math.min(100, (progress_seconds / a.duration_seconds) * 100) : 0;
+              return (
+                <div
+                  key={a.id}
+                  className="group relative flex items-center gap-3 overflow-hidden rounded-card bg-raised transition hover:bg-highlight"
+                >
+                  <Artwork type="audio_asset" id={a.id} url={a.artwork_url} title={a.title} className="size-16 shrink-0 rounded-none" />
+                  <div className="min-w-0 flex-1 py-2 pr-2">
+                    <Link href={`/assets/${a.id}`} className="clamp-1 text-sm font-semibold hover:underline">
+                      {displayTitle(a, locale)}
+                    </Link>
+                    <p className="mt-0.5 text-xs text-ink-mute">
+                      {formatDuration(progress_seconds)} / {formatDuration(a.duration_seconds)} · resume
+                    </p>
+                    <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-sunken">
+                      <div className="h-full rounded-full bg-accent" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                  <div className="pr-3 opacity-0 transition group-hover:opacity-100">
+                    {track && (
+                      <PlayCircle size="size-10" icon="size-4" onClick={() => playTrack(track, progress_seconds)} label={`Resume ${a.title}`} />
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* Personalised row */}
+      {forYou && forYou.data.length > 0 && (
+        <SectionRow
+          title={
+            <span className="flex items-center gap-2">
+              {forYou.personalized ? "Made for you" : "Popular right now"}
+              {forYou.personalized && <Sparkles className="size-4 text-accent" />}
+            </span>
+          }
+          items={forYou.data}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      )}
+
+      {/* Curated sections from the curation module */}
+      {isLoading && (
+        <>
+          <SectionRow title="Loading" loading />
+          <SectionRow title="Loading" loading />
+        </>
+      )}
+      {home?.sections.map((section) => (
+        <SectionRow
+          key={section.id}
+          title={locale === "bn" && section.title_bn ? section.title_bn : section.title}
+          items={section.items}
+        />
+      ))}
     </div>
   );
 }

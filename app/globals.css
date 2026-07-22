@@ -1,26 +1,211 @@
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════════════════════════════
+   CENTRAL THEME CONFIGURATION — edit this block to re-skin the whole app
+   ═══════════════════════════════════════════════════════════════════════
+   Every color, font, radius and layout dimension used anywhere in the UI
+   resolves to one of these tokens. Brand copy + generative artwork
+   palettes live in `config/theme.ts`.                                     */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* ---- Surfaces (dark OLED luxury) ---- */
+  --bg-base: #070708;          /* app background            */
+  --bg-sunken: #030304;        /* sidebar / player wells    */
+  --bg-elev: #0f0f12;          /* main panel                */
+  --bg-raised: #17171c;        /* cards                     */
+  --bg-highlight: #212129;     /* card hover / active       */
+  --bg-overlay: rgba(3, 3, 4, 0.72);
+
+  /* ---- Ink ---- */
+  --text-primary: #f5f5f6;
+  --text-secondary: #a5a5b0;
+  --text-muted: #67676f;
+  --border-subtle: #232329;
+  --border-strong: #34343d;
+
+  /* ---- Brand accent (dominant) ---- */
+  --accent: #00d977;           /* emerald — play, links, active states */
+  --accent-hover: #2ef092;
+  --accent-pressed: #00b866;
+  --accent-fg: #032015;        /* text/icons on accent fills */
+  --accent-glow: rgba(0, 217, 119, 0.35);
+
+  /* ---- Semantic accents ---- */
+  --premium: #f0b90b;          /* gold — premium tier        */
+  --premium-fg: #241a02;
+  --danger: #fb4d63;
+  --flag-red: #f42a41;         /* Bangladesh red — logo mark, rare emphasis */
+
+  /* ---- Typography ---- */
+  --font-sans: var(--font-jakarta), "Noto Sans Bengali", sans-serif;
+  --font-display: var(--font-grotesk), var(--font-jakarta), sans-serif;
+  --font-bangla: var(--font-bangla-face), var(--font-jakarta), sans-serif;
+
+  /* ---- Shape & layout ---- */
+  --radius-card: 0.625rem;
+  --radius-panel: 0.75rem;
+  --sidebar-w: 17rem;
+  --player-h: 5.5rem;
+  --topbar-h: 4rem;
 }
 
+/* Map tokens to Tailwind utilities (bg-base, text-ink, border-edge, …) */
+/* NOTE: the page-background color is exposed as `page` (bg-page/text-page),
+   not `base`, so Tailwind's `text-base` font-size utility keeps working. */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-page: var(--bg-base);
+  --color-sunken: var(--bg-sunken);
+  --color-elev: var(--bg-elev);
+  --color-raised: var(--bg-raised);
+  --color-highlight: var(--bg-highlight);
+  --color-overlay: var(--bg-overlay);
+
+  --color-ink: var(--text-primary);
+  --color-ink-soft: var(--text-secondary);
+  --color-ink-mute: var(--text-muted);
+  --color-edge: var(--border-subtle);
+  --color-edge-strong: var(--border-strong);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-pressed: var(--accent-pressed);
+  --color-accent-fg: var(--accent-fg);
+
+  --color-premium: var(--premium);
+  --color-premium-fg: var(--premium-fg);
+  --color-danger: var(--danger);
+  --color-flag: var(--flag-red);
+
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+  --font-bangla: var(--font-bangla);
+
+  --radius-card: var(--radius-card);
+  --radius-panel: var(--radius-panel);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ═══════════════════ base ═══════════════════ */
+
+html {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden; /* the main panel scrolls, not the page */
 }
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+
+/* Slim, unobtrusive scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-track { background: transparent; }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Film-grain signature overlay — barely there, kills flat-black sterility */
+.grain::after {
+  content: "";
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  opacity: 0.028;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ═══════════════════ shared effects ═══════════════════ */
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fade-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@keyframes eq1 { 0%,100% { height: 30% } 50% { height: 95% } }
+@keyframes eq2 { 0%,100% { height: 85% } 40% { height: 35% } }
+@keyframes eq3 { 0%,100% { height: 50% } 60% { height: 100% } }
+
+.eq-bars span {
+  display: inline-block;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+  animation: eq1 0.9s ease-in-out infinite;
+}
+.eq-bars span:nth-child(2) { animation: eq2 0.8s ease-in-out infinite; }
+.eq-bars span:nth-child(3) { animation: eq3 1.05s ease-in-out infinite; }
+
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+.spin-slow { animation: spin-slow 2.4s linear infinite; }
+
+@keyframes ambient-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(4%, -6%) scale(1.12); }
+}
+.ambient-drift { animation: ambient-drift 14s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Hide native range thumbs; we draw our own on hover */
+input[type="range"].seek {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+input[type="range"].seek::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 12px;
+  width: 12px;
+  border-radius: 999px;
+  background: #fff;
+  opacity: 0;
+  transition: opacity 0.15s;
+  margin-top: -4px;
+}
+input[type="range"].seek:hover::-webkit-slider-thumb,
+input[type="range"].seek:focus-visible::-webkit-slider-thumb { opacity: 1; }
+input[type="range"].seek::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--track-bg, var(--border-strong));
+}
+input[type="range"].seek::-moz-range-thumb {
+  height: 12px; width: 12px; border: none; border-radius: 999px;
+  background: #fff; opacity: 0; transition: opacity 0.15s;
+}
+input[type="range"].seek:hover::-moz-range-thumb { opacity: 1; }
+input[type="range"].seek::-moz-range-track {
+  height: 4px; border-radius: 999px; background: var(--track-bg, var(--border-strong));
+}
+
+/* Line-clamp helpers */
+.clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
