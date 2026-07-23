@@ -1,0 +1,24 @@
+# Standalone deployment for the Bangladesh Betar public portal (Next.js).
+#
+#   docker compose up -d --build      # build + run
+#   docker compose up -d              # apply env changes (recreates, no rebuild)
+#   docker compose logs -f            # watch
+#   docker compose down               # stop
+#
+# The browser-facing URLs are read from the environment below (defaults live in
+# .env — edit it and re-run `up -d` to point at a different API host; the image
+# does NOT need rebuilding).
+services:
+  public:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: betar-public:latest
+    container_name: betar_public
+    restart: unless-stopped
+    ports:
+      - "${PUBLIC_PORT:-9000}:9000"
+    environment:
+      # Where the Laravel API + LiveKit are reachable FROM THE BROWSER.
+      NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-http://localhost:8080/api/v1}
+      NEXT_PUBLIC_LIVEKIT_URL: ${NEXT_PUBLIC_LIVEKIT_URL:-ws://localhost:7880}

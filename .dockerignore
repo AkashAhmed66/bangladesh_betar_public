@@ -1,0 +1,26 @@
+# Build context excludes — keep the image lean and never bake host env files.
+node_modules
+.next
+.git
+.gitignore
+.vscode
+.idea
+
+# Env files are NOT baked (URLs are injected at runtime by docker-entrypoint.sh).
+.env
+.env.*
+
+# Docker + docs (not needed inside the image).
+# NOTE: docker-entrypoint.sh is intentionally NOT ignored — the Dockerfile COPYs it.
+Dockerfile
+.dockerignore
+docker-compose.yml
+README.md
+AGENTS.md
+CLAUDE.md
+
+# Misc
+npm-debug.log*
+yarn-error.log*
+pnpm-lock.yaml
+*.tsbuildinfo
