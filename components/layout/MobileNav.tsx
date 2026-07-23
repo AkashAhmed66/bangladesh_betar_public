@@ -1,12 +1,13 @@
 "use client";
 
-import { Compass, Home, Library, Search } from "lucide-react";
+import { Compass, Home, Library, Radio, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const TABS = [
   { href: "/", icon: Home, label: "Home", exact: true },
   { href: "/search", icon: Search, label: "Search" },
+  { href: "/live", icon: Radio, label: "Live" },
   { href: "/browse", icon: Compass, label: "Browse" },
   { href: "/library", icon: Library, label: "Library" },
 ];

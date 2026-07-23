@@ -210,6 +210,30 @@ export interface Playlist {
   items?: PlaylistItem[];
 }
 
+// ---- Live broadcasting (M27) ----
+
+export interface LiveChannel {
+  id: number;
+  type: "live_channel";
+  title: string;
+  title_bn: string | null;
+  slug: string;
+  description: string | null;
+  artwork_url: string | null;
+  station?: string | null;
+  is_live: boolean;
+  started_at: string | null;
+  listener_count: number;
+  broadcaster: string | null;
+  session_title: string | null;
+}
+
+export interface LiveTokenResponse {
+  ws_url: string;
+  token: string;
+  room: string;
+}
+
 /** Anything that can appear in a home-section row or search results. */
 export type CatalogueItem =
   | AudioAsset

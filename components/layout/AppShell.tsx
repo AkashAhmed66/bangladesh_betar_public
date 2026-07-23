@@ -7,6 +7,7 @@ import TopBar from "./TopBar";
 import PlayerBar from "@/components/player/PlayerBar";
 import QueuePanel from "@/components/player/QueuePanel";
 import NowPlaying from "@/components/player/NowPlaying";
+import LiveDock from "@/components/live/LiveDock";
 import AddToPlaylistModal from "@/components/library/AddToPlaylistModal";
 import LoginPromptModal from "@/components/modals/LoginPromptModal";
 import UpgradePromptModal from "@/components/modals/UpgradePromptModal";
@@ -43,6 +44,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         {queuePanelOpen && <QueuePanel />}
       </div>
 
+      <LiveDock />
       <PlayerBar />
       <MobileNav />
 

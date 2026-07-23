@@ -13,6 +13,7 @@ import {
   Music2,
   Plus,
   Podcast,
+  Radio,
   RadioTower,
   Search,
 } from "lucide-react";
@@ -76,6 +77,7 @@ export default function Sidebar() {
         <NavLink href="/" icon={Home} label="Home" exact />
         <NavLink href="/search" icon={Search} label="Search" />
         <NavLink href="/browse" icon={Compass} label="Browse" exact />
+        <NavLink href="/live" icon={Radio} label="Live Radio" />
       </nav>
 
       {/* Catalogue */}

@@ -4,8 +4,18 @@
  * - Normalises errors into ApiError with field-level validation messages.
  */
 
+/**
+ * API base URL — configured per deployment via NEXT_PUBLIC_API_BASE.
+ *
+ *   Local dev:  http://localhost:8080/api/v1
+ *   LAN share:  http://<server-LAN-IP>:8080/api/v1
+ *   Production: https://api.yourdomain.com/api/v1
+ *
+ * NEXT_PUBLIC_* values are inlined at build time, so set this in .env.local
+ * (or your deploy env) BEFORE `npm run build`.
+ */
 export const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000/api/v1";
+  process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8080/api/v1";
 
 export class ApiError extends Error {
   status: number;

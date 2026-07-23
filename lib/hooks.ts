@@ -11,6 +11,7 @@ import type {
   Episode,
   HistoryEntry,
   HomeResponse,
+  LiveChannel,
   Paginated,
   Plan,
   PaymentRecord,
@@ -36,6 +37,16 @@ export function useApi<T>(path: string | null) {
   return useSWR<T>(path ? [path, token ?? "guest"] : null, ([p]: [string, string]) => fetcher<T>(p), {
     revalidateOnFocus: false,
     keepPreviousData: true,
+  });
+}
+
+/** Like useApi but re-fetches on an interval — used for live "what's on air". */
+export function usePollingApi<T>(path: string | null, refreshInterval: number) {
+  const token = useAuth((s) => s.token);
+  return useSWR<T>(path ? [path, token ?? "guest"] : null, ([p]: [string, string]) => fetcher<T>(p), {
+    revalidateOnFocus: true,
+    keepPreviousData: true,
+    refreshInterval,
   });
 }
 
@@ -74,6 +85,12 @@ export const usePodcastEpisode = (id: number | string) =>
 export const useAsset = (id: number | string | null) =>
   useApi<{ data: AudioAsset }>(id ? `/assets/${id}` : null);
 export const usePublicPlaylist = (id: number | string) => useApi<{ data: Playlist }>(`/playlists/${id}`);
+
+// ---- Live broadcasting (M27) ----
+export const useLiveChannels = () =>
+  usePollingApi<{ data: LiveChannel[] }>("/live-channels", 10_000);
+export const useLiveChannel = (id: number | string) =>
+  usePollingApi<{ data: LiveChannel }>(`/live-channels/${id}`, 10_000);
 
 // ---- Recommendations ----
 export const useForYou = () =>
