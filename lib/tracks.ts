@@ -7,7 +7,6 @@ import type {
   PlaylistItem,
   PodcastEpisode,
   Song,
-  Story,
 } from "./types";
 
 /**
@@ -87,28 +86,6 @@ export function toTrack(item: CatalogueItem | null | undefined): PlayerTrack | n
     default:
       return null;
   }
-}
-
-/** A story plays its parent episode's asset from its start offset. */
-export function storyTrack(story: Story, episode: Episode): PlayerTrack | null {
-  if (!episode.audio_asset_id) return null;
-  return {
-    key: `story:${story.id}`,
-    type: "story",
-    id: story.id,
-    assetId: episode.audio_asset_id,
-    title: story.title,
-    titleBn: story.title_bn,
-    subtitle: story.storyteller ? `Told by ${story.storyteller}` : episode.title,
-    artworkUrl: episode.artwork_url,
-    duration:
-      story.end_seconds != null && story.start_seconds != null
-        ? story.end_seconds - story.start_seconds
-        : episode.duration_seconds,
-    isPremium: false,
-    href: itemHref(episode),
-    startAt: story.start_seconds ?? 0,
-  };
 }
 
 /** Resolve a playlist's ordered items into tracks. */

@@ -11,7 +11,7 @@ import { useUi } from "./ui";
 /** A resolved, playable entry in the queue. */
 export interface PlayerTrack {
   key: string;               // stable identity: `${type}:${id}`
-  type: "song" | "audio_asset" | "podcast_episode" | "episode" | "story";
+  type: "song" | "audio_asset" | "podcast_episode" | "episode";
   id: number;                // catalogue id (song id, episode id, …)
   assetId: number;           // the streamable audio_assets.id
   title: string;
@@ -57,17 +57,22 @@ interface PlayerState {
   removeAt: (i: number) => void;
   jumpTo: (i: number) => void;
   clearQueue: () => void;
+  moveInQueue: (from: number, to: number) => void;
 }
 
 // ---------------------------------------------------------------------------
 // Module-level audio engine (client only)
 // ---------------------------------------------------------------------------
 
+/** Every ad is played for exactly this many seconds — no more, no less. */
+const AD_DURATION_SECONDS = 10;
+
 let audio: HTMLAudioElement | null = null;
 let pendingSeek: number | null = null;
 let lastProgressAt = 0;
 let skipTimestamps: number[] = [];
 let queueSyncTimer: ReturnType<typeof setTimeout> | null = null;
+let adTimer: ReturnType<typeof setInterval> | null = null;
 
 function engine(): HTMLAudioElement {
   if (audio) return audio;
@@ -82,7 +87,8 @@ function engine(): HTMLAudioElement {
     const pos = audio!.currentTime;
 
     if (s.ad) {
-      usePlayer.setState({ adRemaining: Math.max(0, Math.ceil((audio!.duration || s.ad.duration_seconds) - pos)) });
+      // The ad countdown + hand-off are driven by a fixed timer (see startAd),
+      // not the creative's own length, so every ad runs exactly AD_DURATION_SECONDS.
       return;
     }
 
@@ -119,7 +125,8 @@ function engine(): HTMLAudioElement {
   audio.addEventListener("ended", () => {
     const s = usePlayer.getState();
     if (s.ad) {
-      finishAd(true);
+      // Ignore a creative that ends early — the fixed ad timer decides when the
+      // ad finishes, so it always occupies the full AD_DURATION_SECONDS.
       return;
     }
     sendEvent("complete", audio!.duration || s.position);
@@ -156,13 +163,44 @@ function sendEvent(type: PlayEventType, position: number) {
   }).catch(() => undefined);
 }
 
+function clearAdTimer() {
+  if (adTimer) {
+    clearInterval(adTimer);
+    adTimer = null;
+  }
+}
+
+/**
+ * Play a pre-roll ad for EXACTLY AD_DURATION_SECONDS. A fixed wall-clock timer
+ * — not the creative's own duration — drives the countdown and the hand-off to
+ * the main track, so the ad is never shorter or longer than the mandated length
+ * (a longer creative is cut off; the slot always lasts the full duration).
+ */
+function startAd(ad: AdDescriptor) {
+  clearAdTimer();
+  const el = engine();
+  usePlayer.setState({ ad, adRemaining: AD_DURATION_SECONDS, status: "playing" });
+  el.src = ad.audio_url;
+  void el.play().catch(() => finishAd(false));
+
+  const startedAt = Date.now();
+  adTimer = setInterval(() => {
+    const elapsed = (Date.now() - startedAt) / 1000;
+    usePlayer.setState({ adRemaining: Math.max(0, Math.ceil(AD_DURATION_SECONDS - elapsed)) });
+    if (elapsed >= AD_DURATION_SECONDS) {
+      finishAd(true); // clears the timer and starts the main stream
+    }
+  }, 250);
+}
+
 function finishAd(completed: boolean) {
+  clearAdTimer();
   const s = usePlayer.getState();
   const ad = s.ad;
   if (!ad) return;
   const authed = !!useAuth.getState().token;
   void post("/ads/impression", {
-    ad_asset_id: ad.id,
+    ad_campaign_id: ad.id,
     slot: ad.slot,
     platform: "web",
     completed,
@@ -194,6 +232,7 @@ function startMainStream() {
 }
 
 async function loadCurrent(resumeFrom?: number) {
+  clearAdTimer(); // never let a previous ad's timer bleed into a new load
   const s = usePlayer.getState();
   const track = s.queue[s.index];
   if (!track) return;
@@ -209,11 +248,7 @@ async function loadCurrent(resumeFrom?: number) {
     usePlayer.setState({ stream });
 
     if (stream.ad?.audio_url) {
-      // Pre-roll ad for the free tier: play the creative, then the track.
-      usePlayer.setState({ ad: stream.ad, adRemaining: stream.ad.duration_seconds, status: "playing" });
-      const el = engine();
-      el.src = stream.ad.audio_url;
-      el.play().catch(() => finishAd(false));
+      startAd(stream.ad); // fixed-length pre-roll, then the main track
     } else {
       startMainStream();
     }
@@ -454,6 +489,19 @@ export const usePlayer = create<PlayerState>()(
         const s = getState();
         const current = s.queue[s.index];
         set({ queue: current ? [current] : [], index: current ? 0 : -1 });
+        syncQueueToServer();
+      },
+
+      moveInQueue: (from, to) => {
+        const s = getState();
+        // Only reorder within "up next" (never the currently-playing item),
+        // so the active index is unaffected.
+        if (from === to || from <= s.index || to <= s.index) return;
+        if (!s.queue[from] || to < 0 || to >= s.queue.length) return;
+        const queue = [...s.queue];
+        const [moved] = queue.splice(from, 1);
+        queue.splice(to, 0, moved);
+        set({ queue });
         syncQueueToServer();
       },
     }),

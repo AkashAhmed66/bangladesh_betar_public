@@ -9,6 +9,7 @@ import {
   Home,
   Library,
   ListMusic,
+  ListOrdered,
   MicVocal,
   Music2,
   Plus,
@@ -20,7 +21,6 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BRAND } from "@/config/theme";
-import { useMyPlaylists } from "@/lib/hooks";
 import { useAuth } from "@/stores/auth";
 import { useUi } from "@/stores/ui";
 
@@ -53,8 +53,8 @@ function NavLink({
 export default function Sidebar() {
   const token = useAuth((s) => s.token);
   const entitlements = useAuth((s) => s.entitlements);
-  const { openLoginPrompt } = useUi();
-  const { data: playlists } = useMyPlaylists();
+  const { openLoginPrompt, toggleQueuePanel } = useUi();
+  const queuePanelOpen = useUi((s) => s.queuePanelOpen);
 
   return (
     <aside className="hidden w-(--sidebar-w) shrink-0 flex-col gap-2 p-2 pr-0 lg:flex">
@@ -111,27 +111,28 @@ export default function Sidebar() {
           </button>
         </div>
 
-        {token ? (
-          <div className="min-h-0 flex-1 overflow-y-auto px-1">
-            <NavLink href="/favorites" icon={Heart} label="Liked recordings" />
-            <NavLink href="/history" icon={History} label="History" />
-            <p className="px-3 pb-1 pt-3 text-[11px] font-bold uppercase tracking-[0.14em] text-ink-mute">Playlists</p>
-            {(playlists?.data ?? []).map((p) => (
-              <Link
-                key={p.id}
-                href={`/playlists/${p.id}`}
-                className="flex items-center gap-3 rounded-card px-3 py-2 text-sm text-ink-soft transition hover:bg-raised hover:text-ink"
-              >
-                <ListMusic className="size-4 shrink-0 text-ink-mute" />
-                <span className="clamp-1">{p.title}</span>
-              </Link>
-            ))}
-            {playlists && !playlists.data.length && (
-              <p className="px-3 py-2 text-xs text-ink-mute">No playlists yet — create your first.</p>
-            )}
-          </div>
-        ) : (
-          <div className="mx-2 mt-1 rounded-card bg-raised p-4">
+        <div className="px-1">
+          {token && (
+            <>
+              <NavLink href="/favorites" icon={Heart} label="Liked recordings" />
+              <NavLink href="/history" icon={History} label="History" />
+              <NavLink href="/playlists" icon={ListMusic} label="Playlists" />
+            </>
+          )}
+          {/* Queue works for everyone (local queue) — toggles the queue panel. */}
+          <button
+            onClick={toggleQueuePanel}
+            aria-pressed={queuePanelOpen}
+            className={`flex w-full items-center gap-4 rounded-card px-3 py-2.5 text-sm font-semibold transition-colors ${
+              queuePanelOpen ? "bg-highlight text-ink" : "text-ink-soft hover:text-ink"
+            }`}
+          >
+            <ListOrdered className={`size-5 ${queuePanelOpen ? "text-accent" : ""}`} /> Queue
+          </button>
+        </div>
+
+        {!token && (
+          <div className="mx-2 mt-2 rounded-card bg-raised p-4">
             <p className="text-sm font-bold">Build your library</p>
             <p className="mt-1 text-xs leading-relaxed text-ink-soft">
               Sign in to save favourites, follow artists and create playlists.
@@ -144,6 +145,9 @@ export default function Sidebar() {
             </Link>
           </div>
         )}
+
+        {/* Spacer keeps the premium card pinned to the bottom. */}
+        <div className="flex-1" />
 
         {/* Premium upsell */}
         {!entitlements?.is_premium && (

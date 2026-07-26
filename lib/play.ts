@@ -69,16 +69,6 @@ export async function playItem(item: CatalogueItem): Promise<void> {
         else notifyEmpty();
         return;
       }
-      case "story": {
-        // A story needs its parent episode's audio; resolve via the episode.
-        const s = item as { episode_id?: number };
-        if (!s.episode_id) return notifyEmpty();
-        const res = await get<{ data: Episode }>(`/episodes/${s.episode_id}`);
-        const track = toTrack(res.data);
-        if (track) player.playTrack({ ...track, startAt: (item as { start_seconds?: number }).start_seconds ?? 0 });
-        else notifyEmpty();
-        return;
-      }
       default: {
         const asset = item as AudioAsset;
         const track = toTrack(asset);

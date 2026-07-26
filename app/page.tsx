@@ -2,7 +2,7 @@
 
 import { ArrowRight, Play, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import SectionRow from "@/components/cards/SectionRow";
 import Artwork from "@/components/ui/Artwork";
 import { PlayCircle, SectionHeading, Skeleton } from "@/components/ui/Misc";
@@ -31,7 +31,20 @@ export default function HomePage() {
   const locale = useUi((s) => s.locale);
   const playTrack = usePlayer((s) => s.playTrack);
 
-  const heroBanner = home?.banners?.[0];
+  const banners = useMemo(() => home?.banners ?? [], [home]);
+  const [bannerIdx, setBannerIdx] = useState(0);
+
+  // Auto-advance the banner slideshow forever, one banner at a time.
+  useEffect(() => {
+    if (banners.length <= 1) return;
+    const timer = setInterval(() => setBannerIdx((i) => (i + 1) % banners.length), 6000);
+    return () => clearInterval(timer);
+  }, [banners.length]);
+
+  // Keep the index in range if the banner set changes.
+  useEffect(() => {
+    if (bannerIdx >= banners.length && banners.length > 0) setBannerIdx(0);
+  }, [banners.length, bannerIdx]);
 
   const resumeItems = useMemo(
     () => (continueListening?.data ?? []).filter((e) => e.asset),
@@ -40,46 +53,71 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col gap-8">
-      {/* Hero banner */}
+      {/* Hero banner slideshow */}
       {isLoading ? (
         <Skeleton className="h-56 w-full rounded-panel" />
-      ) : heroBanner ? (
+      ) : banners.length > 0 ? (
         <section className="relative overflow-hidden rounded-panel border border-edge bg-raised">
+          {/* Sliding track — banners sit side by side and slide one at a time. */}
           <div
-            aria-hidden
-            className="ambient-drift pointer-events-none absolute -right-24 -top-32 size-96 rounded-full opacity-30 blur-3xl"
-            style={{ background: "radial-gradient(closest-side, var(--accent), transparent 70%)" }}
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -bottom-40 -left-24 size-96 rounded-full opacity-15 blur-3xl"
-            style={{ background: "radial-gradient(closest-side, var(--flag-red), transparent 70%)" }}
-          />
-          <div className="relative flex flex-col gap-4 p-8 sm:p-10">
-            <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-accent">
-              <Sparkles className="size-3.5" /> {BRAND.tagline}
-            </p>
-            <h1 className="max-w-2xl font-display text-3xl font-bold leading-tight tracking-tight sm:text-5xl">
-              {locale === "bn" && heroBanner.title_bn ? heroBanner.title_bn : heroBanner.title}
-            </h1>
-            {heroBanner.subtitle && (
-              <p className="max-w-xl text-sm leading-relaxed text-ink-soft sm:text-base">{heroBanner.subtitle}</p>
-            )}
-            <div className="mt-2 flex flex-wrap items-center gap-3">
-              <Link
-                href={heroBanner.target_type === "url" && heroBanner.target_value ? heroBanner.target_value : "/browse"}
-                className="flex items-center gap-2 rounded-full bg-accent px-6 py-2.5 text-sm font-bold text-accent-fg transition hover:scale-105 hover:bg-accent-hover"
-              >
-                <Play className="size-4 fill-current" /> Start listening
-              </Link>
-              <Link
-                href="/browse"
-                className="flex items-center gap-2 rounded-full border border-edge-strong px-6 py-2.5 text-sm font-bold transition hover:border-ink"
-              >
-                Explore the archive <ArrowRight className="size-4" />
-              </Link>
-            </div>
+            className="flex transition-transform duration-700 ease-out"
+            style={{ transform: `translateX(-${bannerIdx * 100}%)` }}
+          >
+            {banners.map((banner) => (
+              <div key={banner.id} className="relative w-full shrink-0 overflow-hidden">
+                <div
+                  aria-hidden
+                  className="ambient-drift pointer-events-none absolute -right-24 -top-32 size-96 rounded-full opacity-30 blur-3xl"
+                  style={{ background: "radial-gradient(closest-side, var(--accent), transparent 70%)" }}
+                />
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute -bottom-40 -left-24 size-96 rounded-full opacity-15 blur-3xl"
+                  style={{ background: "radial-gradient(closest-side, var(--flag-red), transparent 70%)" }}
+                />
+                <div className="relative flex flex-col gap-4 p-8 pb-12 sm:p-10 sm:pb-14">
+                  <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-accent">
+                    <Sparkles className="size-3.5" /> {BRAND.tagline}
+                  </p>
+                  <h1 className="max-w-2xl font-display text-3xl font-bold leading-tight tracking-tight sm:text-5xl">
+                    {locale === "bn" && banner.title_bn ? banner.title_bn : banner.title}
+                  </h1>
+                  {banner.subtitle && (
+                    <p className="max-w-xl text-sm leading-relaxed text-ink-soft sm:text-base">{banner.subtitle}</p>
+                  )}
+                  <div className="mt-2 flex flex-wrap items-center gap-3">
+                    <Link
+                      href={banner.target_type === "url" && banner.target_value ? banner.target_value : "/browse"}
+                      className="flex items-center gap-2 rounded-full bg-accent px-6 py-2.5 text-sm font-bold text-accent-fg transition hover:scale-105 hover:bg-accent-hover"
+                    >
+                      <Play className="size-4 fill-current" /> Start listening
+                    </Link>
+                    <Link
+                      href="/browse"
+                      className="flex items-center gap-2 rounded-full border border-edge-strong px-6 py-2.5 text-sm font-bold transition hover:border-ink"
+                    >
+                      Explore the archive <ArrowRight className="size-4" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
+
+          {/* Dots — click to jump to a banner */}
+          {banners.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2">
+              {banners.map((banner, i) => (
+                <button
+                  key={banner.id}
+                  type="button"
+                  onClick={() => setBannerIdx(i)}
+                  aria-label={`Show banner ${i + 1}`}
+                  className={`h-2 rounded-full transition-all ${i === bannerIdx ? "w-6 bg-accent" : "w-2 bg-ink-mute/40 hover:bg-ink-mute"}`}
+                />
+              ))}
+            </div>
+          )}
         </section>
       ) : null}
 

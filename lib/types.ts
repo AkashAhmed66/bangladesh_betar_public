@@ -7,8 +7,7 @@ export type PlayableType =
   | "song"
   | "audio_asset"
   | "podcast_episode"
-  | "episode"
-  | "story";
+  | "episode";
 
 export type FollowableType = "artist" | "programme" | "podcast_channel" | "playlist";
 
@@ -126,25 +125,6 @@ export interface Episode {
   duration_seconds: number | null;
   artwork_url: string | null;
   play_count: number;
-  stories?: Story[];
-}
-
-export interface Story {
-  id: number;
-  type: "story";
-  title: string;
-  title_bn: string | null;
-  slug: string;
-  summary: string | null;
-  storyteller: string | null;
-  narrator: string | null;
-  district: string | null;
-  category?: string | null;
-  start_seconds: number | null;
-  end_seconds: number | null;
-  content_warning: string | null;
-  episode_id: number;
-  play_count: number;
 }
 
 export interface PodcastChannel {
@@ -242,7 +222,6 @@ export type CatalogueItem =
   | Artist
   | Programme
   | Episode
-  | Story
   | PodcastChannel
   | PodcastEpisode
   | Playlist;
@@ -319,9 +298,9 @@ export interface StreamDescriptor {
 }
 
 export interface AdDescriptor {
-  id: number;
+  id: number; // ad campaign id (used to log impressions)
   title: string;
-  type: string;
+  audio_asset_id: number;
   duration_seconds: number;
   slot: string;
   audio_url: string;
@@ -400,6 +379,25 @@ export interface PostCommentResponse {
   message: string;
   data: Comment | null;
   rating: RatingAggregate | null;
+}
+
+// ---- Community Inbox (the listener's own reports / issues / feedback) ----
+
+export type SubmissionStatus = "new" | "in_progress" | "resolved" | "dismissed";
+
+export interface CommunitySubmission {
+  id: number;
+  type: "content_report" | "issue_report" | "feedback";
+  type_label: string;
+  category: string | null;
+  category_label: string | null;
+  subject_line: string | null;
+  message: string | null;
+  status: SubmissionStatus;
+  resolution_notes: string | null;
+  target?: { type: string; label: string | null };
+  created_at: string | null;
+  handled_at: string | null;
 }
 
 // ---- Subscription ----

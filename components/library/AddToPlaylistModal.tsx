@@ -21,8 +21,8 @@ export default function AddToPlaylistModal() {
     setBusy(true);
     try {
       await post(`/me/playlists/${playlistId}/items`, {
-        playable_type: track.type === "episode" || track.type === "story" ? "audio_asset" : track.type,
-        playable_id: track.type === "episode" || track.type === "story" ? track.assetId : track.id,
+        playable_type: track.type === "episode" ? "audio_asset" : track.type,
+        playable_id: track.type === "episode" ? track.assetId : track.id,
       });
       toast(`Added to “${playlistTitle}”.`, "success");
       void mutate((key) => Array.isArray(key) && String(key[0]).startsWith("/me/playlists"), undefined, { revalidate: true });

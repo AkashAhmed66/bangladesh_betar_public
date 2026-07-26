@@ -8,6 +8,7 @@ import type {
   Artist,
   AudioAsset,
   Comment,
+  CommunitySubmission,
   Episode,
   HistoryEntry,
   HomeResponse,
@@ -57,7 +58,6 @@ export const useGenres = () => useApi<{ data: Taxonomy[] }>("/genres");
 export const useTrending = () => useApi<{ data: AudioAsset[] }>("/trending");
 export const useNewReleases = () => useApi<{ data: AudioAsset[] }>("/new-releases");
 export const useOnThisDay = () => useApi<{ date: string; data: AudioAsset[] }>("/on-this-day");
-export const useEditorialPlaylists = () => useApi<{ data: Playlist[] }>("/editorial-playlists");
 
 // ---- Search ----
 export const useSearch = (q: string, type?: string) =>
@@ -118,6 +118,10 @@ export const useContinueListening = () =>
 // ---- Engagement ----
 export const useComments = (assetId: number | null) =>
   useApi<Paginated<Comment>>(assetId ? `/assets/${assetId}/comments` : null);
+
+/** The signed-in listener's own reports / issues / feedback with their status. */
+export const useMySubmissions = () =>
+  useAuthedApi<Paginated<CommunitySubmission>>("/me/submissions");
 
 // ---- Subscription ----
 export const usePlans = () => useApi<{ data: Plan[] }>("/plans");

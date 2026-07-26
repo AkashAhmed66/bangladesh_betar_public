@@ -3,7 +3,6 @@
 import { CalendarDays } from "lucide-react";
 import SectionRow from "@/components/cards/SectionRow";
 import {
-  useEditorialPlaylists,
   useNewReleases,
   useOnThisDay,
   useTrending,
@@ -14,14 +13,13 @@ export default function BrowsePage() {
   const { data: trending, isLoading: l1 } = useTrending();
   const { data: newReleases, isLoading: l2 } = useNewReleases();
   const { data: onThisDay } = useOnThisDay();
-  const { data: editorial } = useEditorialPlaylists();
 
   return (
     <div className="flex flex-col gap-8">
       <div>
         <h1 className="font-display text-3xl font-bold tracking-tight">Browse the archive</h1>
         <p className="mt-1 text-sm text-ink-soft">
-          A century of Bangladesh Betar — trending now, fresh digitisations and curated collections.
+          A century of Bangladesh Betar — trending now and the freshest digitisations.
         </p>
       </div>
 
@@ -39,8 +37,6 @@ export default function BrowsePage() {
           items={onThisDay.data}
         />
       )}
-
-      <SectionRow title="Editorial playlists" items={editorial?.data} />
     </div>
   );
 }

@@ -19,6 +19,7 @@ services:
     ports:
       - "${PUBLIC_PORT:-15001}:15001"
     environment:
-      # Where the Laravel API + LiveKit are reachable FROM THE BROWSER.
-      NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-http://localhost:15000/api/v1}
-      NEXT_PUBLIC_LIVEKIT_URL: ${NEXT_PUBLIC_LIVEKIT_URL:-ws://localhost:7880}
+      # Blank => the app derives these from the browser's host (works on any
+      # LAN IP with no rebuild). Set to pin a fixed host (production domain).
+      NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-}
+      NEXT_PUBLIC_LIVEKIT_URL: ${NEXT_PUBLIC_LIVEKIT_URL:-}

@@ -4,11 +4,14 @@
 # facing API/LiveKit URLs configurable per environment WITHOUT a rebuild.
 set -e
 
-API_BASE="${NEXT_PUBLIC_API_BASE:-http://localhost:8080/api/v1}"
-LIVEKIT_URL="${NEXT_PUBLIC_LIVEKIT_URL:-ws://localhost:7880}"
+# Empty (the default) => the app derives the URLs from the browser's host, so
+# the server's LAN IP never has to be hard-coded. Set them only to pin a fixed
+# host (e.g. a production domain).
+API_BASE="${NEXT_PUBLIC_API_BASE:-}"
+LIVEKIT_URL="${NEXT_PUBLIC_LIVEKIT_URL:-}"
 
-echo "[entrypoint] NEXT_PUBLIC_API_BASE   = ${API_BASE}"
-echo "[entrypoint] NEXT_PUBLIC_LIVEKIT_URL = ${LIVEKIT_URL}"
+echo "[entrypoint] NEXT_PUBLIC_API_BASE   = ${API_BASE:-(derive from browser host)}"
+echo "[entrypoint] NEXT_PUBLIC_LIVEKIT_URL = ${LIVEKIT_URL:-(derive from browser host)}"
 
 # Replace sentinels across the built server + client chunks. Only files that
 # still contain a sentinel are touched (a no-op on an already-rewritten layer).

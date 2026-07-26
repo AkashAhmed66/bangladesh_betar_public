@@ -71,7 +71,6 @@ export function typeLabel(type: CatalogueItem["type"] | string): string {
     case "artist": return "Artist";
     case "programme": return "Programme";
     case "episode": return "Episode";
-    case "story": return "Story";
     case "podcast_channel": return "Podcast";
     case "podcast_episode": return "Podcast episode";
     case "playlist": return "Playlist";
@@ -90,7 +89,6 @@ export function itemHref(item: { type: string; id: number }): string {
     case "podcast_channel": return `/podcasts/${item.id}`;
     case "podcast_episode": return `/podcast-episodes/${item.id}`;
     case "playlist": return `/playlists/${item.id}`;
-    case "story": return `/episodes/${(item as { episode_id?: number }).episode_id ?? item.id}`;
     default: return `/assets/${item.id}`;
   }
 }

@@ -5,17 +5,30 @@
  */
 
 /**
- * API base URL — configured per deployment via NEXT_PUBLIC_API_BASE.
+ * API base URL resolution — resilient to the server's LAN IP changing.
  *
- *   Local dev:  http://localhost:8080/api/v1
- *   LAN share:  http://<server-LAN-IP>:8080/api/v1
- *   Production: https://api.yourdomain.com/api/v1
+ * Priority:
+ *   1. NEXT_PUBLIC_API_BASE when explicitly set (e.g. a production domain).
+ *   2. Otherwise DERIVE from the address the portal was opened on: open the app
+ *      at http://<host>:15001 and it calls the API at http://<host>:15000. So
+ *      whether that's localhost, 192.168.x.y, or a DHCP-reassigned IP, the API
+ *      follows automatically — no IP is ever hard-coded.
+ *   3. SSR fallback (no window) — localhost.
  *
- * NEXT_PUBLIC_* values are inlined at build time, so set this in .env.local
- * (or your deploy env) BEFORE `npm run build`.
+ * The API port defaults to 15000; override with NEXT_PUBLIC_API_PORT if needed.
  */
-export const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8080/api/v1";
+const API_PORT = (process.env.NEXT_PUBLIC_API_PORT || "15000").trim();
+
+export function resolveApiBase(): string {
+  const explicit = process.env.NEXT_PUBLIC_API_BASE?.trim();
+  // Ignore the build-time sentinel (present only if the Docker entrypoint that
+  // rewrites it did not run, e.g. under `npm run dev`).
+  if (explicit && !explicit.includes("__RT_")) return explicit;
+  if (typeof window !== "undefined") {
+    return `${window.location.protocol}//${window.location.hostname}:${API_PORT}/api/v1`;
+  }
+  return `http://localhost:${API_PORT}/api/v1`;
+}
 
 export class ApiError extends Error {
   status: number;
@@ -65,7 +78,7 @@ interface RequestOptions {
 
 export async function api<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   const token = tokenGetter();
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(`${resolveApiBase()}${path}`, {
     method: opts.method ?? "GET",
     headers: {
       Accept: "application/json",

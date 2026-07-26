@@ -1,13 +1,13 @@
 "use client";
 
-import { ListX, Play, X } from "lucide-react";
+import { ChevronDown, ChevronUp, ListX, Play, X } from "lucide-react";
 import Artwork from "@/components/ui/Artwork";
 import { formatDuration } from "@/lib/format";
 import { usePlayer } from "@/stores/player";
 import { useUi } from "@/stores/ui";
 
 export default function QueuePanel() {
-  const { queue, index, contextLabel, jumpTo, removeAt, clearQueue } = usePlayer();
+  const { queue, index, contextLabel, jumpTo, removeAt, clearQueue, moveInQueue } = usePlayer();
   const { toggleQueuePanel, locale } = useUi();
 
   const upNext = queue.slice(index + 1);
@@ -59,19 +59,24 @@ export default function QueuePanel() {
             Up next {contextLabel ? `· from ${contextLabel}` : ""}
           </p>
           {upNext.length === 0 && <p className="px-2 py-3 text-xs text-ink-mute">Queue is empty.</p>}
-          {upNext.map((t, i) => (
-            <QueueRow
-              key={`${t.key}-${i}`}
-              title={locale === "bn" && t.titleBn ? t.titleBn : t.title}
-              subtitle={t.subtitle}
-              type={t.type}
-              id={t.id}
-              artworkUrl={t.artworkUrl}
-              duration={t.duration}
-              onPlay={() => jumpTo(index + 1 + i)}
-              onRemove={() => removeAt(index + 1 + i)}
-            />
-          ))}
+          {upNext.map((t, i) => {
+            const pos = index + 1 + i;
+            return (
+              <QueueRow
+                key={`${t.key}-${i}`}
+                title={locale === "bn" && t.titleBn ? t.titleBn : t.title}
+                subtitle={t.subtitle}
+                type={t.type}
+                id={t.id}
+                artworkUrl={t.artworkUrl}
+                duration={t.duration}
+                onPlay={() => jumpTo(pos)}
+                onRemove={() => removeAt(pos)}
+                onMoveUp={i > 0 ? () => moveInQueue(pos, pos - 1) : undefined}
+                onMoveDown={i < upNext.length - 1 ? () => moveInQueue(pos, pos + 1) : undefined}
+              />
+            );
+          })}
         </div>
       </div>
     </aside>
@@ -79,7 +84,7 @@ export default function QueuePanel() {
 }
 
 function QueueRow({
-  title, subtitle, type, id, artworkUrl, duration, active, onPlay, onRemove,
+  title, subtitle, type, id, artworkUrl, duration, active, onPlay, onRemove, onMoveUp, onMoveDown,
 }: {
   title: string;
   subtitle: string;
@@ -90,6 +95,8 @@ function QueueRow({
   active?: boolean;
   onPlay?: () => void;
   onRemove?: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
 }) {
   return (
     <div
@@ -113,7 +120,29 @@ function QueueRow({
         <p className={`clamp-1 text-sm font-medium ${active ? "text-accent" : ""}`}>{title}</p>
         <p className="clamp-1 text-xs text-ink-mute">{subtitle}</p>
       </div>
-      <span className="text-[11px] tabular-nums text-ink-mute">{formatDuration(duration)}</span>
+      {(onMoveUp || onMoveDown) && (
+        <div className="hidden items-center group-hover:flex">
+          <button
+            onClick={onMoveUp}
+            disabled={!onMoveUp}
+            aria-label="Move up in queue"
+            className="rounded p-0.5 text-ink-mute transition hover:text-ink disabled:opacity-25"
+          >
+            <ChevronUp className="size-4" />
+          </button>
+          <button
+            onClick={onMoveDown}
+            disabled={!onMoveDown}
+            aria-label="Move down in queue"
+            className="rounded p-0.5 text-ink-mute transition hover:text-ink disabled:opacity-25"
+          >
+            <ChevronDown className="size-4" />
+          </button>
+        </div>
+      )}
+      <span className={`text-[11px] tabular-nums text-ink-mute ${onMoveUp || onMoveDown || onRemove ? "group-hover:hidden" : ""}`}>
+        {formatDuration(duration)}
+      </span>
       {onRemove && (
         <button
           onClick={onRemove}
