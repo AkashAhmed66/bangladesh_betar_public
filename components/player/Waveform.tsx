@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useAuth } from "@/stores/auth";
 
 interface WaveformProps {
   peaks: number[] | null | undefined;
@@ -10,8 +11,12 @@ interface WaveformProps {
   bars?: number;
 }
 
-/** Interactive waveform seek bar rendered from archive-computed peaks. */
+/** Interactive waveform seek bar rendered from archive-computed peaks. Seeking
+ *  is a Premium feature — for free/guest listeners the bar is shown "locked"
+ *  and any attempt routes to the upgrade prompt (handled in the player store). */
 export default function Waveform({ peaks, progress, onSeek, className = "", bars = 72 }: WaveformProps) {
+  const isPremium = useAuth((s) => s.entitlements?.is_premium ?? false);
+  const locked = !!onSeek && !isPremium;
   const normalized = useMemo(() => {
     if (!peaks?.length) {
       // Deterministic gentle wave when the asset has no computed peaks.
@@ -31,12 +36,13 @@ export default function Waveform({ peaks, progress, onSeek, className = "", bars
   return (
     <div
       role={onSeek ? "slider" : undefined}
-      aria-label="Seek within track"
+      aria-label={locked ? "Seeking is a Premium feature" : "Seek within track"}
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={Math.round(progress * 100)}
       tabIndex={onSeek ? 0 : -1}
-      className={`flex h-16 cursor-pointer items-center gap-[2px] ${className}`}
+      title={locked ? "Seeking is a Premium feature" : undefined}
+      className={`flex h-16 items-center gap-[2px] ${onSeek ? (locked ? "cursor-not-allowed" : "cursor-pointer") : ""} ${className}`}
       onClick={(e) => {
         if (!onSeek) return;
         const rect = e.currentTarget.getBoundingClientRect();

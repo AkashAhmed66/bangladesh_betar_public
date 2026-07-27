@@ -7,13 +7,21 @@ import { useUi } from "@/stores/ui";
 
 const PERKS = [
   "Full-length premium recordings",
+  "Unlimited daily picks & a queue you control",
+  "Seek to any moment in a track",
   "Ad-free listening",
   "Higher audio quality (320 kbps)",
   "Unlimited skips",
 ];
 
+const DEFAULT_REASON = {
+  title: "That was a preview",
+  body: "This recording is part of the Premium collection. Upgrade to keep listening without limits.",
+};
+
 export default function UpgradePromptModal() {
-  const { upgradePromptOpen, closeUpgradePrompt } = useUi();
+  const { upgradePromptOpen, upgradeReason, closeUpgradePrompt } = useUi();
+  const reason = upgradeReason ?? DEFAULT_REASON;
 
   return (
     <Modal open={upgradePromptOpen} onClose={closeUpgradePrompt}>
@@ -22,9 +30,9 @@ export default function UpgradePromptModal() {
           <Crown className="size-7 text-premium" />
         </span>
         <div>
-          <h3 className="font-display text-xl font-bold">That was a preview</h3>
+          <h3 className="font-display text-xl font-bold">{reason.title}</h3>
           <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-            This recording is part of the Premium collection. Upgrade to keep listening without limits.
+            {reason.body}
           </p>
         </div>
         <ul className="w-full space-y-2 rounded-card bg-raised p-4 text-left">

@@ -24,6 +24,7 @@ export const GUEST_ENTITLEMENTS: Entitlements = {
   ads_enabled: true,
   max_quality_kbps: 128,
   skips_per_hour: 6,
+  daily_picks: null, // resolved from the server (stream/auth) — see player store
   offline_downloads: false,
   equalizer: false,
   premium_content_access: "preview",

@@ -10,6 +10,12 @@ export interface Toast {
   kind: "info" | "success" | "error" | "premium";
 }
 
+/** Optional tailored copy for the upgrade modal (defaults to preview messaging). */
+export interface UpgradeReason {
+  title: string;
+  body: string;
+}
+
 interface UiState {
   locale: "en" | "bn";
   setLocale: (l: "en" | "bn") => void;
@@ -20,7 +26,8 @@ interface UiState {
   closeLoginPrompt: () => void;
 
   upgradePromptOpen: boolean;
-  openUpgradePrompt: () => void;
+  upgradeReason: UpgradeReason | null;
+  openUpgradePrompt: (reason?: UpgradeReason) => void;
   closeUpgradePrompt: () => void;
 
   addToPlaylistTrack: PlayerTrack | null;
@@ -51,8 +58,9 @@ export const useUi = create<UiState>()(
       closeLoginPrompt: () => set({ loginPromptOpen: false, loginPromptMessage: null }),
 
       upgradePromptOpen: false,
-      openUpgradePrompt: () => set({ upgradePromptOpen: true }),
-      closeUpgradePrompt: () => set({ upgradePromptOpen: false }),
+      upgradeReason: null,
+      openUpgradePrompt: (reason) => set({ upgradePromptOpen: true, upgradeReason: reason ?? null }),
+      closeUpgradePrompt: () => set({ upgradePromptOpen: false, upgradeReason: null }),
 
       addToPlaylistTrack: null,
       openAddToPlaylist: (track) => set({ addToPlaylistTrack: track }),

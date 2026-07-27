@@ -30,6 +30,17 @@ export const metadata: Metadata = {
   },
   description:
     "Stream the national sound archive of Bangladesh Betar — songs, programmes, podcasts and stories from a century of radio.",
+  applicationName: "Betar Archive",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Betar Archive",
+  },
+  icons: {
+    icon: [{ url: "/icons/icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/icons/icon.svg" }],
+  },
 };
 
 export const viewport: Viewport = {

@@ -5,13 +5,14 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import MediaCard from "@/components/cards/MediaCard";
 import TrackTable from "@/components/cards/TrackTable";
+import VoiceSearchButton from "@/components/search/VoiceSearchButton";
 import { EmptyState, SectionHeading } from "@/components/ui/Misc";
 import { artworkFor } from "@/lib/artwork";
 import { useCategories, useGenres, useSearch, useSuggestions } from "@/lib/hooks";
 import { toTracks } from "@/lib/tracks";
 import type { CatalogueItem } from "@/lib/types";
 
-const TABS = ["All", "Songs", "Artists", "Albums", "Podcasts", "Archive"] as const;
+const TABS = ["All", "Songs", "Programmes", "Episodes", "Podcasts"] as const;
 type Tab = (typeof TABS)[number];
 
 export default function SearchPage() {
@@ -35,20 +36,23 @@ export default function SearchPage() {
   const { data: categories } = useCategories();
 
   const songs = useMemo(() => results?.results.songs?.data ?? [], [results]);
-  const artists = results?.results.artists?.data ?? [];
-  const albums = results?.results.albums?.data ?? [];
-  const podcasts = results?.results.podcasts?.data ?? [];
-  const audio = useMemo(() => results?.results.audio?.data ?? [], [results]);
+  const programmes = useMemo(() => results?.results.programmes?.data ?? [], [results]);
+  // Programme episodes and podcast episodes are shown together under "Episodes".
+  const episodeItems = useMemo(
+    () => [...(results?.results.episodes?.data ?? []), ...(results?.results.podcast_episodes?.data ?? [])],
+    [results],
+  );
+  const podcasts = useMemo(() => results?.results.podcasts?.data ?? [], [results]);
   const songTracks = useMemo(() => toTracks(songs), [songs]);
-  const audioTracks = useMemo(() => toTracks(audio), [audio]);
+  const episodeTracks = useMemo(() => toTracks(episodeItems), [episodeItems]);
 
-  const hasAny = songs.length + artists.length + albums.length + podcasts.length + audio.length > 0;
+  const hasAny = songs.length + programmes.length + episodeItems.length + podcasts.length > 0;
 
   return (
     <div className="flex flex-col gap-6">
       {/* Search box */}
       <div className="relative max-w-2xl">
-        <div className="flex items-center gap-3 rounded-full border border-edge bg-raised px-5 py-3 transition focus-within:border-accent">
+        <div className="flex items-center gap-3 rounded-full border border-edge bg-raised px-5 py-3 transition-colors focus-within:border-accent">
           <SearchIcon className="size-5 shrink-0 text-ink-mute" />
           <input
             ref={inputRef}
@@ -60,7 +64,11 @@ export default function SearchPage() {
             onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
             onFocus={() => setShowSuggest(true)}
             placeholder="What do you want to listen to?"
-            className="w-full bg-transparent text-sm outline-none placeholder:text-ink-mute"
+            // Inline `outline: none` beats the global unlayered :focus-visible
+            // rule, so the input never draws its own (inner) outline — the
+            // container's focus-within border is the focus indicator instead.
+            style={{ outline: "none" }}
+            className="w-full bg-transparent text-sm placeholder:text-ink-mute"
             aria-label="Search the archive"
           />
           {input && (
@@ -68,6 +76,9 @@ export default function SearchPage() {
               <X className="size-4 text-ink-mute hover:text-ink" />
             </button>
           )}
+          <VoiceSearchButton
+            onResult={(t) => { setInput(t); setQuery(t); setShowSuggest(false); }}
+          />
         </div>
 
         {/* Type-ahead suggestions */}
@@ -155,7 +166,7 @@ export default function SearchPage() {
             <EmptyState
               icon={<SearchIcon className="size-10" />}
               title={`No results for “${query}”`}
-              subtitle="Check the spelling, or try a song, artist, album or programme name — Bangla titles work too."
+              subtitle="Check the spelling, or try a song, programme, podcast or episode name — Bangla titles work too."
             />
           )}
 
@@ -166,21 +177,19 @@ export default function SearchPage() {
             </section>
           )}
 
-          {(tab === "All" || tab === "Artists") && artists.length > 0 && (
+          {(tab === "All" || tab === "Programmes") && programmes.length > 0 && (
             <section>
-              <SectionHeading title="Artists" />
+              <SectionHeading title="Programmes" />
               <div className="-mx-3 flex flex-wrap">
-                {artists.map((a) => <MediaCard key={a.id} item={a} />)}
+                {programmes.map((p) => <MediaCard key={`programme-${p.id}`} item={p} />)}
               </div>
             </section>
           )}
 
-          {(tab === "All" || tab === "Albums") && albums.length > 0 && (
+          {(tab === "All" || tab === "Episodes") && episodeTracks.length > 0 && (
             <section>
-              <SectionHeading title="Albums" />
-              <div className="-mx-3 flex flex-wrap">
-                {albums.map((a) => <MediaCard key={a.id} item={a} />)}
-              </div>
+              <SectionHeading title="Episodes" />
+              <TrackTable tracks={tab === "All" ? episodeTracks.slice(0, 5) : episodeTracks} contextLabel={`Search: ${query}`} showPlays playCounts={episodeItems.map((e) => e.play_count)} />
             </section>
           )}
 
@@ -188,15 +197,8 @@ export default function SearchPage() {
             <section>
               <SectionHeading title="Podcasts" />
               <div className="-mx-3 flex flex-wrap">
-                {podcasts.map((p) => <MediaCard key={p.id} item={p as CatalogueItem} />)}
+                {podcasts.map((p) => <MediaCard key={`podcast-${p.id}`} item={p as CatalogueItem} />)}
               </div>
-            </section>
-          )}
-
-          {(tab === "All" || tab === "Archive") && audioTracks.length > 0 && (
-            <section>
-              <SectionHeading title="Archive recordings" />
-              <TrackTable tracks={tab === "All" ? audioTracks.slice(0, 5) : audioTracks} contextLabel={`Search: ${query}`} showPlays playCounts={audio.map((a) => a.play_count)} favorited={audio.map((a) => a.is_favorited)} />
             </section>
           )}
         </>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, RadioTower, Volume2, VolumeX, X } from "lucide-react";
+import { Hand, Loader2, Mic, MicOff, RadioTower, Volume2, VolumeX, X } from "lucide-react";
 import Link from "next/link";
 import { useLive } from "@/stores/live";
 
@@ -18,6 +18,12 @@ export default function LiveDock() {
   const setVolume = useLive((s) => s.setVolume);
   const toggleMute = useLive((s) => s.toggleMute);
   const disconnect = useLive((s) => s.disconnect);
+  const canSpeak = useLive((s) => s.canSpeak);
+  const micOn = useLive((s) => s.micOn);
+  const handRaised = useLive((s) => s.handRaised);
+  const setMic = useLive((s) => s.setMic);
+  const raiseHand = useLive((s) => s.raiseHand);
+  const lowerHand = useLive((s) => s.lowerHand);
 
   if (status !== "live" && status !== "connecting") return null;
 
@@ -70,6 +76,34 @@ export default function LiveDock() {
           className="h-1 w-24 cursor-pointer accent-flag"
         />
       </div>
+
+      {/* Speak controls: mic toggle once granted, otherwise raise-hand. */}
+      {status === "live" &&
+        (canSpeak ? (
+          <button
+            onClick={() => setMic(!micOn)}
+            aria-label={micOn ? "Turn off your microphone" : "Turn on your microphone"}
+            title={micOn ? "You're on air — tap to mute" : "Tap to speak"}
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition ${
+              micOn ? "bg-danger text-white hover:opacity-90" : "bg-flag/20 text-flag hover:bg-flag/30"
+            }`}
+          >
+            {micOn ? <Mic className="size-4" /> : <MicOff className="size-4" />}
+            <span className="hidden sm:inline">{micOn ? "On air" : "Speak"}</span>
+          </button>
+        ) : (
+          <button
+            onClick={() => (handRaised ? lowerHand() : raiseHand())}
+            aria-label={handRaised ? "Lower your hand" : "Raise your hand to speak"}
+            title={handRaised ? "Waiting for the host — tap to lower" : "Request to speak"}
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition ${
+              handRaised ? "bg-premium text-premium-fg hover:opacity-90" : "text-ink-soft hover:text-ink"
+            }`}
+          >
+            <Hand className="size-4" />
+            <span className="hidden sm:inline">{handRaised ? "Hand raised" : "Raise hand"}</span>
+          </button>
+        ))}
 
       <button
         onClick={disconnect}

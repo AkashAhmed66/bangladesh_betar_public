@@ -1,12 +1,13 @@
 "use client";
 
-import { Flag, Info, ListEnd, ListPlus, ListStart, MoreHorizontal } from "lucide-react";
+import { ArrowDownToLine, Check, Flag, Info, ListEnd, ListPlus, ListStart, Loader2, MoreHorizontal } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { PlayerTrack } from "@/stores/player";
 import { usePlayer } from "@/stores/player";
 import { useAuth } from "@/stores/auth";
+import { useDownloads } from "@/stores/downloads";
 import { useUi } from "@/stores/ui";
 
 interface TrackMenuProps {
@@ -30,6 +31,10 @@ export default function TrackMenu({ track, className = "", extraItems = [] }: Tr
   const queueNext = usePlayer((s) => s.queueNext);
   const queueLast = usePlayer((s) => s.queueLast);
   const token = useAuth((s) => s.token);
+  const downloaded = useDownloads((s) => !!s.records[track.assetId]);
+  const dlProgress = useDownloads((s) => s.progress[track.assetId]);
+  const download = useDownloads((s) => s.download);
+  const removeDownload = useDownloads((s) => s.remove);
   const { openLoginPrompt, openAddToPlaylist } = useUi();
 
   useEffect(() => setMounted(true), []);
@@ -108,6 +113,19 @@ export default function TrackMenu({ track, className = "", extraItems = [] }: Tr
             >
               <ListPlus className="size-4" /> Add to playlist
             </button>
+            {downloaded ? (
+              <button className={item} onClick={() => removeDownload(track.assetId)}>
+                <Check className="size-4 text-accent" /> Downloaded — remove
+              </button>
+            ) : dlProgress != null ? (
+              <span className={`${item} cursor-default`}>
+                <Loader2 className="size-4 animate-spin" /> Downloading… {dlProgress}%
+              </span>
+            ) : (
+              <button className={item} onClick={() => download(track)}>
+                <ArrowDownToLine className="size-4" /> Download for offline
+              </button>
+            )}
             <Link href={track.href} className={item}>
               <Info className="size-4" /> Go to details
             </Link>

@@ -22,6 +22,7 @@ import FavoriteButton from "@/components/ui/FavoriteButton";
 import { PremiumBadge } from "@/components/ui/Misc";
 import { artworkFor } from "@/lib/artwork";
 import { formatDuration } from "@/lib/format";
+import { useAuth } from "@/stores/auth";
 import { useCurrentTrack, usePlayer } from "@/stores/player";
 import { useUi } from "@/stores/ui";
 
@@ -31,7 +32,8 @@ export default function PlayerBar() {
     status, position, duration, volume, muted, repeat, shuffle, ad, adRemaining, stream,
     toggle, next, prev, seek, setVolume, toggleMute, cycleRepeat, toggleShuffle,
   } = usePlayer();
-  const { toggleQueuePanel, setNowPlayingOpen, locale } = useUi();
+  const { toggleQueuePanel, setNowPlayingOpen, locale, openUpgradePrompt } = useUi();
+  const isPremium = useAuth((s) => s.entitlements?.is_premium ?? false);
 
   const art = track ? artworkFor(track.type, track.id) : null;
   const title = track ? (locale === "bn" && track.titleBn ? track.titleBn : track.title) : null;
@@ -154,21 +156,42 @@ export default function PlayerBar() {
               <span className="w-10 text-right text-[11px] tabular-nums text-ink-mute">
                 {formatDuration(position)}
               </span>
-              <input
-                type="range"
-                className="seek w-full"
-                min={0}
-                max={Math.max(1, effectiveDuration)}
-                step={1}
-                value={Math.min(position, effectiveDuration)}
-                onChange={(e) => seek(Number(e.target.value))}
-                aria-label="Seek"
-                style={{
-                  ["--track-bg" as string]: `linear-gradient(to right, var(--accent) ${
-                    (Math.min(position, effectiveDuration) / Math.max(1, effectiveDuration)) * 100
-                  }%, var(--border-strong) 0)`,
-                }}
-              />
+              {/* Premium: draggable range. Free: read-only progress bar. */}
+              {isPremium ? (
+                <input
+                  type="range"
+                  className="seek w-full"
+                  min={0}
+                  max={Math.max(1, effectiveDuration)}
+                  step={1}
+                  value={Math.min(position, effectiveDuration)}
+                  onChange={(e) => seek(Number(e.target.value))}
+                  aria-label="Seek"
+                  style={{
+                    ["--track-bg" as string]: `linear-gradient(to right, var(--accent) ${
+                      (Math.min(position, effectiveDuration) / Math.max(1, effectiveDuration)) * 100
+                    }%, var(--border-strong) 0)`,
+                  }}
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() =>
+                    openUpgradePrompt({
+                      title: "Seeking is a Premium feature",
+                      body: "Upgrade to scrub to any moment in a recording. Free listening plays each track straight through.",
+                    })
+                  }
+                  aria-label="Seeking is a Premium feature — upgrade for full playback control"
+                  title="Seeking is a Premium feature — upgrade for full playback control"
+                  className="group relative h-1.5 w-full cursor-not-allowed overflow-hidden rounded-full bg-edge-strong"
+                >
+                  <span
+                    className="absolute inset-y-0 left-0 rounded-full bg-accent"
+                    style={{ width: `${(Math.min(position, effectiveDuration) / Math.max(1, effectiveDuration)) * 100}%` }}
+                  />
+                </button>
+              )}
               <span className="w-10 text-[11px] tabular-nums text-ink-mute">
                 {formatDuration(effectiveDuration)}
               </span>

@@ -261,6 +261,10 @@ export interface Entitlements {
   ads_enabled: boolean;
   max_quality_kbps: number;
   skips_per_hour: number | null;
+  /** Tracks a free listener may actively choose/queue per day. null = unlimited
+   *  (premium); 0 = unlimited via admin config. After the budget is spent,
+   *  autoplay falls back to a random radio mix. */
+  daily_picks?: number | null;
   offline_downloads: boolean;
   equalizer: boolean;
   premium_content_access: "preview" | "full";
@@ -311,6 +315,8 @@ export interface StreamResponse {
   title: string;
   stream: StreamDescriptor;
   ad: AdDescriptor | null;
+  ad_every_n_songs?: number;
+  daily_picks?: number | null;
   requires_login_for_full: boolean;
 }
 
@@ -325,20 +331,23 @@ export type PlayEventType =
 
 // ---- Search ----
 
+// Public search only exposes the published catalogue — songs, programmes and
+// podcasts with their episodes. Raw archive recordings and internal metadata
+// (artists/albums) are intentionally excluded.
 export interface SearchResults {
   query: string;
   results: {
     songs?: { data: Song[] };
-    artists?: { data: Artist[] };
-    albums?: { data: Album[] };
+    programmes?: { data: Programme[] };
+    episodes?: { data: Episode[] };
+    podcast_episodes?: { data: PodcastEpisode[] };
     podcasts?: { data: PodcastChannel[] };
-    audio?: { data: AudioAsset[] };
   };
 }
 
 export interface Suggestion {
   text: string;
-  type: "title" | "artist" | "album";
+  type: "song" | "programme" | "podcast";
 }
 
 // ---- Library ----

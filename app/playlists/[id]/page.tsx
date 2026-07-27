@@ -1,6 +1,6 @@
 "use client";
 
-import { Globe2, Lock, Pencil, Trash2 } from "lucide-react";
+import { Globe2, ListMusic, Lock, Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { use, useMemo, useState } from "react";
 import TrackTable from "@/components/cards/TrackTable";
@@ -111,6 +111,15 @@ export default function PlaylistPage({ params }: { params: Promise<{ id: string 
           <>
             {tracks.length > 0 && (
               <PlayCircle size="size-14" icon="size-6" onClick={() => playContext(tracks, 0, playlist.title)} label={`Play ${playlist.title}`} />
+            )}
+            {tracks.length > 0 && (
+              <button
+                onClick={() => playContext(tracks, 0, playlist.title)}
+                className="flex items-center gap-2 rounded-full border border-edge-strong px-4 py-1.5 text-sm font-semibold transition hover:border-ink"
+                aria-label={`Play “${playlist.title}” as the current queue`}
+              >
+                <ListMusic className="size-4" /> Play as queue
+              </button>
             )}
             {!isOwner && <FollowButton type="playlist" id={playlist.id} initial={playlist.is_following} />}
             {isOwner && (

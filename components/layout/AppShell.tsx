@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 import MobileNav from "./MobileNav";
 import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
@@ -11,7 +12,9 @@ import LiveDock from "@/components/live/LiveDock";
 import AddToPlaylistModal from "@/components/library/AddToPlaylistModal";
 import LoginPromptModal from "@/components/modals/LoginPromptModal";
 import UpgradePromptModal from "@/components/modals/UpgradePromptModal";
+import RegisterSW from "@/components/pwa/RegisterSW";
 import Toaster from "@/components/ui/Toaster";
+import { useDownloads } from "@/stores/downloads";
 import { useUi } from "@/stores/ui";
 
 /** Spotify-style chrome: sidebar + rounded main panel + bottom player. */
@@ -20,11 +23,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const queuePanelOpen = useUi((s) => s.queuePanelOpen);
   const bare = pathname === "/login" || pathname === "/register";
 
+  // Load the offline-downloads index once so download state is known app-wide.
+  useEffect(() => {
+    void useDownloads.getState().hydrate();
+  }, []);
+
   if (bare) {
     return (
       <div className="flex h-dvh flex-col overflow-y-auto bg-page">
         {children}
         <Toaster />
+        <RegisterSW />
       </div>
     );
   }
@@ -53,6 +62,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <UpgradePromptModal />
       <AddToPlaylistModal />
       <Toaster />
+      <RegisterSW />
     </div>
   );
 }

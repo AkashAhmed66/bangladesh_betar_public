@@ -4,7 +4,9 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { get, post, put } from "@/lib/api";
 import { anonymousId } from "@/lib/anon";
-import type { AdDescriptor, PlayEventType, StreamResponse } from "@/lib/types";
+import { offlineBlobUrl } from "@/lib/offline";
+import { toTracks } from "@/lib/tracks";
+import type { AdDescriptor, AudioAsset, PlayEventType, StreamResponse } from "@/lib/types";
 import { currentEntitlements, useAuth } from "./auth";
 import { useUi } from "./ui";
 
@@ -69,10 +71,128 @@ const AD_DURATION_SECONDS = 10;
 
 let audio: HTMLAudioElement | null = null;
 let pendingSeek: number | null = null;
+let currentBlobUrl: string | null = null; // object URL of the offline track currently loaded
 let lastProgressAt = 0;
 let skipTimestamps: number[] = [];
 let queueSyncTimer: ReturnType<typeof setTimeout> | null = null;
 let adTimer: ReturnType<typeof setInterval> | null = null;
+
+// Ad pacing: play one ad after every `adEveryN` songs (server-configurable via
+// the `ad_every_n_songs` setting). We count ad-free songs and only ask the
+// server for an ad — `?ad=1` — once that many have played, so the round-robin
+// pointer only advances when an ad is actually shown.
+let songsSinceAd = 0;
+let adEveryN = 2;
+
+// ---------------------------------------------------------------------------
+// Free-tier daily "pick" budget
+// ---------------------------------------------------------------------------
+// A "pick" is a deliberate selection by a free/guest listener: pressing play on
+// a track/album/playlist, or adding a track to the queue. Premium is unlimited.
+// The limit is admin-configurable (setting `free_daily_picks`) and arrives from
+// the server on every stream response (and via entitlements for members). Once
+// the budget is spent, curation is blocked and autoplay drops into a random
+// "radio" mix. Counting is per calendar day, persisted so a reload can't reset
+// it — consistent with how the skip-limit / seek-gate are enforced client-side.
+
+const PICKS_STORAGE_KEY = "betar.picks";
+let serverPickLimit = 10; // synced from stream.daily_picks (0 = unlimited)
+
+function pickDayKey(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+}
+
+function readPicksUsed(): number {
+  if (typeof window === "undefined") return 0;
+  try {
+    const raw = JSON.parse(localStorage.getItem(PICKS_STORAGE_KEY) || "null");
+    if (raw && raw.day === pickDayKey()) return Number(raw.used) || 0;
+  } catch {
+    /* ignore malformed storage */
+  }
+  return 0;
+}
+
+function writePicksUsed(used: number) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(PICKS_STORAGE_KEY, JSON.stringify({ day: pickDayKey(), used }));
+  } catch {
+    /* storage may be unavailable — enforcement is best-effort */
+  }
+}
+
+/** Effective daily pick limit for the current listener (0 = unlimited). */
+function pickLimit(): number {
+  const ent = currentEntitlements();
+  if (ent.is_premium) return 0; // premium is never gated
+  if (typeof ent.daily_picks === "number") return Math.max(0, ent.daily_picks);
+  return Math.max(0, serverPickLimit);
+}
+
+/** True once a free listener has spent their daily picks (→ radio mode). */
+function pickBudgetSpent(): boolean {
+  const limit = pickLimit();
+  if (limit <= 0) return false;
+  return readPicksUsed() >= limit;
+}
+
+/** Consume one pick. Returns false (without consuming) when the budget is spent. */
+function consumePick(): boolean {
+  const limit = pickLimit();
+  if (limit <= 0) return true;
+  const used = readPicksUsed();
+  if (used >= limit) return false;
+  writePicksUsed(used + 1);
+  return true;
+}
+
+function promptPicksSpent() {
+  const limit = pickLimit();
+  useUi.getState().openUpgradePrompt({
+    title: "You've used today's free picks",
+    body: `Free listening includes ${limit} hand-picked plays a day, and you've used them all. Music keeps going as a random radio mix — go Premium for unlimited picks and a queue you fully control.`,
+  });
+}
+
+/** Fetch a random, non-premium track to keep free-tier autoplay going. */
+async function fetchRadioTrack(excludeAssetId?: number): Promise<PlayerTrack | null> {
+  try {
+    const qs = excludeAssetId ? `?exclude=${excludeAssetId}` : "";
+    const res = await get<{ data: AudioAsset[] }>(`/radio${qs}`);
+    const tracks = toTracks(res.data);
+    if (!tracks.length) return null;
+    return tracks[Math.floor(Math.random() * tracks.length)];
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Drop into "radio": play a random track. When `replace` is true the queue is
+ * reset to that single track (a free listener with no picks left starting
+ * fresh); otherwise it is appended and made current — used by auto-advance once
+ * the budget is spent, so autoplay ignores the built queue and just keeps
+ * playing random music.
+ */
+function enterRadio(replace: boolean) {
+  const s = usePlayer.getState();
+  const currentAsset = s.queue[s.index]?.assetId;
+  void fetchRadioTrack(currentAsset).then((track) => {
+    if (!track) {
+      usePlayer.setState({ status: "paused" });
+      return;
+    }
+    const cur = usePlayer.getState();
+    if (replace || cur.index < 0) {
+      usePlayer.setState({ queue: [track], index: 0, contextLabel: "Radio mix" });
+    } else {
+      usePlayer.setState({ queue: [...cur.queue, track], index: cur.queue.length, contextLabel: "Radio mix" });
+    }
+    void loadCurrent();
+  });
+}
 
 function engine(): HTMLAudioElement {
   if (audio) return audio;
@@ -239,17 +359,60 @@ async function loadCurrent(resumeFrom?: number) {
 
   usePlayer.setState({ status: "loading", position: resumeFrom ?? 0, duration: track.duration ?? 0, stream: null, ad: null });
 
+  // Release the previous offline object URL, if any.
+  if (currentBlobUrl) {
+    URL.revokeObjectURL(currentBlobUrl);
+    currentBlobUrl = null;
+  }
+
+  // Offline-first: if this track was downloaded, play the local copy. Works
+  // with no network and never carries an ad (offline is a Premium-only feature).
+  const offlineUrl = await offlineBlobUrl(track.assetId);
+  if (offlineUrl) {
+    // Bail if the user skipped while we were reading storage.
+    if (usePlayer.getState().queue[usePlayer.getState().index]?.key !== track.key) {
+      URL.revokeObjectURL(offlineUrl);
+      return;
+    }
+    currentBlobUrl = offlineUrl;
+    const el = engine();
+    el.src = offlineUrl;
+    pendingSeek = resumeFrom ?? track.startAt ?? null;
+    lastProgressAt = 0;
+    usePlayer.setState({ stream: null, ad: null });
+    el.play()
+      .then(() => {
+        usePlayer.setState({ status: "playing", duration: el.duration || track.duration || 0 });
+        sendEvent("play", pendingSeek ?? 0);
+        updateMediaSession(track);
+      })
+      .catch(() => usePlayer.setState({ status: "paused" }));
+    return;
+  }
+
   try {
-    const stream = await get<StreamResponse>(`/assets/${track.assetId}/stream`);
+    // Ask for an ad only once `adEveryN` ad-free songs have played (free tier).
+    const adsEnabled = currentEntitlements().ads_enabled;
+    const wantAd = adsEnabled && songsSinceAd >= adEveryN;
+    const stream = await get<StreamResponse>(`/assets/${track.assetId}/stream${wantAd ? "?ad=1" : ""}`);
     // The user may have skipped while we were resolving.
     if (usePlayer.getState().queue[usePlayer.getState().index]?.key !== track.key) return;
+
+    if (typeof stream.ad_every_n_songs === "number" && stream.ad_every_n_songs > 0) {
+      adEveryN = stream.ad_every_n_songs; // keep in sync with the admin setting
+    }
+    if (typeof stream.daily_picks === "number") {
+      serverPickLimit = stream.daily_picks; // keep the pick budget in sync (guests included)
+    }
 
     pendingSeek = resumeFrom ?? track.startAt ?? null;
     usePlayer.setState({ stream });
 
     if (stream.ad?.audio_url) {
+      songsSinceAd = 0; // ad served — restart the count toward the next one
       startAd(stream.ad); // fixed-length pre-roll, then the main track
     } else {
+      if (adsEnabled) songsSinceAd += 1; // one more ad-free song
       startMainStream();
     }
   } catch (e) {
@@ -334,6 +497,15 @@ export const usePlayer = create<PlayerState>()(
 
       playContext: (tracks, startIndex, label, resumeFrom) => {
         if (!tracks.length) return;
+        // Free-tier daily pick budget: choosing new content costs one pick. When
+        // the budget is spent we deny the specific choice; if nothing is playing
+        // we start a radio mix so the listener still gets music.
+        if (!consumePick()) {
+          promptPicksSpent();
+          const cur = getState();
+          if (cur.index < 0 || cur.status === "idle") enterRadio(true);
+          return;
+        }
         const s = getState();
         let queue = tracks;
         let index = startIndex;
@@ -374,10 +546,17 @@ export const usePlayer = create<PlayerState>()(
       next: (userInitiated = false) => {
         const s = getState();
         if (s.ad) return; // ads are not skippable
-        if (!s.queue.length) return;
+        // Once a free listener's daily picks are spent, autoplay becomes a
+        // random radio mix — the next track is random, irrespective of the queue.
+        const radio = pickBudgetSpent();
+        if (!radio && !s.queue.length) return;
         if (userInitiated) {
           if (!consumeSkip()) return;
           sendEvent("skip", engine().currentTime);
+        }
+        if (radio) {
+          enterRadio(false);
+          return;
         }
         let i = s.index + 1;
         if (i >= s.queue.length) {
@@ -408,6 +587,15 @@ export const usePlayer = create<PlayerState>()(
       seek: (seconds) => {
         const s = getState();
         if (s.ad) return;
+        // Scrubbing to a position is Premium-only. Free/guest listeners can
+        // still play, pause and skip, but not drag the timeline (FR-PLY).
+        if (!currentEntitlements().is_premium) {
+          useUi.getState().openUpgradePrompt({
+            title: "Seeking is a Premium feature",
+            body: "Upgrade to scrub to any moment in a recording. Free listening plays each track straight through.",
+          });
+          return;
+        }
         const el = engine();
         el.currentTime = seconds;
         set({ position: seconds });
@@ -448,7 +636,11 @@ export const usePlayer = create<PlayerState>()(
       queueNext: (track) => {
         const s = getState();
         if (s.index < 0) {
-          getState().playTrack(track);
+          getState().playTrack(track); // playContext charges the pick
+          return;
+        }
+        if (!consumePick()) {
+          promptPicksSpent();
           return;
         }
         const queue = [...s.queue];
@@ -461,7 +653,11 @@ export const usePlayer = create<PlayerState>()(
       queueLast: (track) => {
         const s = getState();
         if (s.index < 0) {
-          getState().playTrack(track);
+          getState().playTrack(track); // playContext charges the pick
+          return;
+        }
+        if (!consumePick()) {
+          promptPicksSpent();
           return;
         }
         set({ queue: [...s.queue, track] });
