@@ -2,6 +2,7 @@
 
 import {
   ChevronDown,
+  ListOrdered,
   Loader2,
   Pause,
   Play,
@@ -153,6 +154,38 @@ export default function NowPlaying() {
           initial={asset?.is_favorited}
           size="size-6"
         />
+
+        {/* Chapters — highlights the one currently playing */}
+        {asset?.chapters && asset.chapters.length > 0 && (
+          <div className="w-full max-w-md">
+            <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink-mute">
+              <ListOrdered className="size-4" /> Chapters
+            </p>
+            <div className="flex flex-col">
+              {asset.chapters.map((ch, i) => {
+                const nextStart = asset.chapters![i + 1]?.start_seconds ?? Infinity;
+                const active = position >= ch.start_seconds && position < nextStart;
+                return (
+                  <button
+                    key={i}
+                    onClick={() => seek(ch.start_seconds)}
+                    className={`flex items-center gap-4 rounded-card px-3 py-2 text-left transition ${
+                      active ? "bg-raised" : "hover:bg-raised/60"
+                    }`}
+                  >
+                    <span className={`w-12 text-xs tabular-nums ${active ? "text-accent" : "text-ink-mute"}`}>
+                      {formatDuration(ch.start_seconds)}
+                    </span>
+                    <span className={`flex-1 text-sm ${active ? "font-semibold text-ink" : "font-medium text-ink-soft"}`}>
+                      {ch.title}
+                    </span>
+                    {active && <span className="text-[10px] font-bold uppercase tracking-wider text-accent">Playing</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

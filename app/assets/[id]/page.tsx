@@ -1,5 +1,6 @@
 "use client";
 
+import { ListOrdered } from "lucide-react";
 import { use, useMemo } from "react";
 import TrackTable from "@/components/cards/TrackTable";
 import DetailHero from "@/components/detail/DetailHero";
@@ -88,6 +89,32 @@ export default function AssetPage({ params }: { params: Promise<{ id: string }> 
 
       {asset.description && (
         <p className="max-w-3xl text-sm leading-relaxed text-ink-soft">{asset.description}</p>
+      )}
+
+      {asset.chapters && asset.chapters.length > 0 && (
+        <section>
+          <SectionHeading title={<span className="flex items-center gap-2"><ListOrdered className="size-5 text-accent" /> Chapters</span>} />
+          <div className="flex flex-col">
+            {asset.chapters.map((ch, i) => {
+              const nextStart = asset.chapters![i + 1]?.start_seconds ?? Infinity;
+              const active = isCurrent && position >= ch.start_seconds && position < nextStart;
+              return (
+                <button
+                  key={i}
+                  onClick={() => {
+                    if (isCurrent) seek(ch.start_seconds);
+                    else if (track) playTrack({ ...track, startAt: ch.start_seconds });
+                  }}
+                  className={`flex items-center gap-4 rounded-card px-3 py-2.5 text-left transition ${active ? "bg-raised" : "hover:bg-raised"}`}
+                >
+                  <span className="w-12 text-xs tabular-nums text-accent">{formatDuration(ch.start_seconds)}</span>
+                  <span className={`flex-1 text-sm ${active ? "font-semibold text-ink" : "font-medium"}`}>{ch.title}</span>
+                  {active && <span className="text-[10px] font-bold uppercase tracking-wider text-accent">Playing</span>}
+                </button>
+              );
+            })}
+          </div>
+        </section>
       )}
 
       {similarTracks.length > 0 && (

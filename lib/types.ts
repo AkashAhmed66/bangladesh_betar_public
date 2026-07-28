@@ -37,6 +37,7 @@ export interface AudioAsset {
   rating_count: number;
   allow_comments: boolean;
   waveform?: number[] | null;
+  chapters?: { title: string; start_seconds: number }[] | null;
   is_favorited?: boolean;
   my_rating?: number | null;
 }

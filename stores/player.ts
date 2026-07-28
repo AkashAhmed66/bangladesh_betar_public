@@ -474,6 +474,20 @@ function shuffled<T>(arr: T[]): T[] {
   return a;
 }
 
+/**
+ * Playback is members-only: a listener must be signed in before any audio can
+ * start. Returns true when there is a session; otherwise opens the login prompt
+ * and returns false so the caller can abort. Pausing an already-playing track
+ * is never gated (only starting/resuming is).
+ */
+function requireAuth(): boolean {
+  if (useAuth.getState().token) return true;
+  useUi.getState().openLoginPrompt(
+    "Please sign in to play. Listening on Bangladesh Betar is free — create an account to start playing.",
+  );
+  return false;
+}
+
 // ---------------------------------------------------------------------------
 // Store
 // ---------------------------------------------------------------------------
@@ -497,6 +511,8 @@ export const usePlayer = create<PlayerState>()(
 
       playContext: (tracks, startIndex, label, resumeFrom) => {
         if (!tracks.length) return;
+        // Gate: only signed-in listeners can start playback.
+        if (!requireAuth()) return;
         // Free-tier daily pick budget: choosing new content costs one pick. When
         // the budget is spent we deny the specific choice; if nothing is playing
         // we start a radio mix so the listener still gets music.
@@ -526,6 +542,10 @@ export const usePlayer = create<PlayerState>()(
 
       toggle: () => {
         const s = getState();
+        // Starting or resuming requires a session (a guest can only reach a
+        // resumable state via a queue persisted from a previous sign-in).
+        // Pausing while playing is always allowed.
+        if (s.status !== "playing" && !requireAuth()) return;
         const el = engine();
         if (s.status === "playing") {
           el.pause();

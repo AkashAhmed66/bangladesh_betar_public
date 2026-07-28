@@ -40,13 +40,49 @@ interface LiveState {
 }
 
 let room: Room | null = null;
-let audioEl: HTMLAudioElement | null = null;
+// One hidden <audio> element per subscribed remote track (the broadcaster and
+// any invited speakers), so every voice is heard — not just the latest one.
+const remoteAudio = new Map<string, HTMLAudioElement>();
 
-function ensureAudio(): HTMLAudioElement {
-  if (audioEl) return audioEl;
-  audioEl = new Audio();
-  audioEl.autoplay = true;
-  return audioEl;
+function trackKey(track: RemoteTrack): string {
+  return track.sid ?? "";
+}
+
+function attachRemote(track: RemoteTrack, muted: boolean, volume: number) {
+  const el = track.attach() as HTMLAudioElement;
+  el.autoplay = true;
+  el.muted = muted;
+  el.volume = volume;
+  el.style.display = "none";
+  document.body.appendChild(el);
+  void el.play().catch(() => undefined);
+  remoteAudio.set(trackKey(track), el);
+}
+
+function detachRemote(track: RemoteTrack) {
+  const key = trackKey(track);
+  const el = remoteAudio.get(key);
+  if (!el) return;
+  try {
+    track.detach(el);
+  } catch {
+    /* noop */
+  }
+  el.remove();
+  remoteAudio.delete(key);
+}
+
+function clearRemotes() {
+  remoteAudio.forEach((el) => {
+    try {
+      el.pause();
+      el.srcObject = null;
+    } catch {
+      /* noop */
+    }
+    el.remove();
+  });
+  remoteAudio.clear();
 }
 
 export const useLive = create<LiveState>((set, get) => ({
@@ -80,17 +116,13 @@ export const useLive = create<LiveState>((set, get) => ({
       const r = new Room();
       room = r;
 
-      const el = ensureAudio();
-      el.muted = get().muted;
-      el.volume = get().volume;
-
+      // Play each subscribed audio track (broadcaster + invited speakers) on its
+      // own element so they mix rather than replace one another.
       r.on(RoomEvent.TrackSubscribed, (track: RemoteTrack) => {
-        if (track.kind === "audio") {
-          track.attach(el);
-          el.play().catch(() => {
-            /* autoplay guard — the Listen click already granted a gesture */
-          });
-        }
+        if (track.kind === "audio") attachRemote(track, get().muted, get().volume);
+      });
+      r.on(RoomEvent.TrackUnsubscribed, (track: RemoteTrack) => {
+        if (track.kind === "audio") detachRemote(track);
       });
 
       // The broadcaster granted/revoked our permission to speak. LiveKit pushes
@@ -111,6 +143,7 @@ export const useLive = create<LiveState>((set, get) => ({
       });
 
       r.on(RoomEvent.Disconnected, () => {
+        clearRemotes();
         if (get().channelId === channelId) {
           set({ status: "idle", channelId: null, channelTitle: null, canSpeak: false, micOn: false, handRaised: false });
         }
@@ -147,29 +180,24 @@ export const useLive = create<LiveState>((set, get) => ({
       }
       room = null;
     }
-    if (audioEl) {
-      try {
-        audioEl.pause();
-        audioEl.srcObject = null;
-      } catch {
-        /* noop */
-      }
-    }
+    clearRemotes();
     set({ status: "idle", channelId: null, channelTitle: null, canSpeak: false, micOn: false, handRaised: false });
   },
 
   setVolume: (v) => {
     const vol = Math.max(0, Math.min(1, v));
-    if (audioEl) {
-      audioEl.volume = vol;
-      audioEl.muted = false;
-    }
+    remoteAudio.forEach((el) => {
+      el.volume = vol;
+      el.muted = false;
+    });
     set({ volume: vol, muted: false });
   },
 
   toggleMute: () => {
     const muted = !get().muted;
-    if (audioEl) audioEl.muted = muted;
+    remoteAudio.forEach((el) => {
+      el.muted = muted;
+    });
     set({ muted });
   },
 
