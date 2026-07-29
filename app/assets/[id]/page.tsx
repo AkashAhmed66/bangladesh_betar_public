@@ -1,7 +1,7 @@
 "use client";
 
-import { ListOrdered } from "lucide-react";
-import { use, useMemo } from "react";
+import { ChevronDown, ListOrdered } from "lucide-react";
+import { use, useMemo, useState } from "react";
 import TrackTable from "@/components/cards/TrackTable";
 import DetailHero from "@/components/detail/DetailHero";
 import Comments from "@/components/engagement/Comments";
@@ -25,6 +25,7 @@ export default function AssetPage({ params }: { params: Promise<{ id: string }> 
   const { position, duration, seek } = usePlayer();
   const current = useCurrentTrack();
   const locale = useUi((s) => s.locale);
+  const [chaptersOpen, setChaptersOpen] = useState(true);
 
   const track = useMemo(() => (asset ? toTrack(asset) : null), [asset]);
   const similarTracks = useMemo(() => toTracks(similar?.data ?? []), [similar]);
@@ -93,7 +94,22 @@ export default function AssetPage({ params }: { params: Promise<{ id: string }> 
 
       {asset.chapters && asset.chapters.length > 0 && (
         <section>
-          <SectionHeading title={<span className="flex items-center gap-2"><ListOrdered className="size-5 text-accent" /> Chapters</span>} />
+          <SectionHeading
+            title={<span className="flex items-center gap-2"><ListOrdered className="size-5 text-accent" /> Chapters</span>}
+            action={
+              <button
+                type="button"
+                onClick={() => setChaptersOpen((o) => !o)}
+                aria-expanded={chaptersOpen}
+                aria-label={chaptersOpen ? "Collapse chapters" : "Expand chapters"}
+                className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold text-ink-mute transition hover:bg-raised hover:text-ink"
+              >
+                {chaptersOpen ? "Hide" : "Show"}
+                <ChevronDown className={`size-4 transition-transform ${chaptersOpen ? "" : "-rotate-90"}`} />
+              </button>
+            }
+          />
+          {chaptersOpen && (
           <div className="flex flex-col">
             {asset.chapters.map((ch, i) => {
               const nextStart = asset.chapters![i + 1]?.start_seconds ?? Infinity;
@@ -114,6 +130,7 @@ export default function AssetPage({ params }: { params: Promise<{ id: string }> 
               );
             })}
           </div>
+          )}
         </section>
       )}
 

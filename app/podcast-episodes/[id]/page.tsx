@@ -1,8 +1,8 @@
 "use client";
 
-import { ListOrdered } from "lucide-react";
+import { ChevronDown, ListOrdered } from "lucide-react";
 import Link from "next/link";
-import { use, useMemo } from "react";
+import { use, useMemo, useState } from "react";
 import DetailHero from "@/components/detail/DetailHero";
 import Comments from "@/components/engagement/Comments";
 import { PlayCircle, PremiumBadge, SectionHeading, Skeleton } from "@/components/ui/Misc";
@@ -22,6 +22,7 @@ export default function PodcastEpisodePage({ params }: { params: Promise<{ id: s
   const seek = usePlayer((s) => s.seek);
   const current = useCurrentTrack();
   const locale = useUi((s) => s.locale);
+  const [chaptersOpen, setChaptersOpen] = useState(true);
 
   const track = useMemo(() => (episode ? toTrack(episode) : null), [episode]);
 
@@ -76,7 +77,22 @@ export default function PodcastEpisodePage({ params }: { params: Promise<{ id: s
 
       {episode.chapters && episode.chapters.length > 0 && (
         <section>
-          <SectionHeading title={<span className="flex items-center gap-2"><ListOrdered className="size-5 text-accent" /> Chapters</span>} />
+          <SectionHeading
+            title={<span className="flex items-center gap-2"><ListOrdered className="size-5 text-accent" /> Chapters</span>}
+            action={
+              <button
+                type="button"
+                onClick={() => setChaptersOpen((o) => !o)}
+                aria-expanded={chaptersOpen}
+                aria-label={chaptersOpen ? "Collapse chapters" : "Expand chapters"}
+                className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold text-ink-mute transition hover:bg-raised hover:text-ink"
+              >
+                {chaptersOpen ? "Hide" : "Show"}
+                <ChevronDown className={`size-4 transition-transform ${chaptersOpen ? "" : "-rotate-90"}`} />
+              </button>
+            }
+          />
+          {chaptersOpen && (
           <div className="flex flex-col">
             {episode.chapters.map((ch, i) => (
               <button
@@ -92,6 +108,7 @@ export default function PodcastEpisodePage({ params }: { params: Promise<{ id: s
               </button>
             ))}
           </div>
+          )}
         </section>
       )}
 

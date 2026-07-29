@@ -13,6 +13,7 @@ import {
   SkipForward,
 } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import Artwork from "@/components/ui/Artwork";
 import FavoriteButton from "@/components/ui/FavoriteButton";
 import { PremiumBadge } from "@/components/ui/Misc";
@@ -36,6 +37,7 @@ export default function NowPlaying() {
 
   const { data: assetRes } = useAsset(open && track ? track.assetId : null);
   const asset = assetRes?.data;
+  const [chaptersOpen, setChaptersOpen] = useState(true);
 
   if (!open || !track) return null;
 
@@ -158,9 +160,17 @@ export default function NowPlaying() {
         {/* Chapters — highlights the one currently playing */}
         {asset?.chapters && asset.chapters.length > 0 && (
           <div className="w-full max-w-md">
-            <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink-mute">
+            <button
+              type="button"
+              onClick={() => setChaptersOpen((o) => !o)}
+              aria-expanded={chaptersOpen}
+              aria-label={chaptersOpen ? "Collapse chapters" : "Expand chapters"}
+              className="mb-2 flex w-full items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink-mute transition hover:text-ink"
+            >
               <ListOrdered className="size-4" /> Chapters
-            </p>
+              <ChevronDown className={`ml-auto size-4 transition-transform ${chaptersOpen ? "" : "-rotate-90"}`} />
+            </button>
+            {chaptersOpen && (
             <div className="flex flex-col">
               {asset.chapters.map((ch, i) => {
                 const nextStart = asset.chapters![i + 1]?.start_seconds ?? Infinity;
@@ -184,6 +194,7 @@ export default function NowPlaying() {
                 );
               })}
             </div>
+            )}
           </div>
         )}
       </div>
