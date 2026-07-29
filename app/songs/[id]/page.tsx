@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { use, useMemo, useState } from "react";
 import TrackTable from "@/components/cards/TrackTable";
+import Chapters from "@/components/detail/Chapters";
 import DetailHero from "@/components/detail/DetailHero";
 import Comments from "@/components/engagement/Comments";
 import FavoriteButton from "@/components/ui/FavoriteButton";
@@ -78,6 +79,8 @@ export default function SongPage({ params }: { params: Promise<{ id: string }> }
           </>
         }
       />
+
+      <Chapters assetId={song.audio_asset_id} track={track} chapters={asset?.chapters} />
 
       {lyrics && (
         <section>

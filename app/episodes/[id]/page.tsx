@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useMemo } from "react";
+import Chapters from "@/components/detail/Chapters";
 import DetailHero from "@/components/detail/DetailHero";
 import { PlayCircle, Skeleton } from "@/components/ui/Misc";
 import { displayTitle, altTitle, formatDate, formatDuration } from "@/lib/format";
@@ -41,6 +42,8 @@ export default function EpisodePage({ params }: { params: Promise<{ id: string }
         }
         actions={track && <PlayCircle size="size-14" icon="size-6" onClick={() => playTrack(track)} />}
       />
+
+      <Chapters assetId={episode.audio_asset_id} track={track} />
 
       {episode.description && (
         <p className="max-w-3xl text-sm leading-relaxed text-ink-soft">{episode.description}</p>
