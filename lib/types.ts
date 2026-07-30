@@ -59,6 +59,7 @@ export interface Song {
   play_count: number | null;
   avg_rating: number | null;
   singers?: string[];
+  artists?: { id: number; name: string; role: string | null }[];
   album?: Album | null;
   lyrics?: { en: string | null; bn: string | null };
   waveform?: number[] | null;
@@ -88,10 +89,16 @@ export interface Artist {
   slug: string;
   artist_type: string | null;
   photo_url: string | null;
+  cover_url?: string | null;
   is_featured: boolean;
+  is_verified?: boolean;
   followers_count: number;
+  monthly_listeners?: number;
+  songs_count?: number;
+  albums_count?: number;
   bio?: string | null;
   bio_bn?: string | null;
+  social_links?: Record<string, string> | null;
   is_following?: boolean;
 }
 
@@ -163,6 +170,7 @@ export interface PodcastEpisode {
   chapters: { title: string; start_seconds: number }[] | null;
   play_count: number;
   hosts?: string[];
+  artists?: { id: number; name: string; role: string | null }[];
 }
 
 export interface PlaylistItem {

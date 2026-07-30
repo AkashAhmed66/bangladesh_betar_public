@@ -72,7 +72,7 @@ export const useAlbums = (params = "") => useApi<Paginated<Album>>(`/albums${par
 export const useAlbum = (id: number | string) => useApi<{ data: Album }>(`/albums/${id}`);
 export const useArtists = (params = "") => useApi<Paginated<Artist>>(`/artists${params}`);
 export const useArtist = (id: number | string) =>
-  useApi<{ data: Artist; songs: { data: Song[] }; albums: { data: Album[] } }>(`/artists/${id}`);
+  useApi<{ data: Artist; songs: { data: Song[] }; albums: { data: Album[] }; similar: { data: Artist[] } }>(`/artists/${id}`);
 export const useProgrammes = (params = "") => useApi<Paginated<Programme>>(`/programmes${params}`);
 export const useProgramme = (id: number | string) =>
   useApi<{ data: Programme; episodes: Paginated<Episode> }>(`/programmes/${id}`);

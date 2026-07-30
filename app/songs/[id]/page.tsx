@@ -6,6 +6,7 @@ import TrackTable from "@/components/cards/TrackTable";
 import Chapters from "@/components/detail/Chapters";
 import DetailHero from "@/components/detail/DetailHero";
 import Comments from "@/components/engagement/Comments";
+import ArtistLinks from "@/components/ui/ArtistLinks";
 import FavoriteButton from "@/components/ui/FavoriteButton";
 import { PlayCircle, PremiumBadge, SectionHeading, Skeleton } from "@/components/ui/Misc";
 import TrackMenu from "@/components/ui/TrackMenu";
@@ -52,7 +53,11 @@ export default function SongPage({ params }: { params: Promise<{ id: string }> }
         subtitle={
           <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
             {song.is_premium && <PremiumBadge />}
-            <span className="font-semibold text-ink">{song.singers?.join(", ") || "Unknown artist"}</span>
+            <ArtistLinks
+              artists={song.artists}
+              fallback={song.singers?.join(", ") || "Unknown artist"}
+              className="font-semibold text-ink"
+            />
             {song.album && (
               <>
                 <span>·</span>

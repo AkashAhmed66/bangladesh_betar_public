@@ -5,6 +5,7 @@ import Link from "next/link";
 import { use, useMemo, useState } from "react";
 import DetailHero from "@/components/detail/DetailHero";
 import Comments from "@/components/engagement/Comments";
+import ArtistLinks from "@/components/ui/ArtistLinks";
 import { PlayCircle, PremiumBadge, SectionHeading, Skeleton } from "@/components/ui/Misc";
 import TrackMenu from "@/components/ui/TrackMenu";
 import { displayTitle, altTitle, formatDate, formatDuration } from "@/lib/format";
@@ -53,7 +54,12 @@ export default function PodcastEpisodePage({ params }: { params: Promise<{ id: s
                 {episode.channel.title}
               </Link>
             )}
-            {episode.hosts && episode.hosts.length > 0 && <span>· Hosted by {episode.hosts.join(", ")}</span>}
+            {(episode.artists?.some((a) => a.role === "host") || (episode.hosts?.length ?? 0) > 0) && (
+              <span>
+                · Hosted by{" "}
+                <ArtistLinks artists={episode.artists?.filter((a) => a.role === "host")} fallback={episode.hosts?.join(", ")} />
+              </span>
+            )}
           </span>
         }
         meta={

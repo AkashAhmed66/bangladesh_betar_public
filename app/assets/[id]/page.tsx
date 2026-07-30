@@ -6,6 +6,7 @@ import TrackTable from "@/components/cards/TrackTable";
 import DetailHero from "@/components/detail/DetailHero";
 import Comments from "@/components/engagement/Comments";
 import Waveform from "@/components/player/Waveform";
+import ArtistLinks from "@/components/ui/ArtistLinks";
 import FavoriteButton from "@/components/ui/FavoriteButton";
 import { PlayCircle, PremiumBadge, SectionHeading, Skeleton } from "@/components/ui/Misc";
 import TrackMenu from "@/components/ui/TrackMenu";
@@ -49,9 +50,11 @@ export default function AssetPage({ params }: { params: Promise<{ id: string }> 
         subtitle={
           <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
             {asset.is_premium && <PremiumBadge />}
-            <span className="font-semibold text-ink">
-              {asset.artists?.map((a) => a.name).join(", ") || asset.programme || asset.station || "Bangladesh Betar"}
-            </span>
+            <ArtistLinks
+              artists={asset.artists}
+              fallback={asset.programme || asset.station || "Bangladesh Betar"}
+              className="font-semibold text-ink"
+            />
           </span>
         }
         meta={
