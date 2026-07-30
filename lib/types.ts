@@ -339,16 +339,18 @@ export interface SearchResults {
   query: string;
   results: {
     songs?: { data: Song[] };
+    artists?: { data: Artist[] };
     programmes?: { data: Programme[] };
     episodes?: { data: Episode[] };
     podcast_episodes?: { data: PodcastEpisode[] };
     podcasts?: { data: PodcastChannel[] };
+    live_radios?: { data: LiveChannel[] };
   };
 }
 
 export interface Suggestion {
   text: string;
-  type: "song" | "programme" | "podcast";
+  type: "song" | "artist" | "programme" | "podcast" | "live_radio";
 }
 
 // ---- Library ----

@@ -1,6 +1,6 @@
 "use client";
 
-import { Search as SearchIcon, X } from "lucide-react";
+import { Radio, Search as SearchIcon, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import MediaCard from "@/components/cards/MediaCard";
@@ -8,11 +8,13 @@ import TrackTable from "@/components/cards/TrackTable";
 import VoiceSearchButton from "@/components/search/VoiceSearchButton";
 import { EmptyState, SectionHeading } from "@/components/ui/Misc";
 import { artworkFor } from "@/lib/artwork";
+import { displayTitle } from "@/lib/format";
 import { useCategories, useGenres, useSearch, useSuggestions } from "@/lib/hooks";
 import { toTracks } from "@/lib/tracks";
 import type { CatalogueItem } from "@/lib/types";
+import { useUi } from "@/stores/ui";
 
-const TABS = ["All", "Songs", "Programmes", "Episodes", "Podcasts"] as const;
+const TABS = ["All", "Songs", "Artists", "Programmes", "Episodes", "Podcasts", "Radio"] as const;
 type Tab = (typeof TABS)[number];
 
 export default function SearchPage() {
@@ -34,8 +36,11 @@ export default function SearchPage() {
   const { data: suggestions } = useSuggestions(showSuggest ? input : "");
   const { data: genres } = useGenres();
   const { data: categories } = useCategories();
+  const locale = useUi((s) => s.locale);
 
   const songs = useMemo(() => results?.results.songs?.data ?? [], [results]);
+  const artists = useMemo(() => results?.results.artists?.data ?? [], [results]);
+  const liveRadios = useMemo(() => results?.results.live_radios?.data ?? [], [results]);
   const programmes = useMemo(() => results?.results.programmes?.data ?? [], [results]);
   // Programme episodes and podcast episodes are shown together under "Episodes".
   const episodeItems = useMemo(
@@ -46,7 +51,8 @@ export default function SearchPage() {
   const songTracks = useMemo(() => toTracks(songs), [songs]);
   const episodeTracks = useMemo(() => toTracks(episodeItems), [episodeItems]);
 
-  const hasAny = songs.length + programmes.length + episodeItems.length + podcasts.length > 0;
+  const hasAny =
+    songs.length + artists.length + programmes.length + episodeItems.length + podcasts.length + liveRadios.length > 0;
 
   return (
     <div className="flex flex-col gap-6">
@@ -177,6 +183,17 @@ export default function SearchPage() {
             </section>
           )}
 
+          {(tab === "All" || tab === "Artists") && artists.length > 0 && (
+            <section>
+              <SectionHeading title="Artists" />
+              <div className="-mx-3 flex flex-wrap">
+                {(tab === "All" ? artists.slice(0, 6) : artists).map((a) => (
+                  <MediaCard key={`artist-${a.id}`} item={a} />
+                ))}
+              </div>
+            </section>
+          )}
+
           {(tab === "All" || tab === "Programmes") && programmes.length > 0 && (
             <section>
               <SectionHeading title="Programmes" />
@@ -198,6 +215,34 @@ export default function SearchPage() {
               <SectionHeading title="Podcasts" />
               <div className="-mx-3 flex flex-wrap">
                 {podcasts.map((p) => <MediaCard key={`podcast-${p.id}`} item={p as CatalogueItem} />)}
+              </div>
+            </section>
+          )}
+
+          {(tab === "All" || tab === "Radio") && liveRadios.length > 0 && (
+            <section>
+              <SectionHeading title="Live radio" />
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {liveRadios.map((r) => (
+                  <Link
+                    key={`live-${r.id}`}
+                    href={`/live/${r.id}`}
+                    className="flex items-center gap-3 rounded-card border border-edge bg-raised p-3 transition hover:bg-highlight"
+                  >
+                    <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent">
+                      <Radio className="size-5" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-semibold">{displayTitle(r, locale)}</span>
+                      <span className="block truncate text-xs text-ink-mute">{r.station || "Bangladesh Betar"}</span>
+                    </span>
+                    {r.is_live && (
+                      <span className="flex items-center gap-1 rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-400">
+                        <span className="size-1.5 animate-pulse rounded-full bg-red-400" /> Live
+                      </span>
+                    )}
+                  </Link>
+                ))}
               </div>
             </section>
           )}
