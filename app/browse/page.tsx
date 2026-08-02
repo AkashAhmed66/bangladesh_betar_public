@@ -17,14 +17,14 @@ export default function BrowsePage() {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="font-display text-3xl font-bold tracking-tight">Browse the archive</h1>
+        <h1 className="font-display text-3xl font-bold tracking-tight">Browse</h1>
         <p className="mt-1 text-sm text-ink-soft">
-          A century of Bangladesh Betar — trending now and the freshest digitisations.
+          A century of Bangladesh Betar — trending now and the newest releases.
         </p>
       </div>
 
       <SectionRow title="Trending now" items={trending?.data} loading={l1} />
-      <SectionRow title="New to the archive" items={newReleases?.data} loading={l2} />
+      <SectionRow title="New releases" items={newReleases?.data} loading={l2} />
 
       {onThisDay && onThisDay.data.length > 0 && (
         <SectionRow
