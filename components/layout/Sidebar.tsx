@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  BookOpen,
   Compass,
   Crown,
   Disc3,
@@ -91,6 +92,7 @@ export default function Sidebar() {
           <NavLink href="/artists" icon={MicVocal} label="Artists" />
           <NavLink href="/programmes" icon={RadioTower} label="Programmes" />
           <NavLink href="/podcasts" icon={Podcast} label="Podcasts" />
+          <NavLink href="/audiobooks" icon={BookOpen} label="Audio Books" />
         </nav>
 
         {/* Library */}

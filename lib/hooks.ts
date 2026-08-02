@@ -7,6 +7,7 @@ import type {
   Album,
   Artist,
   AudioAsset,
+  AudioBook,
   Comment,
   CommunitySubmission,
   Episode,
@@ -70,6 +71,8 @@ export const useSongs = (params = "") => useApi<Paginated<Song>>(`/songs${params
 export const useSong = (id: number | string) => useApi<{ data: Song }>(`/songs/${id}`);
 export const useAlbums = (params = "") => useApi<Paginated<Album>>(`/albums${params}`);
 export const useAlbum = (id: number | string) => useApi<{ data: Album }>(`/albums/${id}`);
+export const useAudioBooks = () => useApi<Paginated<AudioBook>>("/audiobooks");
+export const useAudioBook = (id: number | string) => useApi<{ data: AudioBook }>(`/audiobooks/${id}`);
 export const useArtists = (params = "") => useApi<Paginated<Artist>>(`/artists${params}`);
 export const useArtist = (id: number | string) =>
   useApi<{ data: Artist; songs: { data: Song[] }; albums: { data: Album[] }; similar: { data: Artist[] } }>(`/artists/${id}`);

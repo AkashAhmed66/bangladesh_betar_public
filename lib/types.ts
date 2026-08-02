@@ -422,6 +422,23 @@ export interface CommunitySubmission {
 
 // ---- Subscription ----
 
+/** Premium-only narrated book with read-along text (M31). */
+export interface AudioBook {
+  id: number;
+  type: "audio_book";
+  title: string;
+  language: "en" | "bn";
+  author?: string | null;
+  is_premium: boolean;
+  characters: number;
+  duration_male: number;
+  duration_female: number;
+  published_at?: string | null;
+  /** Present only on the premium-gated detail response. */
+  text?: string;
+  streams?: { male: string; female: string };
+}
+
 export interface Plan {
   id: number;
   code: string;
