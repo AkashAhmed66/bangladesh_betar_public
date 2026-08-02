@@ -69,6 +69,9 @@ export default function SearchPage() {
             }}
             onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
             onFocus={() => setShowSuggest(true)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === "Escape") setShowSuggest(false);
+            }}
             placeholder="What do you want to listen to?"
             // Inline `outline: none` beats the global unlayered :focus-visible
             // rule, so the input never draws its own (inner) outline — the
@@ -87,8 +90,10 @@ export default function SearchPage() {
           />
         </div>
 
-        {/* Type-ahead suggestions */}
-        {showSuggest && (suggestions?.data.length ?? 0) > 0 && input !== query && (
+        {/* Type-ahead suggestions — visibility is driven by focus/selection
+            (showSuggest), NOT by the debounce catching up: `input !== query`
+            here made the list vanish 350ms after the last keystroke. */}
+        {showSuggest && input.trim() !== "" && (suggestions?.data.length ?? 0) > 0 && (
           <div className="fade-up absolute z-40 mt-2 w-full rounded-panel border border-edge bg-raised p-1.5 shadow-2xl shadow-black/60">
             {suggestions!.data.map((s, i) => (
               <button
