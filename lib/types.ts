@@ -433,10 +433,13 @@ export interface AudioBook {
   characters: number;
   duration_male: number;
   duration_female: number;
+  duration_enhanced?: number;
+  has_enhanced?: boolean;
   published_at?: string | null;
-  /** Present only on the premium-gated detail response. */
+  /** Present only on the premium-gated detail response. Each voice key is
+   *  present only when that narration was actually generated. */
   text?: string;
-  streams?: { male: string; female: string };
+  streams?: { male?: string; female?: string; enhanced?: string };
 }
 
 export interface Plan {

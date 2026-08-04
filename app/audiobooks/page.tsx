@@ -17,7 +17,7 @@ export default function AudioBooksPage() {
       <div>
         <h1 className="font-display text-3xl font-bold tracking-tight">Audio Books</h1>
         <p className="mt-1 text-sm text-ink-soft">
-          Narrated books in Bangla and English — choose a male or female voice and read along while you listen.
+          Narrated books in Bangla and English — read along while you listen.
           A Premium feature.
         </p>
       </div>
@@ -51,7 +51,7 @@ export default function AudioBooksPage() {
               </p>
               <p className="mt-1 flex items-center gap-2 text-xs text-white/70">
                 {book.language === "bn" ? "বাংলা" : "English"}
-                <span className="flex items-center gap-1"><Clock className="size-3" /> {formatDuration(Math.max(book.duration_male, book.duration_female))}</span>
+                <span className="flex items-center gap-1"><Clock className="size-3" /> {formatDuration(Math.max(book.duration_male, book.duration_female, book.duration_enhanced ?? 0))}</span>
               </p>
               {book.author && <p className="mt-0.5 truncate text-[11px] text-white/60">by {book.author}</p>}
             </Link>

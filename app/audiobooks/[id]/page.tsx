@@ -17,14 +17,18 @@ export default function AudioBookPage({ params }: { params: Promise<{ id: string
   const { id } = use(params);
   const { data, error, isLoading } = useAudioBook(id);
   const openLoginPrompt = useUi((s) => s.openLoginPrompt);
-  const [voice, setVoice] = useState<"male" | "female">("female");
+  const [voice, setVoice] = useState<"male" | "female" | "enhanced">("female");
 
   const book = data?.data;
   const status = error instanceof ApiError ? error.status : null;
-  const streamUrl = useMemo(
-    () => (book?.streams ? book.streams[voice] : null),
-    [book, voice],
+  // Only narrations the API actually returned are offered; if the chosen
+  // voice doesn't exist for this book, fall back to the first available.
+  const available = useMemo(
+    () => (["female", "male", "enhanced"] as const).filter((v) => Boolean(book?.streams?.[v])),
+    [book],
   );
+  const active = available.includes(voice) ? voice : available[0];
+  const streamUrl = active ? (book?.streams?.[active] ?? null) : null;
 
   // Guests get the familiar sign-in modal straight away, not a lock screen.
   useEffect(() => {
@@ -52,7 +56,7 @@ export default function AudioBookPage({ params }: { params: Promise<{ id: string
         <p className="text-sm text-ink-soft">
           {needsLogin
             ? "Sign in with a Premium account to read and listen to narrated books in Bangla and English."
-            : "Upgrade to Premium to read and listen to narrated books in Bangla and English — male or female voice, your choice."}
+            : "Upgrade to Premium to read and listen to narrated books in Bangla and English."}
         </p>
         {needsLogin ? (
           <button
@@ -93,27 +97,33 @@ export default function AudioBookPage({ params }: { params: Promise<{ id: string
               <h1 className={`truncate font-display text-lg font-bold ${bn ? "font-bangla" : ""}`}>{book.title}</h1>
               <p className="text-xs text-ink-mute">
                 {bn ? "বাংলা" : "English"}{book.author ? ` · by ${book.author}` : ""} ·{" "}
-                {formatDuration(voice === "male" ? book.duration_male : book.duration_female)}
+                {formatDuration(
+                  active === "male" ? book.duration_male
+                    : active === "enhanced" ? (book.duration_enhanced ?? 0)
+                    : book.duration_female,
+                )}
               </p>
             </div>
-            {/* Voice toggle */}
-            <div className="flex gap-1 rounded-full bg-raised p-1">
-              {(["female", "male"] as const).map((v) => (
-                <button
-                  key={v}
-                  onClick={() => setVoice(v)}
-                  className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${
-                    voice === v ? "bg-accent text-accent-fg" : "text-ink-mute hover:text-ink"
-                  }`}
-                >
-                  {v === "female" ? "Female voice" : "Male voice"}
-                </button>
-              ))}
-            </div>
+            {/* Voice toggle — only the narrations this book actually has */}
+            {available.length > 0 && (
+              <div className="flex gap-1 rounded-full bg-raised p-1">
+                {available.map((v) => (
+                  <button
+                    key={v}
+                    onClick={() => setVoice(v)}
+                    className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${
+                      active === v ? "bg-accent text-accent-fg" : "text-ink-mute hover:text-ink"
+                    }`}
+                  >
+                    {v === "female" ? "Female voice" : v === "male" ? "Male voice" : "✦ Enhanced"}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           {streamUrl && (
             // key forces a reload when the voice changes
-            <audio key={voice} controls preload="metadata" className="mt-3 h-10 w-full" src={streamUrl} />
+            <audio key={active} controls preload="metadata" className="mt-3 h-10 w-full" src={streamUrl} />
           )}
         </div>
       </div>
