@@ -304,6 +304,8 @@ export interface TokenResponse {
 export interface StreamDescriptor {
   version: string;
   url: string;
+  /** True when `url` is an encrypted-HLS playlist (download protection). */
+  is_hls?: boolean;
   expires_at: string;
   duration_seconds: number;
   is_preview: boolean;

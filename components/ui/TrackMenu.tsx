@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDownToLine, Check, Flag, Info, ListEnd, ListPlus, ListStart, Loader2, MoreHorizontal } from "lucide-react";
+import { Check, Flag, Info, ListEnd, ListPlus, ListStart, Loader2, LockKeyhole, MoreHorizontal } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -113,17 +113,19 @@ export default function TrackMenu({ track, className = "", extraItems = [] }: Tr
             >
               <ListPlus className="size-4" /> Add to playlist
             </button>
+            {/* Offline saves store the ENCRYPTED HLS package — never a plain
+                audio file (download-protection policy). */}
             {downloaded ? (
               <button className={item} onClick={() => removeDownload(track.assetId)}>
-                <Check className="size-4 text-accent" /> Downloaded — remove
+                <Check className="size-4 text-accent" /> Saved offline — remove
               </button>
             ) : dlProgress != null ? (
               <span className={`${item} cursor-default`}>
-                <Loader2 className="size-4 animate-spin" /> Downloading… {dlProgress}%
+                <Loader2 className="size-4 animate-spin" /> Saving… {dlProgress}%
               </span>
             ) : (
               <button className={item} onClick={() => download(track)}>
-                <ArrowDownToLine className="size-4" /> Download for offline
+                <LockKeyhole className="size-4" /> Save offline (encrypted)
               </button>
             )}
             <Link href={track.href} className={item}>

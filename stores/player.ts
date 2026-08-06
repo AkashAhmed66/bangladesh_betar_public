@@ -4,7 +4,9 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { get, post, put } from "@/lib/api";
 import { anonymousId } from "@/lib/anon";
-import { offlineBlobUrl } from "@/lib/offline";
+import { attachAudioSource } from "@/lib/hls";
+import { offlineSource } from "@/lib/offline";
+import { attachOfflineHls } from "@/lib/offlinePlayback";
 import { toTracks } from "@/lib/tracks";
 import type { AdDescriptor, AudioAsset, PlayEventType, StreamResponse } from "@/lib/types";
 import { currentEntitlements, useAuth } from "./auth";
@@ -300,8 +302,9 @@ function startAd(ad: AdDescriptor) {
   clearAdTimer();
   const el = engine();
   usePlayer.setState({ ad, adRemaining: AD_DURATION_SECONDS, status: "playing" });
-  el.src = ad.audio_url;
-  void el.play().catch(() => finishAd(false));
+  void attachAudioSource(el, ad.audio_url)
+    .then(() => el.play())
+    .catch(() => finishAd(false));
 
   const startedAt = Date.now();
   adTimer = setInterval(() => {
@@ -339,10 +342,12 @@ function startMainStream() {
   if (!track || !stream) return;
 
   const el = engine();
-  el.src = stream.stream.url;
   if (track.startAt) pendingSeek = track.startAt;
   lastProgressAt = 0;
-  el.play()
+  // Full streams arrive as encrypted HLS playlists (download protection);
+  // previews and fallbacks are plain URLs — attachAudioSource handles both.
+  attachAudioSource(el, stream.stream.url)
+    .then(() => el.play())
     .then(() => {
       usePlayer.setState({ status: "playing", duration: stream.stream.duration_seconds });
       sendEvent("play", pendingSeek ?? 0);
@@ -365,22 +370,27 @@ async function loadCurrent(resumeFrom?: number) {
     currentBlobUrl = null;
   }
 
-  // Offline-first: if this track was downloaded, play the local copy. Works
-  // with no network and never carries an ad (offline is a Premium-only feature).
-  const offlineUrl = await offlineBlobUrl(track.assetId);
-  if (offlineUrl) {
+  // Offline-first: if this track was saved, play the local copy. Works with
+  // no network and never carries an ad (offline is a Premium-only feature).
+  // v2 saves are encrypted-HLS packages decrypted in memory at play time;
+  // legacy v1 saves are plain blobs and stay playable.
+  const offline = await offlineSource(track.assetId);
+  if (offline) {
     // Bail if the user skipped while we were reading storage.
     if (usePlayer.getState().queue[usePlayer.getState().index]?.key !== track.key) {
-      URL.revokeObjectURL(offlineUrl);
+      if (offline.kind === "blob") URL.revokeObjectURL(offline.url);
       return;
     }
-    currentBlobUrl = offlineUrl;
     const el = engine();
-    el.src = offlineUrl;
     pendingSeek = resumeFrom ?? track.startAt ?? null;
     lastProgressAt = 0;
     usePlayer.setState({ stream: null, ad: null });
-    el.play()
+    const attach =
+      offline.kind === "blob"
+        ? ((currentBlobUrl = offline.url), attachAudioSource(el, offline.url))
+        : attachOfflineHls(el, track.assetId);
+    attach
+      .then(() => el.play())
       .then(() => {
         usePlayer.setState({ status: "playing", duration: el.duration || track.duration || 0 });
         sendEvent("play", pendingSeek ?? 0);

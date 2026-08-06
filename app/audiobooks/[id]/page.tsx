@@ -3,6 +3,7 @@
 import { BookOpen, Crown, LogIn } from "lucide-react";
 import Link from "next/link";
 import { use, useEffect, useMemo, useState } from "react";
+import HlsAudio from "@/components/ui/HlsAudio";
 import { Skeleton } from "@/components/ui/Misc";
 import { ApiError } from "@/lib/api";
 import { formatDuration } from "@/lib/format";
@@ -123,7 +124,7 @@ export default function AudioBookPage({ params }: { params: Promise<{ id: string
           </div>
           {streamUrl && (
             // key forces a reload when the voice changes
-            <audio key={active} controls preload="metadata" className="mt-3 h-10 w-full" src={streamUrl} />
+            <HlsAudio key={active} src={streamUrl} className="mt-3 h-10 w-full" />
           )}
         </div>
       </div>

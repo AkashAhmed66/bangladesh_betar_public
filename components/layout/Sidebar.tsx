@@ -4,8 +4,8 @@ import {
   BookOpen,
   Compass,
   Crown,
-  Disc3,
   Download,
+  Disc3,
   Heart,
   History,
   Home,
@@ -122,8 +122,8 @@ export default function Sidebar() {
                 <NavLink href="/favorites" icon={Heart} label="Liked recordings" />
                 <NavLink href="/history" icon={History} label="History" />
                 <NavLink href="/playlists" icon={ListMusic} label="Playlists" />
-                {/* Offline downloads are a Premium feature — hide the entry for free users. */}
-                {entitlements?.is_premium && <NavLink href="/downloads" icon={Download} label="Downloads" />}
+                {/* Offline saves (encrypted HLS) are a Premium feature — hide the entry for free users. */}
+                {entitlements?.is_premium && <NavLink href="/downloads" icon={Download} label="Saved offline" />}
               </>
             )}
             {/* Queue works for everyone (local queue) — toggles the queue panel. */}

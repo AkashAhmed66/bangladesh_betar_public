@@ -1,21 +1,25 @@
 "use client";
 
 /**
- * Offline audio storage (Premium "download for offline").
+ * Offline audio storage (Premium "save for offline listening").
  *
- * Downloaded tracks are stored in IndexedDB across two object stores:
- *   - `meta`  : lightweight record per track (title, artwork, size…) — cheap to
- *               list for the Downloads page and for "is this downloaded?" checks.
- *   - `blobs` : the actual audio bytes ({ assetId, blob }) — read only when the
- *               track is played offline.
- * Keeping the bytes out of the metadata store means listing the library never
- * has to load hundreds of MB of audio into memory.
+ * v2 — download-protected: a saved recording is its ENCRYPTED HLS package.
+ * IndexedDB object stores:
+ *   - `meta`     : one record per track — display fields plus the offline
+ *                  playlist template, the AES key (a NON-EXTRACTABLE
+ *                  CryptoKey on secure contexts — usable to decrypt, never
+ *                  readable), the IV, and a license expiry.
+ *   - `segments` : the AES-128-encrypted .ts chunks, keyed "assetId:index".
+ *                  The bytes at rest on the device are always ciphertext.
+ *   - `blobs`    : legacy v1 plain-file saves — still playable/removable,
+ *                  but nothing writes here any more.
  */
 
 const DB_NAME = "betar.offline";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const META = "meta";
 const BLOBS = "blobs";
+const SEGMENTS = "segments";
 
 export interface OfflineMeta {
   assetId: number;
@@ -30,6 +34,20 @@ export interface OfflineMeta {
   href: string;
   size: number;
   downloadedAt: number;
+
+  // ---- v2 encrypted-HLS fields (absent on legacy blob records) ----
+  kind?: "hls";
+  /** m3u8 with offline:// URIs; the EXT-X-KEY line is kept and stripped at
+   *  play time when the key is a WebCrypto CryptoKey. */
+  playlist?: string;
+  ivHex?: string;
+  /** "webcrypto": non-extractable CryptoKey (secure contexts). "wrapped":
+   *  obfuscated raw bytes — the HTTP fallback, see lib/offlineCrypto. */
+  keyMode?: "webcrypto" | "wrapped";
+  key?: CryptoKey | ArrayBuffer;
+  segCount?: number;
+  /** License expiry (ms) — renewed silently while the plan allows it. */
+  expiresAt?: number;
 }
 
 let dbPromise: Promise<IDBDatabase> | null = null;
@@ -45,6 +63,7 @@ function openDb(): Promise<IDBDatabase> {
       const db = req.result;
       if (!db.objectStoreNames.contains(META)) db.createObjectStore(META, { keyPath: "assetId" });
       if (!db.objectStoreNames.contains(BLOBS)) db.createObjectStore(BLOBS, { keyPath: "assetId" });
+      if (!db.objectStoreNames.contains(SEGMENTS)) db.createObjectStore(SEGMENTS, { keyPath: "key" });
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error ?? new Error("Could not open offline storage"));
@@ -64,25 +83,36 @@ function request<T>(store: string, mode: IDBTransactionMode, fn: (s: IDBObjectSt
   );
 }
 
-/** Persist a track's metadata + audio bytes atomically. */
-export async function saveOffline(meta: OfflineMeta, blob: Blob): Promise<void> {
-  const db = await openDb();
-  return new Promise<void>((resolve, reject) => {
-    const tx = db.transaction([META, BLOBS], "readwrite");
-    tx.objectStore(META).put(meta);
-    tx.objectStore(BLOBS).put({ assetId: meta.assetId, blob });
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-    tx.onabort = () => reject(tx.error ?? new Error("Storage quota exceeded"));
-  });
+const segKey = (assetId: number, index: number) => `${assetId}:${String(index).padStart(5, "0")}`;
+
+export async function putOfflineSegment(assetId: number, index: number, buf: ArrayBuffer): Promise<void> {
+  await request(SEGMENTS, "readwrite", (s) => s.put({ key: segKey(assetId, index), buf }));
 }
 
+export async function getOfflineSegment(assetId: number, index: number): Promise<ArrayBuffer | null> {
+  const rec = await request<{ key: string; buf: ArrayBuffer } | undefined>(SEGMENTS, "readonly", (s) =>
+    s.get(segKey(assetId, index)),
+  );
+  return rec?.buf ?? null;
+}
+
+export async function saveOfflineMeta(meta: OfflineMeta): Promise<void> {
+  await request(META, "readwrite", (s) => s.put(meta));
+}
+
+export async function getOfflineMeta(assetId: number): Promise<OfflineMeta | null> {
+  const rec = await request<OfflineMeta | undefined>(META, "readonly", (s) => s.get(assetId));
+  return rec ?? null;
+}
+
+/** Remove a saved track entirely: meta + legacy blob + every segment. */
 export async function deleteOffline(assetId: number): Promise<void> {
   const db = await openDb();
   return new Promise<void>((resolve, reject) => {
-    const tx = db.transaction([META, BLOBS], "readwrite");
+    const tx = db.transaction([META, BLOBS, SEGMENTS], "readwrite");
     tx.objectStore(META).delete(assetId);
     tx.objectStore(BLOBS).delete(assetId);
+    tx.objectStore(SEGMENTS).delete(IDBKeyRange.bound(`${assetId}:`, `${assetId}:￿`));
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
@@ -98,11 +128,35 @@ async function offlineBlob(assetId: number): Promise<Blob | null> {
   return rec?.blob ?? null;
 }
 
-/** A short-lived object URL for the stored audio, or null if not downloaded. */
+/** A short-lived object URL for a LEGACY (v1 plain blob) save, or null. */
 export async function offlineBlobUrl(assetId: number): Promise<string | null> {
   try {
     const blob = await offlineBlob(assetId);
     return blob ? URL.createObjectURL(blob) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * How to play this asset offline, if saved: encrypted-HLS package (v2),
+ * legacy blob (v1), or null. Expired licenses are purged on sight.
+ */
+export async function offlineSource(
+  assetId: number,
+): Promise<{ kind: "hls" } | { kind: "blob"; url: string } | null> {
+  try {
+    const meta = await getOfflineMeta(assetId);
+    if (!meta) return null;
+    if (meta.kind === "hls") {
+      if (meta.expiresAt && Date.now() > meta.expiresAt) {
+        void deleteOffline(assetId).catch(() => undefined);
+        return null;
+      }
+      return { kind: "hls" };
+    }
+    const url = await offlineBlobUrl(assetId);
+    return url ? { kind: "blob", url } : null;
   } catch {
     return null;
   }

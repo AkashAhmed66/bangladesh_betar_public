@@ -51,6 +51,11 @@ export default function DownloadsPage() {
               ? `${metas.length} recording${metas.length === 1 ? "" : "s"} · ${humanSize(totalBytes)} stored on this device`
               : "Downloaded recordings play here without using data."}
           </p>
+          <p className="text-xs text-ink-mute">
+            Saved recordings are stored encrypted on this device — they play here without a
+            connection but can never be extracted as audio files. Saves renew automatically
+            while your Premium plan is active.
+          </p>
           {tracks.length > 0 && (
             <button
               onClick={() => playContext(tracks, 0, "Downloads")}
