@@ -1,12 +1,12 @@
 "use client";
 
-import { Radio, Search as SearchIcon, X } from "lucide-react";
+import { BookOpen, Radio, Search as SearchIcon, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import MediaCard from "@/components/cards/MediaCard";
 import TrackTable from "@/components/cards/TrackTable";
 import VoiceSearchButton from "@/components/search/VoiceSearchButton";
-import { EmptyState, SectionHeading } from "@/components/ui/Misc";
+import { EmptyState, PremiumBadge, SectionHeading } from "@/components/ui/Misc";
 import { artworkFor } from "@/lib/artwork";
 import { displayTitle } from "@/lib/format";
 import { useCategories, useGenres, useSearch, useSuggestions } from "@/lib/hooks";
@@ -14,7 +14,7 @@ import { toTracks } from "@/lib/tracks";
 import type { CatalogueItem } from "@/lib/types";
 import { useUi } from "@/stores/ui";
 
-const TABS = ["All", "Songs", "Artists", "Programmes", "Episodes", "Podcasts", "Radio"] as const;
+const TABS = ["All", "Songs", "Artists", "Programmes", "Episodes", "Podcasts", "Audio Books", "Radio"] as const;
 type Tab = (typeof TABS)[number];
 
 export default function SearchPage() {
@@ -48,11 +48,12 @@ export default function SearchPage() {
     [results],
   );
   const podcasts = useMemo(() => results?.results.podcasts?.data ?? [], [results]);
+  const audiobooks = useMemo(() => results?.results.audiobooks?.data ?? [], [results]);
   const songTracks = useMemo(() => toTracks(songs), [songs]);
   const episodeTracks = useMemo(() => toTracks(episodeItems), [episodeItems]);
 
   const hasAny =
-    songs.length + artists.length + programmes.length + episodeItems.length + podcasts.length + liveRadios.length > 0;
+    songs.length + artists.length + programmes.length + episodeItems.length + podcasts.length + audiobooks.length + liveRadios.length > 0;
 
   return (
     <div className="flex flex-col gap-6">
@@ -103,7 +104,7 @@ export default function SearchPage() {
               >
                 <SearchIcon className="size-3.5 text-ink-mute" />
                 <span className="flex-1">{s.text}</span>
-                <span className="text-[10px] uppercase tracking-wider text-ink-mute">{s.type}</span>
+                <span className="text-[10px] uppercase tracking-wider text-ink-mute">{s.type.replaceAll("_", " ")}</span>
               </button>
             ))}
           </div>
@@ -177,7 +178,7 @@ export default function SearchPage() {
             <EmptyState
               icon={<SearchIcon className="size-10" />}
               title={`No results for “${query}”`}
-              subtitle="Check the spelling, or try a song, programme, podcast or episode name — Bangla titles work too."
+              subtitle="Check the spelling, or try a song, audio book, programme, podcast or episode — Bangla titles and book text work too."
             />
           )}
 
@@ -220,6 +221,38 @@ export default function SearchPage() {
               <SectionHeading title="Podcasts" />
               <div className="-mx-3 flex flex-wrap">
                 {podcasts.map((p) => <MediaCard key={`podcast-${p.id}`} item={p as CatalogueItem} />)}
+              </div>
+            </section>
+          )}
+
+          {(tab === "All" || tab === "Audio Books") && audiobooks.length > 0 && (
+            <section>
+              <SectionHeading title="Audio Books" />
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {(tab === "All" ? audiobooks.slice(0, 6) : audiobooks).map((book) => {
+                  const art = artworkFor("audio_book", book.id);
+                  return (
+                    <Link
+                      key={`audio-book-${book.id}`}
+                      href={`/audiobooks/${book.id}`}
+                      className="group relative flex min-h-28 items-center gap-4 overflow-hidden rounded-card p-4 transition hover:scale-[1.01]"
+                      style={{ background: `linear-gradient(135deg, ${art.from}, ${art.to})` }}
+                    >
+                      <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-black/20 text-white">
+                        <BookOpen className="size-6" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className={`block line-clamp-2 font-display font-bold text-white ${book.language === "bn" ? "font-bangla" : ""}`}>
+                          {book.title}
+                        </span>
+                        <span className="mt-1 block truncate text-xs text-white/70">
+                          {[book.author, book.language === "bn" ? "বাংলা" : "English"].filter(Boolean).join(" · ")}
+                        </span>
+                      </span>
+                      <PremiumBadge className="absolute right-2 top-2" />
+                    </Link>
+                  );
+                })}
               </div>
             </section>
           )}

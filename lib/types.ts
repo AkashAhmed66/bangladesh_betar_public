@@ -355,12 +355,21 @@ export interface SearchResults {
     podcast_episodes?: { data: PodcastEpisode[] };
     podcasts?: { data: PodcastChannel[] };
     live_radios?: { data: LiveChannel[] };
+    audiobooks?: { data: AudioBook[] };
   };
 }
 
 export interface Suggestion {
   text: string;
-  type: "song" | "artist" | "programme" | "podcast" | "live_radio";
+  type:
+    | "song"
+    | "artist"
+    | "programme"
+    | "episode"
+    | "podcast"
+    | "podcast_episode"
+    | "live_radio"
+    | "audio_book";
 }
 
 // ---- Library ----
