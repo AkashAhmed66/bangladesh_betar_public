@@ -72,7 +72,7 @@ export default function PremiumPage() {
   return (
     <div className="flex flex-col gap-10">
       {/* Hero */}
-      <section className="relative overflow-hidden rounded-panel border border-premium/20 bg-raised p-10 text-center">
+      <section className="relative overflow-hidden rounded-panel border border-premium/20 bg-raised p-6 text-center sm:p-10">
         <div
           aria-hidden
           className="ambient-drift pointer-events-none absolute -top-32 left-1/2 size-96 -translate-x-1/2 rounded-full opacity-25 blur-3xl"
@@ -94,12 +94,12 @@ export default function PremiumPage() {
       </section>
 
       {/* Billing toggle */}
-      <div className="mx-auto flex gap-1 rounded-full bg-raised p-1">
+      <div className="mx-auto flex max-w-full gap-1 rounded-full bg-raised p-1">
         {(["monthly", "annual"] as const).map((c) => (
           <button
             key={c}
             onClick={() => setCycle(c)}
-            className={`rounded-full px-6 py-2 text-sm font-bold capitalize transition ${
+            className={`min-h-11 min-w-0 flex-1 rounded-full px-4 py-2 text-sm font-bold capitalize transition sm:flex-none sm:px-6 ${
               cycle === c ? "bg-ink text-page" : "text-ink-mute hover:text-ink"
             }`}
           >
@@ -117,7 +117,7 @@ export default function PremiumPage() {
           return (
             <div
               key={plan.id}
-              className={`relative flex flex-col gap-5 rounded-panel border p-7 ${
+              className={`relative flex flex-col gap-5 rounded-panel border p-5 sm:p-7 ${
                 premium ? "border-premium/40 bg-gradient-to-b from-premium/10 to-raised" : "border-edge bg-raised"
               }`}
             >

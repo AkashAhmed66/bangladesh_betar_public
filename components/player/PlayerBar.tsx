@@ -43,13 +43,13 @@ export default function PlayerBar() {
 
   return (
     <footer
-      className="relative z-50 flex h-(--player-h) items-center gap-4 border-t border-edge bg-sunken px-3 sm:px-4"
+      className="relative z-50 flex h-[4.5rem] shrink-0 items-center gap-2 border-t border-edge bg-sunken px-2 sm:h-(--player-h) sm:gap-4 sm:px-4"
       style={art ? { boxShadow: `0 -18px 70px -32px ${art.accent}55` } : undefined}
     >
       {/* Ad takeover state */}
       {ad ? (
-        <div className="flex flex-1 items-center gap-4">
-          <span className="flex size-12 items-center justify-center rounded-card bg-premium/15">
+        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-4">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-card bg-premium/15 sm:size-12">
             <Megaphone className="size-5 text-premium" />
           </span>
           <div className="min-w-0">
@@ -57,8 +57,8 @@ export default function PlayerBar() {
             <p className="clamp-1 text-sm font-semibold">{ad.title}</p>
           </div>
           <div className="flex-1" />
-          <p className="text-sm tabular-nums text-ink-soft">
-            Your audio starts in <span className="font-bold text-ink">{adRemaining}s</span>
+          <p className="shrink-0 text-xs tabular-nums text-ink-soft sm:text-sm">
+            <span className="hidden sm:inline">Your audio starts in </span><span className="font-bold text-ink">{adRemaining}s</span>
           </p>
           <Link
             href="/premium"
@@ -70,7 +70,7 @@ export default function PlayerBar() {
       ) : (
         <>
           {/* Left: track identity */}
-          <div className="flex w-1/3 min-w-0 items-center gap-3 lg:w-1/4">
+          <div className="flex min-w-0 flex-1 items-center gap-2 sm:w-1/3 sm:flex-none sm:gap-3 lg:w-1/4">
             {track ? (
               <>
                 <button
@@ -78,7 +78,7 @@ export default function PlayerBar() {
                   className="group relative shrink-0"
                   aria-label="Open now playing"
                 >
-                  <Artwork type={track.type} id={track.id} url={track.artworkUrl} title={title ?? ""} className="size-13" />
+                  <Artwork type={track.type} id={track.id} url={track.artworkUrl} title={title ?? ""} className="size-11 sm:size-13" />
                   <span className="absolute inset-0 hidden items-center justify-center rounded-card bg-black/50 group-hover:flex">
                     <ChevronUp className="size-5" />
                   </span>
@@ -92,7 +92,9 @@ export default function PlayerBar() {
                     <p className="clamp-1 text-xs text-ink-mute">{track.subtitle}</p>
                   </div>
                 </div>
-                <FavoriteButton type="audio_asset" id={track.assetId} className="hidden shrink-0 sm:block" />
+                {!track.streamEndpoint && (
+                  <FavoriteButton type="audio_asset" id={track.assetId} className="hidden shrink-0 sm:block" />
+                )}
               </>
             ) : (
               <p className="hidden text-xs text-ink-mute sm:block">
@@ -102,8 +104,8 @@ export default function PlayerBar() {
           </div>
 
           {/* Center: transport */}
-          <div className="flex flex-1 flex-col items-center gap-1.5">
-            <div className="flex items-center gap-4">
+          <div className="flex shrink-0 flex-col items-center gap-1.5 sm:flex-1">
+            <div className="flex items-center gap-2.5 sm:gap-4">
               <button
                 onClick={toggleShuffle}
                 aria-label="Toggle shuffle"
@@ -199,15 +201,15 @@ export default function PlayerBar() {
           </div>
 
           {/* Right: volume & queue */}
-          <div className="flex w-1/4 items-center justify-end gap-3">
+          <div className="hidden w-1/4 items-center justify-end gap-3 md:flex">
             <button
               onClick={toggleQueuePanel}
               aria-label="Queue"
-              className="hidden text-ink-mute transition hover:text-ink md:block"
+              className="text-ink-mute transition hover:text-ink"
             >
               <ListMusic className="size-4.5" />
             </button>
-            <div className="hidden items-center gap-2 md:flex">
+            <div className="flex items-center gap-2">
               <button onClick={toggleMute} aria-label="Mute" className="text-ink-mute transition hover:text-ink">
                 <VolumeIcon className="size-4.5" />
               </button>

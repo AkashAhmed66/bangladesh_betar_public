@@ -89,10 +89,10 @@ export default function AccountPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
-      <h1 className="font-display text-3xl font-bold tracking-tight">Account</h1>
+      <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">Account</h1>
 
       {/* Profile */}
-      <section className="rounded-panel border border-edge bg-raised/50 p-6">
+      <section className="rounded-panel border border-edge bg-raised/50 p-4 sm:p-6">
         <h2 className="mb-4 flex items-center gap-2 font-display text-lg font-bold">
           <User className="size-5 text-accent" /> Profile
         </h2>
@@ -126,7 +126,7 @@ export default function AccountPage() {
             </div>
           </div>
         </div>
-        <div className="mt-5 flex items-center justify-between gap-4">
+        <div className="mt-5 flex flex-col items-stretch gap-4 sm:flex-row sm:items-center sm:justify-between">
           <button
             onClick={togglePersonalization}
             className="flex items-center gap-2 text-sm font-semibold text-ink-soft transition hover:text-ink"
@@ -137,7 +137,7 @@ export default function AccountPage() {
           <button
             onClick={saveProfile}
             disabled={busy}
-            className="flex items-center gap-2 rounded-full bg-accent px-6 py-2 text-sm font-bold text-accent-fg transition enabled:hover:bg-accent-hover disabled:opacity-50"
+            className="flex min-h-11 items-center justify-center gap-2 rounded-full bg-accent px-6 py-2 text-sm font-bold text-accent-fg transition enabled:hover:bg-accent-hover disabled:opacity-50"
           >
             {busy && <Loader2 className="size-4 animate-spin" />} Save
           </button>
@@ -145,7 +145,7 @@ export default function AccountPage() {
       </section>
 
       {/* Subscription */}
-      <section className="rounded-panel border border-edge bg-raised/50 p-6">
+      <section className="rounded-panel border border-edge bg-raised/50 p-4 sm:p-6">
         <h2 className="mb-4 flex items-center gap-2 font-display text-lg font-bold">
           <Crown className="size-5 text-premium" /> Subscription
         </h2>
@@ -190,7 +190,7 @@ export default function AccountPage() {
       </section>
 
       {/* Payments */}
-      <section className="rounded-panel border border-edge bg-raised/50 p-6">
+      <section className="rounded-panel border border-edge bg-raised/50 p-4 sm:p-6">
         <h2 className="mb-4 flex items-center gap-2 font-display text-lg font-bold">
           <Receipt className="size-5 text-accent" /> Payment history
         </h2>

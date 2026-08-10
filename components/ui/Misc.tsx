@@ -53,7 +53,7 @@ export function SectionHeading({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="mb-4 flex items-end justify-between gap-4">
+    <div className="mb-4 flex flex-wrap items-end justify-between gap-3 sm:gap-4">
       <h2 className="font-display text-xl font-bold tracking-tight sm:text-2xl">{title}</h2>
       {action}
     </div>
@@ -72,7 +72,7 @@ export function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-panel border border-dashed border-edge py-16 text-center">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-panel border border-dashed border-edge px-4 py-12 text-center sm:py-16">
       {icon && <div className="text-ink-mute">{icon}</div>}
       <p className="font-display text-lg font-semibold">{title}</p>
       {subtitle && <p className="max-w-sm text-sm text-ink-soft">{subtitle}</p>}

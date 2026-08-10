@@ -2,6 +2,7 @@
 
 import { Headphones, Radio, RadioTower } from "lucide-react";
 import Link from "next/link";
+import RecordedBroadcasts from "@/components/live/RecordedBroadcasts";
 import { EmptyState, SectionHeading, Skeleton } from "@/components/ui/Misc";
 import { artworkCss, artworkFor } from "@/lib/artwork";
 import { displayTitle, formatCount } from "@/lib/format";
@@ -37,7 +38,7 @@ export default function LivePage() {
       </p>
 
       {isLoading && !data ? (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="aspect-square w-full" />
           ))}
@@ -49,12 +50,14 @@ export default function LivePage() {
           subtitle="Check back soon — live broadcasts appear here the moment a channel goes on air."
         />
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
           {channels.map((c) => (
             <LiveCard key={c.id} channel={c} title={displayTitle(c, locale)} />
           ))}
         </div>
       )}
+
+      <RecordedBroadcasts />
     </div>
   );
 }

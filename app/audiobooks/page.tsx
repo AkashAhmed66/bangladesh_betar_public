@@ -2,7 +2,7 @@
 
 import { BookOpen, Clock } from "lucide-react";
 import Link from "next/link";
-import { PremiumBadge, SectionHeading, Skeleton } from "@/components/ui/Misc";
+import { PremiumBadge, Skeleton } from "@/components/ui/Misc";
 import { artworkCss, artworkFor } from "@/lib/artwork";
 import { formatDuration } from "@/lib/format";
 import { useAudioBooks } from "@/lib/hooks";
@@ -15,7 +15,7 @@ export default function AudioBooksPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="font-display text-3xl font-bold tracking-tight">Audio Books</h1>
+        <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">Audio Books</h1>
         <p className="mt-1 text-sm text-ink-soft">
           Narrated books in Bangla and English — read along while you listen.
           A Premium feature.
@@ -23,7 +23,7 @@ export default function AudioBooksPage() {
       </div>
 
       {isLoading && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-44 rounded-card" />)}
         </div>
       )}
@@ -34,7 +34,7 @@ export default function AudioBooksPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
         {books.map((book) => {
           const art = artworkFor("audio_book", book.id);
           return (

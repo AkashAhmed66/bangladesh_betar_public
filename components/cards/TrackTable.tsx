@@ -54,7 +54,7 @@ export default function TrackTable({
             key={track.key}
             role="listitem"
             onDoubleClick={() => playContext(tracks, i, contextLabel)}
-            className={`group grid grid-cols-[2rem_1fr_auto] items-center gap-3 rounded-card px-3 py-2 transition-colors sm:grid-cols-[2rem_4fr_2fr_minmax(0,6rem)_auto] ${
+            className={`group grid grid-cols-[1.75rem_minmax(0,1fr)_auto] items-center gap-2 rounded-card px-1 py-2 transition-colors min-[380px]:gap-3 min-[380px]:px-2 sm:grid-cols-[2rem_4fr_2fr_minmax(0,6rem)_auto] sm:px-3 ${
               isCurrent ? "bg-highlight/60" : "hover:bg-raised"
             }`}
           >
@@ -106,8 +106,8 @@ export default function TrackTable({
             </p>
 
             {/* Actions */}
-            <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:transition sm:group-hover:opacity-100">
-              <FavoriteButton type="audio_asset" id={track.assetId} initial={favorited?.[i]} />
+            <div className="flex items-center opacity-100 sm:gap-1 sm:transition sm:group-hover:opacity-100">
+              <FavoriteButton type="audio_asset" id={track.assetId} initial={favorited?.[i]} className="hidden min-[390px]:inline-flex" />
               <TrackMenu track={track} />
               {onRemove && (
                 <button

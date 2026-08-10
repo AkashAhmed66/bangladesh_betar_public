@@ -35,7 +35,7 @@ export default function NowPlaying() {
     toggle, next, prev, seek, cycleRepeat, toggleShuffle,
   } = usePlayer();
 
-  const { data: assetRes } = useAsset(open && track ? track.assetId : null);
+  const { data: assetRes } = useAsset(open && track && !track.streamEndpoint ? track.assetId : null);
   const asset = assetRes?.data;
   const [chaptersOpen, setChaptersOpen] = useState(true);
 
@@ -55,7 +55,7 @@ export default function NowPlaying() {
         style={{ background: `radial-gradient(closest-side, ${art.accent}, transparent 70%)` }}
       />
 
-      <div className="relative z-10 flex items-center justify-between px-6 py-5">
+      <div className="relative z-10 flex items-center justify-between px-4 py-3 sm:px-6 sm:py-5">
         <button
           onClick={() => setOpen(false)}
           aria-label="Minimise player"
@@ -67,13 +67,13 @@ export default function NowPlaying() {
         <span className="w-9" />
       </div>
 
-      <div className="relative z-10 mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center gap-8 px-6 pb-12">
+      <div className="relative z-10 mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center gap-4 px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:gap-8 sm:px-6 sm:pb-12">
         <Artwork
           type={track.type}
           id={track.id}
           url={track.artworkUrl}
           title={title}
-          className="aspect-square w-64 shadow-2xl shadow-black/60 sm:w-80"
+          className="aspect-square w-[min(62vw,16rem)] shadow-2xl shadow-black/60 sm:w-80"
           iconClassName="size-1/4"
         />
 
@@ -86,7 +86,7 @@ export default function NowPlaying() {
               </span>
             )}
           </div>
-          <Link href={track.href} onClick={() => setOpen(false)} className="font-display text-2xl font-bold tracking-tight hover:underline sm:text-3xl">
+          <Link href={track.href} onClick={() => setOpen(false)} className="clamp-2 font-display text-xl font-bold tracking-tight hover:underline sm:text-3xl">
             {title}
           </Link>
           <p className="mt-1 text-sm text-ink-soft">{track.subtitle}</p>
@@ -113,7 +113,7 @@ export default function NowPlaying() {
         </div>
 
         {/* Transport */}
-        <div className="flex items-center gap-7">
+        <div className="flex items-center gap-4 sm:gap-7">
           <button
             onClick={toggleShuffle}
             aria-pressed={shuffle}
@@ -128,7 +128,7 @@ export default function NowPlaying() {
           <button
             onClick={toggle}
             aria-label={isPlaying ? "Pause" : "Play"}
-            className="flex size-16 items-center justify-center rounded-full bg-ink text-page shadow-xl transition hover:scale-105"
+            className="flex size-14 items-center justify-center rounded-full bg-ink text-page shadow-xl transition hover:scale-105 sm:size-16"
           >
             {status === "loading" ? (
               <Loader2 className="size-6 animate-spin" />
@@ -150,12 +150,14 @@ export default function NowPlaying() {
           </button>
         </div>
 
-        <FavoriteButton
-          type="audio_asset"
-          id={track.assetId}
-          initial={asset?.is_favorited}
-          size="size-6"
-        />
+        {!track.streamEndpoint && (
+          <FavoriteButton
+            type="audio_asset"
+            id={track.assetId}
+            initial={asset?.is_favorited}
+            size="size-6"
+          />
+        )}
 
         {/* Chapters — highlights the one currently playing */}
         {asset?.chapters && asset.chapters.length > 0 && (

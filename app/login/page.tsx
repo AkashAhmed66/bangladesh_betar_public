@@ -74,17 +74,17 @@ export default function LoginPage() {
   };
 
   const input =
-    "w-full rounded-card border border-edge-strong bg-raised px-4 py-3 text-sm outline-none transition placeholder:text-ink-mute focus:border-accent";
+    "w-full rounded-card border border-edge-strong bg-raised px-4 py-3 text-base outline-none transition placeholder:text-ink-mute focus:border-accent sm:text-sm";
 
   return (
-    <div className="relative flex min-h-full flex-col items-center justify-center px-4 py-12">
+    <div className="relative flex min-h-full flex-col items-center justify-center px-3 py-8 sm:px-4 sm:py-12">
       <div
         aria-hidden
         className="ambient-drift pointer-events-none absolute -top-40 left-1/2 size-[36rem] -translate-x-1/2 rounded-full opacity-20 blur-3xl"
         style={{ background: "radial-gradient(closest-side, var(--accent), transparent 70%)" }}
       />
 
-      <Link href="/" className="relative mb-8 flex items-center gap-3">
+      <Link href="/" className="relative mb-6 flex items-center gap-3 sm:mb-8">
         <span className="relative flex size-11 items-center justify-center rounded-full bg-accent">
           <RadioTower className="size-6 text-accent-fg" />
           <span className="absolute -right-0.5 -top-0.5 size-3 rounded-full bg-flag ring-2 ring-page" />
@@ -92,7 +92,7 @@ export default function LoginPage() {
         <span className="font-display text-2xl font-bold tracking-tight">{BRAND.name}</span>
       </Link>
 
-      <div className="fade-up relative w-full max-w-sm rounded-panel border border-edge bg-elev p-8">
+      <div className="fade-up relative w-full max-w-sm rounded-panel border border-edge bg-elev p-5 sm:p-8">
         <h1 className="text-center font-display text-2xl font-bold">Welcome back</h1>
         <p className="mt-1 text-center text-sm text-ink-soft">Sign in to continue listening</p>
 

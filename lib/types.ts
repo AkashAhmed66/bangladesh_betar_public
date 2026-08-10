@@ -356,6 +356,7 @@ export interface SearchResults {
     podcasts?: { data: PodcastChannel[] };
     live_radios?: { data: LiveChannel[] };
     audiobooks?: { data: AudioBook[] };
+    broadcast_recordings?: { data: BroadcastRecording[] };
   };
 }
 
@@ -369,7 +370,29 @@ export interface Suggestion {
     | "podcast"
     | "podcast_episode"
     | "live_radio"
-    | "audio_book";
+    | "audio_book"
+    | "broadcast_recording";
+}
+
+export interface BroadcastRecording {
+  id: number;
+  type: "broadcast_recording";
+  title: string;
+  channel: {
+    id: number;
+    title: string;
+    title_bn: string | null;
+    artwork_url: string | null;
+    station: string | null;
+  };
+  broadcaster: string | null;
+  started_at: string | null;
+  ended_at: string | null;
+  published_at: string | null;
+  duration_seconds: number;
+  peak_listeners: number;
+  is_premium: true;
+  can_play: boolean;
 }
 
 // ---- Library ----

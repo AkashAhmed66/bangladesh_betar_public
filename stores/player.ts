@@ -15,7 +15,7 @@ import { useUi } from "./ui";
 /** A resolved, playable entry in the queue. */
 export interface PlayerTrack {
   key: string;               // stable identity: `${type}:${id}`
-  type: "song" | "audio_asset" | "podcast_episode" | "episode";
+  type: "song" | "audio_asset" | "podcast_episode" | "episode" | "broadcast_recording";
   id: number;                // catalogue id (song id, episode id, …)
   assetId: number;           // the streamable audio_assets.id
   title: string;
@@ -26,6 +26,8 @@ export interface PlayerTrack {
   isPremium: boolean;
   href: string;              // detail page
   startAt?: number;          // stories: offset into the parent episode audio
+  /** Protected non-asset playback endpoint, currently used by old broadcasts. */
+  streamEndpoint?: string;
 }
 
 interface PlayerState {
@@ -275,7 +277,7 @@ function engine(): HTMLAudioElement {
 function sendEvent(type: PlayEventType, position: number) {
   const s = usePlayer.getState();
   const track = s.queue[s.index];
-  if (!track) return;
+  if (!track || track.streamEndpoint) return;
   const authed = !!useAuth.getState().token;
   void post(`/assets/${track.assetId}/events`, {
     event_type: type,
@@ -374,7 +376,7 @@ async function loadCurrent(resumeFrom?: number) {
   // no network and never carries an ad (offline is a Premium-only feature).
   // v2 saves are encrypted-HLS packages decrypted in memory at play time;
   // legacy v1 saves are plain blobs and stay playable.
-  const offline = await offlineSource(track.assetId);
+  const offline = track.streamEndpoint ? null : await offlineSource(track.assetId);
   if (offline) {
     // Bail if the user skipped while we were reading storage.
     if (usePlayer.getState().queue[usePlayer.getState().index]?.key !== track.key) {
@@ -401,6 +403,33 @@ async function loadCurrent(resumeFrom?: number) {
   }
 
   try {
+    if (track.streamEndpoint) {
+      const response = await get<{
+        data: { url: string; is_hls: true; expires_at: string };
+      }>(track.streamEndpoint);
+      if (usePlayer.getState().queue[usePlayer.getState().index]?.key !== track.key) return;
+
+      const stream: StreamResponse = {
+        asset_id: track.assetId,
+        title: track.title,
+        stream: {
+          version: "broadcast-recording",
+          url: response.data.url,
+          is_hls: response.data.is_hls,
+          expires_at: response.data.expires_at,
+          duration_seconds: track.duration ?? 0,
+          is_preview: false,
+          bitrate_kbps: 0,
+        },
+        ad: null,
+        requires_login_for_full: true,
+      };
+      pendingSeek = resumeFrom ?? null;
+      usePlayer.setState({ stream });
+      startMainStream();
+      return;
+    }
+
     // Ask for an ad only once `adEveryN` ad-free songs have played (free tier).
     const adsEnabled = currentEntitlements().ads_enabled;
     const wantAd = adsEnabled && songsSinceAd >= adEveryN;
@@ -427,8 +456,18 @@ async function loadCurrent(resumeFrom?: number) {
     }
   } catch (e) {
     const status = (e as { status?: number }).status;
+    if (status === 403) {
+      useUi.getState().openUpgradePrompt({
+        title: "Old broadcasts are Premium",
+        body: "Upgrade to Premium to listen to Bangladesh Betar's recorded live broadcasts.",
+      });
+    }
     useUi.getState().toast(
-      status === 404 ? "This item is not available for streaming." : "Could not start playback.",
+      status === 404
+        ? "This item is not available for streaming."
+        : e instanceof Error
+          ? e.message
+          : "Could not start playback.",
       "error",
     );
     usePlayer.setState({ status: "idle", stream: null });
@@ -468,7 +507,9 @@ function syncQueueToServer() {
   queueSyncTimer = setTimeout(() => {
     const s = usePlayer.getState();
     void put("/me/queue", {
-      items: s.queue.map((t) => ({ type: t.type, id: t.id })),
+      items: s.queue
+        .filter((track) => !track.streamEndpoint)
+        .map((track) => ({ type: track.type, id: track.id })),
       repeat_mode: s.repeat,
       shuffle: s.shuffle,
     }).catch(() => undefined);

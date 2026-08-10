@@ -16,14 +16,14 @@ export default function MobileNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex items-center justify-around border-t border-edge bg-sunken/95 py-1.5 backdrop-blur lg:hidden">
+    <nav className="flex shrink-0 items-center border-t border-edge bg-sunken/95 pb-[max(0.375rem,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur lg:hidden" aria-label="Primary navigation">
       {TABS.map(({ href, icon: Icon, label, exact }) => {
         const active = exact ? pathname === href : pathname.startsWith(href);
         return (
           <Link
             key={href}
             href={href}
-            className={`flex flex-col items-center gap-0.5 px-4 py-1 text-[10px] font-semibold ${
+            className={`flex min-h-11 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 py-1 text-[10px] font-semibold ${
               active ? "text-ink" : "text-ink-mute"
             }`}
           >

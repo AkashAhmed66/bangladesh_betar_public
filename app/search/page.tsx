@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import MediaCard from "@/components/cards/MediaCard";
 import TrackTable from "@/components/cards/TrackTable";
+import RecordedBroadcastTable from "@/components/live/RecordedBroadcastTable";
 import VoiceSearchButton from "@/components/search/VoiceSearchButton";
 import { EmptyState, PremiumBadge, SectionHeading } from "@/components/ui/Misc";
 import { artworkFor } from "@/lib/artwork";
@@ -14,7 +15,7 @@ import { toTracks } from "@/lib/tracks";
 import type { CatalogueItem } from "@/lib/types";
 import { useUi } from "@/stores/ui";
 
-const TABS = ["All", "Songs", "Artists", "Programmes", "Episodes", "Podcasts", "Audio Books", "Radio"] as const;
+const TABS = ["All", "Songs", "Artists", "Programmes", "Episodes", "Podcasts", "Audio Books", "Old Broadcasts", "Radio"] as const;
 type Tab = (typeof TABS)[number];
 
 export default function SearchPage() {
@@ -49,11 +50,12 @@ export default function SearchPage() {
   );
   const podcasts = useMemo(() => results?.results.podcasts?.data ?? [], [results]);
   const audiobooks = useMemo(() => results?.results.audiobooks?.data ?? [], [results]);
+  const broadcastRecordings = useMemo(() => results?.results.broadcast_recordings?.data ?? [], [results]);
   const songTracks = useMemo(() => toTracks(songs), [songs]);
   const episodeTracks = useMemo(() => toTracks(episodeItems), [episodeItems]);
 
   const hasAny =
-    songs.length + artists.length + programmes.length + episodeItems.length + podcasts.length + audiobooks.length + liveRadios.length > 0;
+    songs.length + artists.length + programmes.length + episodeItems.length + podcasts.length + audiobooks.length + broadcastRecordings.length + liveRadios.length > 0;
 
   return (
     <div className="flex flex-col gap-6">
@@ -254,6 +256,13 @@ export default function SearchPage() {
                   );
                 })}
               </div>
+            </section>
+          )}
+
+          {(tab === "All" || tab === "Old Broadcasts") && broadcastRecordings.length > 0 && (
+            <section>
+              <SectionHeading title="Old broadcasts" />
+              <RecordedBroadcastTable recordings={tab === "All" ? broadcastRecordings.slice(0, 5) : broadcastRecordings} />
             </section>
           )}
 

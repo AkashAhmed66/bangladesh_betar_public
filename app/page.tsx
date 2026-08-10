@@ -41,10 +41,7 @@ export default function HomePage() {
     return () => clearInterval(timer);
   }, [banners.length]);
 
-  // Keep the index in range if the banner set changes.
-  useEffect(() => {
-    if (bannerIdx >= banners.length && banners.length > 0) setBannerIdx(0);
-  }, [banners.length, bannerIdx]);
+  const visibleBannerIdx = banners.length > 0 ? bannerIdx % banners.length : 0;
 
   const resumeItems = useMemo(
     () => (continueListening?.data ?? []).filter((e) => e.asset),
@@ -61,7 +58,7 @@ export default function HomePage() {
           {/* Sliding track — banners sit side by side and slide one at a time. */}
           <div
             className="flex transition-transform duration-700 ease-out"
-            style={{ transform: `translateX(-${bannerIdx * 100}%)` }}
+            style={{ transform: `translateX(-${visibleBannerIdx * 100}%)` }}
           >
             {banners.map((banner) => (
               <div key={banner.id} className="relative w-full shrink-0 overflow-hidden">
@@ -75,7 +72,7 @@ export default function HomePage() {
                   className="pointer-events-none absolute -bottom-40 -left-24 size-96 rounded-full opacity-15 blur-3xl"
                   style={{ background: "radial-gradient(closest-side, var(--flag-red), transparent 70%)" }}
                 />
-                <div className="relative flex flex-col gap-4 p-8 pb-12 sm:p-10 sm:pb-14">
+                <div className="relative flex flex-col gap-4 p-5 pb-12 sm:p-10 sm:pb-14">
                   <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-accent">
                     <Sparkles className="size-3.5" /> {BRAND.tagline}
                   </p>
@@ -88,13 +85,13 @@ export default function HomePage() {
                   <div className="mt-2 flex flex-wrap items-center gap-3">
                     <Link
                       href={banner.target_type === "url" && banner.target_value ? banner.target_value : "/browse"}
-                      className="flex items-center gap-2 rounded-full bg-accent px-6 py-2.5 text-sm font-bold text-accent-fg transition hover:scale-105 hover:bg-accent-hover"
+                      className="flex min-h-11 items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-accent-fg transition hover:scale-105 hover:bg-accent-hover sm:px-6"
                     >
                       <Play className="size-4 fill-current" /> Start listening
                     </Link>
                     <Link
                       href="/browse"
-                      className="flex items-center gap-2 rounded-full border border-edge-strong px-6 py-2.5 text-sm font-bold transition hover:border-ink"
+                      className="flex min-h-11 items-center gap-2 rounded-full border border-edge-strong px-5 py-2.5 text-sm font-bold transition hover:border-ink sm:px-6"
                     >
                       Explore the archive <ArrowRight className="size-4" />
                     </Link>
@@ -113,7 +110,7 @@ export default function HomePage() {
                   type="button"
                   onClick={() => setBannerIdx(i)}
                   aria-label={`Show banner ${i + 1}`}
-                  className={`h-2 rounded-full transition-all ${i === bannerIdx ? "w-6 bg-accent" : "w-2 bg-ink-mute/40 hover:bg-ink-mute"}`}
+                  className={`h-2 rounded-full transition-all ${i === visibleBannerIdx ? "w-6 bg-accent" : "w-2 bg-ink-mute/40 hover:bg-ink-mute"}`}
                 />
               ))}
             </div>
@@ -147,7 +144,7 @@ export default function HomePage() {
                       <div className="h-full rounded-full bg-accent" style={{ width: `${pct}%` }} />
                     </div>
                   </div>
-                  <div className="pr-3 opacity-0 transition group-hover:opacity-100">
+                  <div className="pr-3 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100">
                     {track && (
                       <PlayCircle size="size-10" icon="size-4" onClick={() => playTrack(track, progress_seconds)} label={`Resume ${a.title}`} />
                     )}

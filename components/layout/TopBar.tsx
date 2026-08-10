@@ -27,7 +27,7 @@ export default function TopBar() {
   }, [menuOpen]);
 
   return (
-    <header className="sticky top-0 z-40 flex h-(--topbar-h) items-center gap-3 bg-elev/85 px-4 backdrop-blur-md sm:px-6">
+    <header className="sticky top-0 z-40 flex h-(--topbar-h) min-w-0 items-center gap-2 bg-elev/85 px-3 backdrop-blur-md sm:gap-3 sm:px-6">
       {/* history nav */}
       <div className="hidden items-center gap-2 sm:flex">
         <button
@@ -50,7 +50,7 @@ export default function TopBar() {
       {pathname !== "/search" && (
         <button
           onClick={() => router.push("/search")}
-          className="flex min-w-0 items-center gap-2 rounded-full bg-raised px-4 py-2 text-sm text-ink-mute transition hover:bg-highlight hover:text-ink-soft"
+          className="flex size-10 shrink-0 items-center justify-center rounded-full bg-raised text-sm text-ink-mute transition hover:bg-highlight hover:text-ink-soft md:h-auto md:w-auto md:justify-start md:px-4 md:py-2"
         >
           <Search className="size-4 shrink-0" />
           <span className="hidden truncate md:inline">Search songs, artists, programmes…</span>
@@ -63,7 +63,7 @@ export default function TopBar() {
       <button
         onClick={() => setLocale(locale === "en" ? "bn" : "en")}
         aria-label="Toggle language"
-        className="flex items-center gap-1.5 rounded-full bg-raised px-3 py-1.5 text-xs font-bold text-ink-soft transition hover:text-ink"
+        className="flex min-h-10 shrink-0 items-center gap-1 rounded-full bg-raised px-2.5 py-1.5 text-xs font-bold text-ink-soft transition hover:text-ink sm:gap-1.5 sm:px-3"
         title="Switch title language"
       >
         <Languages className="size-4" />
@@ -84,7 +84,7 @@ export default function TopBar() {
           <button
             onClick={() => setMenuOpen((o) => !o)}
             aria-expanded={menuOpen}
-            className="flex items-center gap-2 rounded-full bg-raised py-1 pl-1 pr-3 transition hover:bg-highlight"
+            className="flex min-h-10 items-center gap-2 rounded-full bg-raised p-1 transition hover:bg-highlight md:pr-3"
           >
             <span className="flex size-7 items-center justify-center rounded-full bg-accent text-xs font-bold text-accent-fg">
               {user?.name?.[0]?.toUpperCase() ?? "U"}
@@ -92,7 +92,7 @@ export default function TopBar() {
             <span className="hidden max-w-28 truncate text-sm font-semibold md:inline">{user?.name}</span>
           </button>
           {menuOpen && (
-            <div className="fade-up absolute right-0 z-50 mt-2 w-56 rounded-panel border border-edge bg-raised p-1.5 shadow-2xl shadow-black/60">
+            <div className="fade-up absolute right-0 z-50 mt-2 w-[min(14rem,calc(100vw-1.5rem))] rounded-panel border border-edge bg-raised p-1.5 shadow-2xl shadow-black/60">
               <div className="border-b border-edge px-3 py-2">
                 <p className="truncate text-sm font-semibold">{user?.name}</p>
                 <p className="truncate text-xs text-ink-mute">{user?.email}</p>
@@ -136,7 +136,7 @@ export default function TopBar() {
           </Link>
           <Link
             href="/login"
-            className="rounded-full bg-ink px-5 py-1.5 text-sm font-bold text-page transition hover:scale-105"
+            className="inline-flex min-h-10 shrink-0 items-center rounded-full bg-ink px-4 py-1.5 text-sm font-bold text-page transition hover:scale-105 sm:px-5"
           >
             Log in
           </Link>

@@ -70,7 +70,7 @@ export default function SectionRow({ title, items, href, loading }: SectionRowPr
       <div
         ref={scroller}
         onScroll={onScroll}
-        className="-mx-3 flex gap-1 overflow-x-auto px-3 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="-mx-3 flex gap-1 overflow-x-auto px-3 pb-2 [scrollbar-width:none] [&>a]:w-40 [&>a]:shrink-0 sm:[&>a]:w-44 [&::-webkit-scrollbar]:hidden"
       >
         {loading
           ? Array.from({ length: 6 }).map((_, i) => (

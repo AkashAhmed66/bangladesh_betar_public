@@ -8,6 +8,7 @@ import type {
   Artist,
   AudioAsset,
   AudioBook,
+  BroadcastRecording,
   Comment,
   CommunitySubmission,
   Episode,
@@ -94,6 +95,8 @@ export const useLiveChannels = () =>
   usePollingApi<{ data: LiveChannel[] }>("/live-channels", 10_000);
 export const useLiveChannel = (id: number | string) =>
   usePollingApi<{ data: LiveChannel }>(`/live-channels/${id}`, 10_000);
+export const useBroadcastRecordings = (page = 1) =>
+  useApi<Paginated<BroadcastRecording>>(`/broadcast-recordings?page=${page}`);
 
 // ---- Recommendations ----
 export const useForYou = () =>

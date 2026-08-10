@@ -58,7 +58,7 @@ export default function MediaCard({ item }: { item: CatalogueItem }) {
   return (
     <Link
       href={itemHref(item)}
-      className="group relative flex w-40 shrink-0 flex-col gap-3 rounded-panel bg-transparent p-3 transition-colors duration-200 hover:bg-raised sm:w-44"
+      className="group relative flex w-full min-w-0 flex-col gap-2 rounded-panel bg-transparent p-2 transition-colors duration-200 hover:bg-raised sm:w-44 sm:shrink-0 sm:gap-3 sm:p-3"
     >
       <div className="relative">
         <Artwork
@@ -70,7 +70,7 @@ export default function MediaCard({ item }: { item: CatalogueItem }) {
           rounded={round ? "rounded-full" : "rounded-card"}
         />
         {isPremium(item) && <PremiumBadge className="absolute left-1.5 top-1.5" />}
-        <div className="absolute bottom-2 right-2 translate-y-2 opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100">
+        <div className="absolute bottom-2 right-2 opacity-100 transition-all duration-200 sm:translate-y-2 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100">
           <PlayCircle onClick={() => void playItem(item)} label={`Play ${displayTitle(item, locale)}`} />
         </div>
       </div>

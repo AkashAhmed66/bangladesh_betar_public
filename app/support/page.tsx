@@ -106,20 +106,20 @@ export default function SupportPage() {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
       <div>
-        <h1 className="font-display text-3xl font-bold tracking-tight">Help &amp; feedback</h1>
+        <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">Help &amp; feedback</h1>
         <p className="mt-1 text-sm text-ink-soft">
           Tell us what you love, report a problem, and follow what happens next. Guests welcome — sign in to track status.
         </p>
       </div>
 
       {/* Submission card */}
-      <div className="rounded-panel border border-edge bg-raised/50 p-6">
+      <div className="rounded-panel border border-edge bg-raised/50 p-4 sm:p-6">
         {/* Mode toggle */}
-        <div className="mb-5 inline-flex rounded-full border border-edge-strong p-1">
+        <div className="mb-5 grid w-full grid-cols-2 rounded-2xl border border-edge-strong p-1 sm:inline-flex sm:w-auto sm:rounded-full">
           <button
             type="button"
             onClick={() => setMode("feedback")}
-            className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold transition ${
+            className={`flex min-w-0 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-xs font-bold transition sm:rounded-full sm:px-4 sm:py-1.5 sm:text-sm ${
               mode === "feedback" ? "bg-accent text-accent-fg" : "text-ink-soft hover:text-ink"
             }`}
           >
@@ -128,7 +128,7 @@ export default function SupportPage() {
           <button
             type="button"
             onClick={() => setMode("problem")}
-            className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold transition ${
+            className={`flex min-w-0 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-xs font-bold transition sm:rounded-full sm:px-4 sm:py-1.5 sm:text-sm ${
               mode === "problem" ? "bg-accent text-accent-fg" : "text-ink-soft hover:text-ink"
             }`}
           >
@@ -180,7 +180,7 @@ export default function SupportPage() {
           <button
             type="submit"
             disabled={busy || (mode === "feedback" ? !message.trim() : !description.trim())}
-            className="flex items-center gap-2 self-end rounded-full bg-accent px-6 py-2 text-sm font-bold text-accent-fg transition enabled:hover:bg-accent-hover disabled:opacity-40"
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-accent px-6 py-2 text-sm font-bold text-accent-fg transition enabled:hover:bg-accent-hover disabled:opacity-40 sm:w-auto sm:self-end"
           >
             {busy ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
             {mode === "feedback" ? "Send feedback" : "Submit report"}
@@ -199,7 +199,7 @@ export default function SupportPage() {
         </div>
 
         {!token ? (
-          <div className="flex flex-col items-start gap-3 rounded-panel border border-edge bg-raised/50 p-6">
+          <div className="flex flex-col items-start gap-3 rounded-panel border border-edge bg-raised/50 p-4 sm:p-6">
             <p className="flex items-center gap-2 text-sm text-ink-soft">
               <Lock className="size-4" /> Sign in to see the status of your reports and feedback.
             </p>
