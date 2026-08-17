@@ -1,12 +1,13 @@
 "use client";
 
-import { BookOpen, Radio, Search as SearchIcon, X } from "lucide-react";
+import { Search as SearchIcon, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import MediaCard from "@/components/cards/MediaCard";
 import TrackTable from "@/components/cards/TrackTable";
 import RecordedBroadcastTable from "@/components/live/RecordedBroadcastTable";
 import VoiceSearchButton from "@/components/search/VoiceSearchButton";
+import Artwork from "@/components/ui/Artwork";
 import { EmptyState, PremiumBadge, SectionHeading } from "@/components/ui/Misc";
 import { artworkCss, artworkFor } from "@/lib/artwork";
 import { displayTitle } from "@/lib/format";
@@ -232,22 +233,18 @@ export default function SearchPage() {
               <SectionHeading title="Audio Books" />
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {(tab === "All" ? audiobooks.slice(0, 6) : audiobooks).map((book) => {
-                  const art = artworkFor("audio_book", book.id);
                   return (
                     <Link
                       key={`audio-book-${book.id}`}
                       href={`/audiobooks/${book.id}`}
-                      className="artwork-themed artwork-surface group relative flex min-h-28 items-center gap-4 overflow-hidden rounded-card p-4 text-artwork-ink transition hover:scale-[1.01]"
-                      style={artworkCss(art)}
+                      className="group relative flex min-h-28 items-center gap-4 overflow-hidden rounded-card bg-elev p-3 transition hover:bg-raised"
                     >
-                      <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-artwork-panel text-artwork-ink">
-                        <BookOpen className="size-6" />
-                      </span>
+                      <Artwork type="audio_book" id={book.id} url={book.artwork_url} title={book.title} className="size-20 shrink-0" />
                       <span className="min-w-0 flex-1">
-                        <span className={`block line-clamp-2 font-display font-bold text-artwork-ink ${book.language === "bn" ? "font-bangla" : ""}`}>
+                        <span className={`block line-clamp-2 font-display font-bold ${book.language === "bn" ? "font-bangla" : ""}`}>
                           {book.title}
                         </span>
-                        <span className="mt-1 block truncate text-xs text-artwork-ink/70">
+                        <span className="mt-1 block truncate text-xs text-ink-mute">
                           {[book.author, book.language === "bn" ? "বাংলা" : "English"].filter(Boolean).join(" · ")}
                         </span>
                       </span>
@@ -276,9 +273,7 @@ export default function SearchPage() {
                     href={`/live/${r.id}`}
                     className="flex items-center gap-3 rounded-card border border-edge bg-raised p-3 transition hover:bg-highlight"
                   >
-                    <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent">
-                      <Radio className="size-5" />
-                    </span>
+                    <Artwork type="live_channel" id={r.id} url={r.artwork_url} title={displayTitle(r, locale)} className="size-12 shrink-0" rounded="rounded-full" />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-semibold">{displayTitle(r, locale)}</span>
                       <span className="block truncate text-xs text-ink-mute">{r.station || "Bangladesh Betar"}</span>

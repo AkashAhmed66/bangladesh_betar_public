@@ -461,6 +461,7 @@ export interface AudioBook {
   id: number;
   type: "audio_book";
   title: string;
+  artwork_url: string | null;
   language: "en" | "bn";
   author?: string | null;
   is_premium: boolean;

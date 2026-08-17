@@ -1,10 +1,10 @@
 "use client";
 
-import { Hand, Headphones, Loader2, Mic, MicOff, Radio, RadioTower, Square } from "lucide-react";
+import { Hand, Headphones, Loader2, Mic, MicOff, Radio, Square } from "lucide-react";
 import Link from "next/link";
 import { use } from "react";
 import { Skeleton } from "@/components/ui/Misc";
-import { artworkCss, artworkFor } from "@/lib/artwork";
+import Artwork from "@/components/ui/Artwork";
 import { altTitle, displayTitle, formatCount, timeAgo } from "@/lib/format";
 import { useLiveChannel } from "@/lib/hooks";
 import { useLive } from "@/stores/live";
@@ -57,12 +57,14 @@ export default function LiveChannelPage({ params }: { params: Promise<{ id: stri
     <div className="flex flex-col gap-8">
       {/* Hero */}
       <div className="flex flex-col gap-6 sm:flex-row sm:items-end">
-        <div
-          className="artwork-themed artwork-surface relative flex size-48 shrink-0 items-center justify-center overflow-hidden rounded-panel shadow-xl sm:size-56"
-          style={artworkCss(artworkFor("live_channel", channel.id))}
-        >
-          <RadioTower className="size-20 text-artwork-ink/80" />
-        </div>
+        <Artwork
+          type="live_channel"
+          id={channel.id}
+          url={channel.artwork_url}
+          title={title}
+          className="size-48 shrink-0 shadow-xl sm:size-56"
+          rounded="rounded-panel"
+        />
 
         <div className="flex min-w-0 flex-col gap-3">
           <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink-mute">

@@ -1,9 +1,9 @@
 "use client";
 
-import { BookOpen, Clock } from "lucide-react";
+import { Clock } from "lucide-react";
 import Link from "next/link";
 import { PremiumBadge, Skeleton } from "@/components/ui/Misc";
-import { artworkCss, artworkFor } from "@/lib/artwork";
+import Artwork from "@/components/ui/Artwork";
 import { formatDuration } from "@/lib/format";
 import { useAudioBooks } from "@/lib/hooks";
 
@@ -36,24 +36,24 @@ export default function AudioBooksPage() {
 
       <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
         {books.map((book) => {
-          const art = artworkFor("audio_book", book.id);
           return (
             <Link
               key={book.id}
               href={`/audiobooks/${book.id}`}
-              className="artwork-themed artwork-surface group relative overflow-hidden rounded-card p-4 text-artwork-ink transition hover:scale-[1.02]"
-              style={artworkCss(art)}
+              className="group relative overflow-hidden rounded-card bg-elev p-3 transition hover:bg-raised"
             >
-              <PremiumBadge className="absolute right-2 top-2" />
-              <BookOpen className="size-8 text-artwork-ink/80" />
-              <p className={`mt-6 line-clamp-2 font-display text-base font-bold text-artwork-ink ${book.language === "bn" ? "font-bangla" : ""}`}>
+              <div className="relative">
+                <Artwork type="audio_book" id={book.id} url={book.artwork_url} title={book.title} className="aspect-square w-full" />
+                <PremiumBadge className="absolute right-2 top-2" />
+              </div>
+              <p className={`mt-3 line-clamp-2 font-display text-base font-bold ${book.language === "bn" ? "font-bangla" : ""}`}>
                 {book.title}
               </p>
-              <p className="mt-1 flex items-center gap-2 text-xs text-artwork-ink/70">
+              <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-ink-soft">
                 {book.language === "bn" ? "বাংলা" : "English"}
                 <span className="flex items-center gap-1"><Clock className="size-3" /> {formatDuration(Math.max(book.duration_male, book.duration_female, book.duration_enhanced ?? 0))}</span>
               </p>
-              {book.author && <p className="mt-0.5 truncate text-[11px] text-artwork-ink/60">by {book.author}</p>}
+              {book.author && <p className="mt-0.5 truncate text-[11px] text-ink-mute">by {book.author}</p>}
             </Link>
           );
         })}

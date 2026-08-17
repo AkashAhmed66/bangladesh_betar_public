@@ -1,9 +1,10 @@
 "use client";
 
-import { BookOpen, Crown, LogIn } from "lucide-react";
+import { Crown, LogIn } from "lucide-react";
 import Link from "next/link";
 import { use, useEffect, useMemo, useState } from "react";
 import HlsAudio from "@/components/ui/HlsAudio";
+import Artwork from "@/components/ui/Artwork";
 import { Skeleton } from "@/components/ui/Misc";
 import { ApiError } from "@/lib/api";
 import { formatDuration } from "@/lib/format";
@@ -91,9 +92,7 @@ export default function AudioBookPage({ params }: { params: Promise<{ id: string
       <div className="sticky top-0 z-30 -mx-4 bg-page/95 px-4 pb-3 pt-2 backdrop-blur sm:-mx-6 sm:px-6">
         <div className="rounded-panel bg-elev p-4 sm:p-5">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-card bg-accent/15 text-accent">
-              <BookOpen className="size-5" />
-            </span>
+            <Artwork type="audio_book" id={book.id} url={book.artwork_url} title={book.title} className="size-12 shrink-0" />
             <div className="min-w-0 flex-1">
               <h1 className={`truncate font-display text-lg font-bold ${bn ? "font-bangla" : ""}`}>{book.title}</h1>
               <p className="text-xs text-ink-mute">

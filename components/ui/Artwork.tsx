@@ -23,6 +23,8 @@ const TYPE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = 
   podcast_channel: Podcast,
   podcast_episode: Podcast,
   playlist: ListMusic,
+  live_channel: RadioTower,
+  audio_book: BookOpen,
 };
 
 interface ArtworkProps {

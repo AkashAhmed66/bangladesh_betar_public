@@ -1,10 +1,10 @@
 "use client";
 
-import { Headphones, Radio, RadioTower } from "lucide-react";
+import { Headphones, Radio } from "lucide-react";
 import Link from "next/link";
 import RecordedBroadcasts from "@/components/live/RecordedBroadcasts";
+import Artwork from "@/components/ui/Artwork";
 import { EmptyState, SectionHeading, Skeleton } from "@/components/ui/Misc";
-import { artworkCss, artworkFor } from "@/lib/artwork";
 import { displayTitle, formatCount } from "@/lib/format";
 import { useLiveChannels } from "@/lib/hooks";
 import type { LiveChannel } from "@/lib/types";
@@ -68,19 +68,22 @@ function LiveCard({ channel, title }: { channel: LiveChannel; title: string }) {
       href={`/live/${channel.id}`}
       className="group flex flex-col gap-3 rounded-panel bg-elev p-3 transition hover:bg-raised"
     >
-      <div
-        className="artwork-themed artwork-surface relative flex aspect-square items-center justify-center overflow-hidden rounded-card"
-        style={artworkCss(artworkFor("live_channel", channel.id))}
-      >
-        <RadioTower className="size-14 text-artwork-ink/80" />
-        <span className="absolute left-2 top-2 inline-flex items-center gap-1.5 rounded-full bg-artwork-panel px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-artwork-ink backdrop-blur">
+      <div className="relative">
+        <Artwork
+          type="live_channel"
+          id={channel.id}
+          url={channel.artwork_url}
+          title={title}
+          className="aspect-square w-full"
+        />
+        <span className="absolute left-2 top-2 inline-flex items-center gap-1.5 rounded-full bg-shade/65 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white backdrop-blur">
           <span className="relative flex size-1.5">
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-flag opacity-75" />
             <span className="relative inline-flex size-1.5 rounded-full bg-flag" />
           </span>
           Live
         </span>
-        <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-artwork-panel px-2 py-0.5 text-[11px] font-semibold text-artwork-ink backdrop-blur">
+        <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-shade/65 px-2 py-0.5 text-[11px] font-semibold text-white backdrop-blur">
           <Headphones className="size-3" /> {formatCount(channel.listener_count)}
         </span>
       </div>
