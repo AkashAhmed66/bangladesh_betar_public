@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/stores/auth";
 import { useUi } from "@/stores/ui";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 
 export default function TopBar() {
   const router = useRouter();
@@ -59,6 +60,8 @@ export default function TopBar() {
 
       <div className="flex-1" />
 
+      <ThemeToggle compact />
+
       {/* language toggle */}
       <button
         onClick={() => setLocale(locale === "en" ? "bn" : "en")}
@@ -92,7 +95,7 @@ export default function TopBar() {
             <span className="hidden max-w-28 truncate text-sm font-semibold md:inline">{user?.name}</span>
           </button>
           {menuOpen && (
-            <div className="fade-up absolute right-0 z-50 mt-2 w-[min(14rem,calc(100vw-1.5rem))] rounded-panel border border-edge bg-raised p-1.5 shadow-2xl shadow-black/60">
+            <div className="fade-up absolute right-0 z-50 mt-2 w-[min(14rem,calc(100vw-1.5rem))] rounded-panel border border-edge bg-raised p-1.5 shadow-2xl shadow-shade/35">
               <div className="border-b border-edge px-3 py-2">
                 <p className="truncate text-sm font-semibold">{user?.name}</p>
                 <p className="truncate text-xs text-ink-mute">{user?.email}</p>

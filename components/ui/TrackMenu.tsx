@@ -2,13 +2,17 @@
 
 import { Check, Flag, Info, ListEnd, ListPlus, ListStart, Loader2, LockKeyhole, MoreHorizontal } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import type { PlayerTrack } from "@/stores/player";
 import { usePlayer } from "@/stores/player";
 import { useAuth } from "@/stores/auth";
 import { useDownloads } from "@/stores/downloads";
 import { useUi } from "@/stores/ui";
+
+const subscribeToDocument = () => () => undefined;
+const browserSnapshot = () => true;
+const serverSnapshot = () => false;
 
 interface TrackMenuProps {
   track: PlayerTrack;
@@ -24,7 +28,7 @@ interface TrackMenuProps {
  */
 export default function TrackMenu({ track, className = "", extraItems = [] }: TrackMenuProps) {
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(subscribeToDocument, browserSnapshot, serverSnapshot);
   const [coords, setCoords] = useState<{ top?: number; bottom?: number; right: number }>({ right: 0 });
   const btnRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -36,8 +40,6 @@ export default function TrackMenu({ track, className = "", extraItems = [] }: Tr
   const download = useDownloads((s) => s.download);
   const removeDownload = useDownloads((s) => s.remove);
   const { openLoginPrompt, openAddToPlaylist } = useUi();
-
-  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!open) return;
@@ -94,7 +96,7 @@ export default function TrackMenu({ track, className = "", extraItems = [] }: Tr
         createPortal(
           <div
             ref={menuRef}
-            className="fade-up fixed z-[200] w-56 rounded-panel border border-edge bg-raised p-1.5 shadow-2xl shadow-black/60"
+            className="fade-up fixed z-[200] w-56 rounded-panel border border-edge bg-raised p-1.5 shadow-2xl shadow-shade/35"
             style={{ top: coords.top, bottom: coords.bottom, right: coords.right }}
             onClick={(e) => {
               e.stopPropagation();

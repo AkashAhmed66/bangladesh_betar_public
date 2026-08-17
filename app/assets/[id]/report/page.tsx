@@ -93,7 +93,7 @@ export default function ReportAssetPage({ params }: { params: Promise<{ id: stri
 
       {done ? (
         <div className="rounded-panel border border-edge bg-raised/50 p-5 text-center sm:p-8">
-          <CheckCircle2 className="mx-auto size-10 text-emerald-500" />
+          <CheckCircle2 className="mx-auto size-10 text-success" />
           <p className="mt-3 text-lg font-bold">Report submitted</p>
           <p className="mt-1 text-sm text-ink-soft">
             Thank you — our team will review it. You can follow its status in Help &amp; feedback.

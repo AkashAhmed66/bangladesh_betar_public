@@ -110,7 +110,7 @@ function QueueRow({
           <button
             onClick={onPlay}
             aria-label={`Play ${title}`}
-            className="absolute inset-0 hidden items-center justify-center rounded-card bg-black/55 group-hover:flex"
+            className="absolute inset-0 hidden items-center justify-center rounded-card bg-artwork-panel text-artwork-ink group-hover:flex"
           >
             <Play className="size-4 fill-current" />
           </button>

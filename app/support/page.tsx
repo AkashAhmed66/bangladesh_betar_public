@@ -24,10 +24,10 @@ const ISSUE_TYPES = [
 ] as const;
 
 const STATUS_STYLE: Record<SubmissionStatus, string> = {
-  new: "bg-sky-500/15 text-sky-600 dark:text-sky-400",
-  in_progress: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
-  resolved: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
-  dismissed: "bg-slate-500/20 text-ink-mute",
+  new: "bg-info/15 text-info",
+  in_progress: "bg-warning/15 text-warning",
+  resolved: "bg-success/15 text-success",
+  dismissed: "bg-highlight text-ink-mute",
 };
 
 const STATUS_LABEL: Record<SubmissionStatus, string> = {

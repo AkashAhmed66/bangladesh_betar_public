@@ -66,7 +66,7 @@ export default function MediaCard({ item }: { item: CatalogueItem }) {
           id={item.id}
           url={artworkUrl}
           title={displayTitle(item, locale)}
-          className={`aspect-square w-full shadow-lg shadow-black/40 ${round ? "" : ""}`}
+          className={`aspect-square w-full shadow-lg shadow-shade/25 ${round ? "" : ""}`}
           rounded={round ? "rounded-full" : "rounded-card"}
         />
         {isPremium(item) && <PremiumBadge className="absolute left-1.5 top-1.5" />}

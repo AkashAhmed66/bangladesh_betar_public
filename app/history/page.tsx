@@ -63,7 +63,7 @@ export default function HistoryPage() {
                   <button
                     aria-label={`Resume ${asset.title}`}
                     onClick={() => playTrack(track, entry.completed ? 0 : entry.progress_seconds)}
-                    className="absolute inset-0 hidden items-center justify-center rounded-card bg-black/55 group-hover:flex"
+                    className="absolute inset-0 hidden items-center justify-center rounded-card bg-artwork-panel text-artwork-ink group-hover:flex"
                   >
                     <Play className="size-5 fill-current" />
                   </button>

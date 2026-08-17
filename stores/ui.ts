@@ -16,9 +16,15 @@ export interface UpgradeReason {
   body: string;
 }
 
+export type ColorTheme = "light" | "dark";
+
 interface UiState {
   locale: "en" | "bn";
   setLocale: (l: "en" | "bn") => void;
+
+  theme: ColorTheme;
+  setTheme: (theme: ColorTheme) => void;
+  toggleTheme: () => void;
 
   loginPromptOpen: boolean;
   loginPromptMessage: string | null;
@@ -52,6 +58,10 @@ export const useUi = create<UiState>()(
       locale: "en",
       setLocale: (locale) => set({ locale }),
 
+      theme: "dark",
+      setTheme: (theme) => set({ theme }),
+      toggleTheme: () => set((state) => ({ theme: state.theme === "dark" ? "light" : "dark" })),
+
       loginPromptOpen: false,
       loginPromptMessage: null,
       openLoginPrompt: (message) => set({ loginPromptOpen: true, loginPromptMessage: message ?? null }),
@@ -79,6 +89,6 @@ export const useUi = create<UiState>()(
       },
       dismissToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
     }),
-    { name: "betar.ui", partialize: (s) => ({ locale: s.locale }) },
+    { name: "betar.ui", partialize: (s) => ({ locale: s.locale, theme: s.theme }) },
   ),
 );

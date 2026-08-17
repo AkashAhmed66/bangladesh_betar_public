@@ -7,7 +7,8 @@
    resolves to one of these tokens. Brand copy + generative artwork
    palettes live in `config/theme.ts`.                                     */
 
-:root {
+:root,
+[data-theme="dark"] {
   /* ---- Surfaces (dark OLED luxury) ---- */
   --bg-base: #070708;          /* app background            */
   --bg-sunken: #030304;        /* sidebar / player wells    */
@@ -35,6 +36,14 @@
   --premium-fg: #241a02;
   --danger: #fb4d63;
   --flag-red: #f42a41;         /* Bangladesh red — logo mark, rare emphasis */
+  --info: #60a5fa;
+  --warning: #fbbf24;
+  --success: #34d399;
+  --shadow-color: #000000;
+  --grain-opacity: 0.028;
+  --artwork-ink: #ffffff;
+  --artwork-panel: rgba(0, 0, 0, 0.55);
+  --artwork-vignette: rgba(0, 0, 0, 0.45);
 
   /* ---- Typography ---- */
   --font-sans: var(--font-jakarta), "Noto Sans Bengali", sans-serif;
@@ -47,6 +56,41 @@
   --sidebar-w: 17rem;
   --player-h: 5.5rem;
   --topbar-h: 4rem;
+}
+
+[data-theme="light"] {
+  /* Warm daylight palette that keeps the archive's emerald identity. */
+  --bg-base: #edf2ef;
+  --bg-sunken: #e3eae6;
+  --bg-elev: #ffffff;
+  --bg-raised: #f2f5f3;
+  --bg-highlight: #e3eae6;
+  --bg-overlay: rgba(19, 29, 24, 0.48);
+
+  --text-primary: #101713;
+  --text-secondary: #49584f;
+  --text-muted: #68756d;
+  --border-subtle: #d8e0db;
+  --border-strong: #bec9c2;
+
+  --accent: #007a46;
+  --accent-hover: #00663b;
+  --accent-pressed: #005632;
+  --accent-fg: #ffffff;
+  --accent-glow: rgba(0, 122, 70, 0.22);
+
+  --premium: #8a6100;
+  --premium-fg: #ffffff;
+  --danger: #bd2942;
+  --flag-red: #d51d36;
+  --info: #1769aa;
+  --warning: #8a5a00;
+  --success: #067647;
+  --shadow-color: #162019;
+  --grain-opacity: 0.014;
+  --artwork-ink: #142019;
+  --artwork-panel: rgba(255, 255, 255, 0.72);
+  --artwork-vignette: rgba(255, 255, 255, 0.28);
 }
 
 /* Map tokens to Tailwind utilities (bg-base, text-ink, border-edge, …) */
@@ -75,6 +119,12 @@
   --color-premium-fg: var(--premium-fg);
   --color-danger: var(--danger);
   --color-flag: var(--flag-red);
+  --color-info: var(--info);
+  --color-warning: var(--warning);
+  --color-success: var(--success);
+  --color-shade: var(--shadow-color);
+  --color-artwork-ink: var(--artwork-ink);
+  --color-artwork-panel: var(--artwork-panel);
 
   --font-sans: var(--font-sans);
   --font-display: var(--font-display);
@@ -88,6 +138,11 @@
 
 html {
   color-scheme: dark;
+  background: var(--bg-base);
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
 }
 
 body {
@@ -156,8 +211,48 @@ textarea {
   position: fixed;
   inset: 0;
   z-index: 90;
-  opacity: 0.028;
+  opacity: var(--grain-opacity);
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Both theme actions stay in the DOM, avoiding hydration-dependent icon swaps. */
+.theme-action-dark { display: none; }
+[data-theme="light"] .theme-action-light { display: none; }
+[data-theme="light"] .theme-action-dark { display: inline; }
+
+/* Generated covers share one identity while selecting a palette per theme. */
+.artwork-themed {
+  --artwork-from: var(--artwork-from-dark);
+  --artwork-to: var(--artwork-to-dark);
+  --artwork-accent: var(--artwork-accent-dark);
+}
+[data-theme="light"] .artwork-themed {
+  --artwork-from: var(--artwork-from-light);
+  --artwork-to: var(--artwork-to-light);
+  --artwork-accent: var(--artwork-accent-light);
+}
+.artwork-surface {
+  background:
+    radial-gradient(120% 120% at 20% 10%, color-mix(in srgb, var(--artwork-accent) 15%, transparent) 0%, transparent 45%),
+    linear-gradient(var(--artwork-angle), var(--artwork-from) 0%, var(--artwork-to) 100%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--artwork-ink) 8%, transparent);
+}
+.artwork-backdrop {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--artwork-from) 40%, transparent) 0%,
+    color-mix(in srgb, var(--artwork-to) 14%, transparent) 55%,
+    transparent 100%
+  );
+}
+.artwork-ambient {
+  background: radial-gradient(closest-side, var(--artwork-accent), transparent 70%);
+}
+.artwork-player-shadow {
+  box-shadow: 0 -18px 70px -32px color-mix(in srgb, var(--artwork-accent) 34%, transparent);
+}
+.artwork-vignette {
+  background: radial-gradient(80% 60% at 50% 120%, var(--artwork-vignette), transparent);
 }
 
 /* ═══════════════════ shared effects ═══════════════════ */
@@ -211,7 +306,7 @@ input[type="range"].seek::-webkit-slider-thumb {
   height: 12px;
   width: 12px;
   border-radius: 999px;
-  background: #fff;
+  background: var(--text-primary);
   opacity: 0;
   transition: opacity 0.15s;
   margin-top: -4px;
@@ -225,7 +320,7 @@ input[type="range"].seek::-webkit-slider-runnable-track {
 }
 input[type="range"].seek::-moz-range-thumb {
   height: 12px; width: 12px; border: none; border-radius: 999px;
-  background: #fff; opacity: 0; transition: opacity 0.15s;
+  background: var(--text-primary); opacity: 0; transition: opacity 0.15s;
 }
 input[type="range"].seek:hover::-moz-range-thumb { opacity: 1; }
 input[type="range"].seek::-moz-range-track {

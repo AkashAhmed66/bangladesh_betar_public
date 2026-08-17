@@ -157,14 +157,14 @@ export default function VoiceSearchOverlay({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/70 p-0 backdrop-blur-sm sm:items-center sm:p-4"
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-overlay p-0 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label="Voice search"
     >
       <div
-        className="fade-up relative flex max-h-[calc(100dvh-1rem)] w-full max-w-sm flex-col items-center gap-5 overflow-y-auto rounded-t-panel border border-edge bg-raised p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] text-center shadow-2xl shadow-black/60 sm:gap-6 sm:rounded-panel sm:p-8"
+        className="fade-up relative flex max-h-[calc(100dvh-1rem)] w-full max-w-sm flex-col items-center gap-5 overflow-y-auto rounded-t-panel border border-edge bg-raised p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] text-center shadow-2xl shadow-shade/35 sm:gap-6 sm:rounded-panel sm:p-8"
         onClick={(e) => e.stopPropagation()}
       >
         <button

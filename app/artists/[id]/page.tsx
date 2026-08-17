@@ -123,7 +123,7 @@ export default function ArtistPage({ params }: { params: Promise<{ id: string }>
             // eslint-disable-next-line @next/next/no-img-element
             <img src={artist.cover_url} alt="" className="size-full object-cover" />
           ) : (
-            <div className="size-full" style={artworkCss(art)} />
+            <div className="artwork-themed artwork-surface size-full" style={artworkCss(art)} />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-page via-page/75 to-transparent" />
         </div>
@@ -134,7 +134,7 @@ export default function ArtistPage({ params }: { params: Promise<{ id: string }>
             id={artist.id}
             url={artist.photo_url}
             title={artist.name}
-            className="aspect-square w-32 shadow-2xl shadow-black/60 sm:w-44"
+            className="aspect-square w-32 shadow-2xl shadow-shade/35 sm:w-44"
             iconClassName="size-1/4"
             rounded="rounded-full"
           />

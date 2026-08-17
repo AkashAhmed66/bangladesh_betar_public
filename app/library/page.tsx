@@ -117,7 +117,7 @@ function LibraryContent() {
                 href={`/playlists/${p.id}`}
                 className="group flex w-40 shrink-0 flex-col gap-3 rounded-panel p-3 transition hover:bg-raised sm:w-44"
               >
-                <Artwork type="playlist" id={p.id} url={p.artwork_url} title={p.title} className="aspect-square w-full shadow-lg shadow-black/40" />
+                <Artwork type="playlist" id={p.id} url={p.artwork_url} title={p.title} className="aspect-square w-full shadow-lg shadow-shade/25" />
                 <div>
                   <p className="clamp-1 text-sm font-semibold">{p.title}</p>
                   <p className="text-xs text-ink-mute">{p.items_count ?? 0} items</p>

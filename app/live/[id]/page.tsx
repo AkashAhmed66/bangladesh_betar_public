@@ -58,10 +58,10 @@ export default function LiveChannelPage({ params }: { params: Promise<{ id: stri
       {/* Hero */}
       <div className="flex flex-col gap-6 sm:flex-row sm:items-end">
         <div
-          className="relative flex size-48 shrink-0 items-center justify-center overflow-hidden rounded-panel shadow-xl sm:size-56"
+          className="artwork-themed artwork-surface relative flex size-48 shrink-0 items-center justify-center overflow-hidden rounded-panel shadow-xl sm:size-56"
           style={artworkCss(artworkFor("live_channel", channel.id))}
         >
-          <RadioTower className="size-20 text-white/85" />
+          <RadioTower className="size-20 text-artwork-ink/80" />
         </div>
 
         <div className="flex min-w-0 flex-col gap-3">

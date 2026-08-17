@@ -1,9 +1,12 @@
 "use client";
 
 import { Mic } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { speechSupported } from "@/lib/speech";
 import VoiceSearchOverlay from "./VoiceSearchOverlay";
+
+const subscribeToBrowserCapability = () => () => undefined;
+const unsupportedOnServer = () => false;
 
 /**
  * YouTube-style voice search trigger. Opens an immersive listening overlay and
@@ -12,10 +15,8 @@ import VoiceSearchOverlay from "./VoiceSearchOverlay";
  * box never breaks.
  */
 export default function VoiceSearchButton({ onResult }: { onResult: (text: string) => void }) {
-  const [supported, setSupported] = useState(false);
+  const supported = useSyncExternalStore(subscribeToBrowserCapability, speechSupported, unsupportedOnServer);
   const [open, setOpen] = useState(false);
-
-  useEffect(() => setSupported(speechSupported()), []);
 
   if (!supported) return null;
 

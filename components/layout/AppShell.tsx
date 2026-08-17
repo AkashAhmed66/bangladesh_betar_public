@@ -14,6 +14,8 @@ import LoginPromptModal from "@/components/modals/LoginPromptModal";
 import UpgradePromptModal from "@/components/modals/UpgradePromptModal";
 import RegisterSW from "@/components/pwa/RegisterSW";
 import Toaster from "@/components/ui/Toaster";
+import ThemeController from "@/components/theme/ThemeController";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 import { useDownloads } from "@/stores/downloads";
 import { useUi } from "@/stores/ui";
 
@@ -31,6 +33,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   if (bare) {
     return (
       <div className="flex h-dvh flex-col overflow-y-auto bg-page">
+        <ThemeController />
+        <div className="fixed right-3 top-3 z-50 sm:right-5 sm:top-5">
+          <ThemeToggle />
+        </div>
         {children}
         <Toaster />
         <RegisterSW />
@@ -40,6 +46,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-dvh min-w-0 flex-col overflow-hidden">
+      <ThemeController />
       <div className="flex min-h-0 flex-1">
         <Sidebar />
         <div className="flex min-w-0 flex-1 flex-col p-0 sm:p-2 lg:pl-2">

@@ -29,7 +29,7 @@ export default function Modal({ open, onClose, title, children, maxWidth = "max-
       aria-label={title}
     >
       <div className="absolute inset-0 bg-overlay backdrop-blur-sm" onClick={onClose} />
-      <div className={`fade-up relative max-h-[calc(100dvh-1rem)] w-full overflow-y-auto ${maxWidth} rounded-t-panel border border-edge bg-elev p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl shadow-black/60 sm:rounded-panel sm:p-6`}>
+      <div className={`fade-up relative max-h-[calc(100dvh-1rem)] w-full overflow-y-auto ${maxWidth} rounded-t-panel border border-edge bg-elev p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl shadow-shade/35 sm:rounded-panel sm:p-6`}>
         <div className="mb-4 flex items-center justify-between gap-4">
           {title ? <h2 className="font-display text-lg font-semibold">{title}</h2> : <span />}
           <button

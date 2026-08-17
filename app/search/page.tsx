@@ -8,7 +8,7 @@ import TrackTable from "@/components/cards/TrackTable";
 import RecordedBroadcastTable from "@/components/live/RecordedBroadcastTable";
 import VoiceSearchButton from "@/components/search/VoiceSearchButton";
 import { EmptyState, PremiumBadge, SectionHeading } from "@/components/ui/Misc";
-import { artworkFor } from "@/lib/artwork";
+import { artworkCss, artworkFor } from "@/lib/artwork";
 import { displayTitle } from "@/lib/format";
 import { useCategories, useGenres, useSearch, useSuggestions } from "@/lib/hooks";
 import { toTracks } from "@/lib/tracks";
@@ -97,7 +97,7 @@ export default function SearchPage() {
             (showSuggest), NOT by the debounce catching up: `input !== query`
             here made the list vanish 350ms after the last keystroke. */}
         {showSuggest && input.trim() !== "" && (suggestions?.data.length ?? 0) > 0 && (
-          <div className="fade-up absolute z-40 mt-2 w-full rounded-panel border border-edge bg-raised p-1.5 shadow-2xl shadow-black/60">
+          <div className="fade-up absolute z-40 mt-2 w-full rounded-panel border border-edge bg-raised p-1.5 shadow-2xl shadow-shade/35">
             {suggestions!.data.map((s, i) => (
               <button
                 key={`${s.text}-${i}`}
@@ -125,11 +125,11 @@ export default function SearchPage() {
                   <Link
                     key={g.id}
                     href={`/songs?genre=${g.id}`}
-                    className="relative overflow-hidden rounded-card p-4 transition hover:scale-[1.02]"
-                    style={{ background: `linear-gradient(135deg, ${art.from}, ${art.to})` }}
+                    className="artwork-themed artwork-surface relative overflow-hidden rounded-card p-4 text-artwork-ink transition hover:scale-[1.02]"
+                    style={artworkCss(art)}
                   >
                     <p className="font-display text-base font-bold">{g.name}</p>
-                    {g.name_bn && <p className="font-bangla text-xs text-white/60">{g.name_bn}</p>}
+                    {g.name_bn && <p className="font-bangla text-xs text-artwork-ink/60">{g.name_bn}</p>}
                   </Link>
                 );
               })}
@@ -144,11 +144,11 @@ export default function SearchPage() {
                   <Link
                     key={c.id}
                     href="/browse"
-                    className="relative overflow-hidden rounded-card p-4 transition hover:scale-[1.02]"
-                    style={{ background: `linear-gradient(135deg, ${art.from}, ${art.to})` }}
+                    className="artwork-themed artwork-surface relative overflow-hidden rounded-card p-4 text-artwork-ink transition hover:scale-[1.02]"
+                    style={artworkCss(art)}
                   >
                     <p className="font-display text-base font-bold">{c.name}</p>
-                    {c.name_bn && <p className="font-bangla text-xs text-white/60">{c.name_bn}</p>}
+                    {c.name_bn && <p className="font-bangla text-xs text-artwork-ink/60">{c.name_bn}</p>}
                   </Link>
                 );
               })}
@@ -237,17 +237,17 @@ export default function SearchPage() {
                     <Link
                       key={`audio-book-${book.id}`}
                       href={`/audiobooks/${book.id}`}
-                      className="group relative flex min-h-28 items-center gap-4 overflow-hidden rounded-card p-4 transition hover:scale-[1.01]"
-                      style={{ background: `linear-gradient(135deg, ${art.from}, ${art.to})` }}
+                      className="artwork-themed artwork-surface group relative flex min-h-28 items-center gap-4 overflow-hidden rounded-card p-4 text-artwork-ink transition hover:scale-[1.01]"
+                      style={artworkCss(art)}
                     >
-                      <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-black/20 text-white">
+                      <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-artwork-panel text-artwork-ink">
                         <BookOpen className="size-6" />
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className={`block line-clamp-2 font-display font-bold text-white ${book.language === "bn" ? "font-bangla" : ""}`}>
+                        <span className={`block line-clamp-2 font-display font-bold text-artwork-ink ${book.language === "bn" ? "font-bangla" : ""}`}>
                           {book.title}
                         </span>
-                        <span className="mt-1 block truncate text-xs text-white/70">
+                        <span className="mt-1 block truncate text-xs text-artwork-ink/70">
                           {[book.author, book.language === "bn" ? "বাংলা" : "English"].filter(Boolean).join(" · ")}
                         </span>
                       </span>
@@ -284,8 +284,8 @@ export default function SearchPage() {
                       <span className="block truncate text-xs text-ink-mute">{r.station || "Bangladesh Betar"}</span>
                     </span>
                     {r.is_live && (
-                      <span className="flex items-center gap-1 rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-400">
-                        <span className="size-1.5 animate-pulse rounded-full bg-red-400" /> Live
+                      <span className="flex items-center gap-1 rounded-full bg-flag/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-flag">
+                        <span className="size-1.5 animate-pulse rounded-full bg-flag" /> Live
                       </span>
                     )}
                   </Link>

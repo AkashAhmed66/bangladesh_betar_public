@@ -41,19 +41,19 @@ export default function AudioBooksPage() {
             <Link
               key={book.id}
               href={`/audiobooks/${book.id}`}
-              className="group relative overflow-hidden rounded-card p-4 transition hover:scale-[1.02]"
+              className="artwork-themed artwork-surface group relative overflow-hidden rounded-card p-4 text-artwork-ink transition hover:scale-[1.02]"
               style={artworkCss(art)}
             >
               <PremiumBadge className="absolute right-2 top-2" />
-              <BookOpen className="size-8 text-white/80" />
-              <p className={`mt-6 line-clamp-2 font-display text-base font-bold text-white ${book.language === "bn" ? "font-bangla" : ""}`}>
+              <BookOpen className="size-8 text-artwork-ink/80" />
+              <p className={`mt-6 line-clamp-2 font-display text-base font-bold text-artwork-ink ${book.language === "bn" ? "font-bangla" : ""}`}>
                 {book.title}
               </p>
-              <p className="mt-1 flex items-center gap-2 text-xs text-white/70">
+              <p className="mt-1 flex items-center gap-2 text-xs text-artwork-ink/70">
                 {book.language === "bn" ? "বাংলা" : "English"}
                 <span className="flex items-center gap-1"><Clock className="size-3" /> {formatDuration(Math.max(book.duration_male, book.duration_female, book.duration_enhanced ?? 0))}</span>
               </p>
-              {book.author && <p className="mt-0.5 truncate text-[11px] text-white/60">by {book.author}</p>}
+              {book.author && <p className="mt-0.5 truncate text-[11px] text-artwork-ink/60">by {book.author}</p>}
             </Link>
           );
         })}

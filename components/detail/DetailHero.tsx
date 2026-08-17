@@ -1,7 +1,7 @@
 "use client";
 
 import Artwork from "@/components/ui/Artwork";
-import { artworkFor } from "@/lib/artwork";
+import { artworkCss, artworkFor } from "@/lib/artwork";
 
 interface DetailHeroProps {
   type: string;
@@ -26,10 +26,8 @@ export default function DetailHero({
     <header className="relative -mx-4 -mt-4 mb-6 overflow-hidden px-4 pb-6 pt-8 sm:-mx-6 sm:px-6">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-60"
-        style={{
-          background: `linear-gradient(180deg, ${art.from}66 0%, ${art.to}22 55%, transparent 100%)`,
-        }}
+        className="artwork-themed artwork-backdrop pointer-events-none absolute inset-0 opacity-60"
+        style={artworkCss(art)}
       />
       <div className="relative flex flex-col items-start gap-6 sm:flex-row sm:items-end">
         <Artwork
@@ -37,7 +35,7 @@ export default function DetailHero({
           id={id}
           url={artworkUrl}
           title={title}
-          className="aspect-square w-40 shadow-2xl shadow-black/60 sm:w-52"
+          className="aspect-square w-40 shadow-2xl shadow-shade/35 sm:w-52"
           iconClassName="size-1/4"
           rounded={round ? "rounded-full" : "rounded-card"}
         />

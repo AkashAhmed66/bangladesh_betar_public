@@ -47,6 +47,20 @@ export const viewport: Viewport = {
   themeColor: "#070708",
 };
 
+const themeBootScript = `
+  (function () {
+    var theme = "dark";
+    try {
+      var stored = window.localStorage.getItem("betar.ui");
+      var parsed = stored ? JSON.parse(stored) : null;
+      var saved = parsed && parsed.state && parsed.state.theme;
+      if (saved === "light" || saved === "dark") theme = saved;
+    } catch (_) {}
+    document.documentElement.setAttribute("data-theme", theme);
+    document.documentElement.style.colorScheme = theme;
+  })();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -55,8 +69,13 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-theme="dark"
+      suppressHydrationWarning
       className={`${jakarta.variable} ${grotesk.variable} ${bangla.variable} h-full antialiased`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+      </head>
       <body className="grain h-full">
         <AppShell>{children}</AppShell>
       </body>

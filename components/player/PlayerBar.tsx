@@ -20,7 +20,7 @@ import Link from "next/link";
 import Artwork from "@/components/ui/Artwork";
 import FavoriteButton from "@/components/ui/FavoriteButton";
 import { PremiumBadge } from "@/components/ui/Misc";
-import { artworkFor } from "@/lib/artwork";
+import { artworkCss, artworkFor } from "@/lib/artwork";
 import { formatDuration } from "@/lib/format";
 import { useAuth } from "@/stores/auth";
 import { useCurrentTrack, usePlayer } from "@/stores/player";
@@ -43,8 +43,8 @@ export default function PlayerBar() {
 
   return (
     <footer
-      className="relative z-50 flex h-[4.5rem] shrink-0 items-center gap-2 border-t border-edge bg-sunken px-2 sm:h-(--player-h) sm:gap-4 sm:px-4"
-      style={art ? { boxShadow: `0 -18px 70px -32px ${art.accent}55` } : undefined}
+      className={`relative z-50 flex h-[4.5rem] shrink-0 items-center gap-2 border-t border-edge bg-sunken px-2 sm:h-(--player-h) sm:gap-4 sm:px-4 ${art ? "artwork-themed artwork-player-shadow" : ""}`}
+      style={art ? artworkCss(art) : undefined}
     >
       {/* Ad takeover state */}
       {ad ? (
@@ -79,7 +79,7 @@ export default function PlayerBar() {
                   aria-label="Open now playing"
                 >
                   <Artwork type={track.type} id={track.id} url={track.artworkUrl} title={title ?? ""} className="size-11 sm:size-13" />
-                  <span className="absolute inset-0 hidden items-center justify-center rounded-card bg-black/50 group-hover:flex">
+                  <span className="absolute inset-0 hidden items-center justify-center rounded-card bg-artwork-panel text-artwork-ink group-hover:flex">
                     <ChevronUp className="size-5" />
                   </span>
                 </button>

@@ -18,7 +18,7 @@ import Artwork from "@/components/ui/Artwork";
 import FavoriteButton from "@/components/ui/FavoriteButton";
 import { PremiumBadge } from "@/components/ui/Misc";
 import Waveform from "./Waveform";
-import { artworkFor } from "@/lib/artwork";
+import { artworkCss, artworkFor } from "@/lib/artwork";
 import { formatCount, formatDuration } from "@/lib/format";
 import { useAsset } from "@/lib/hooks";
 import { useCurrentTrack, usePlayer } from "@/stores/player";
@@ -51,8 +51,8 @@ export default function NowPlaying() {
       {/* ambient backdrop from the artwork's palette */}
       <div
         aria-hidden
-        className="ambient-drift pointer-events-none absolute -top-1/4 left-1/2 h-[80vh] w-[80vw] -translate-x-1/2 rounded-full opacity-25 blur-3xl"
-        style={{ background: `radial-gradient(closest-side, ${art.accent}, transparent 70%)` }}
+        className="artwork-themed artwork-ambient ambient-drift pointer-events-none absolute -top-1/4 left-1/2 h-[80vh] w-[80vw] -translate-x-1/2 rounded-full opacity-25 blur-3xl"
+        style={artworkCss(art)}
       />
 
       <div className="relative z-10 flex items-center justify-between px-4 py-3 sm:px-6 sm:py-5">
@@ -73,7 +73,7 @@ export default function NowPlaying() {
           id={track.id}
           url={track.artworkUrl}
           title={title}
-          className="aspect-square w-[min(62vw,16rem)] shadow-2xl shadow-black/60 sm:w-80"
+          className="aspect-square w-[min(62vw,16rem)] shadow-2xl shadow-shade/35 sm:w-80"
           iconClassName="size-1/4"
         />
 

@@ -24,7 +24,7 @@ export function PlayCircle({
         e.stopPropagation();
         onClick(e);
       }}
-      className={`flex ${size} items-center justify-center rounded-full bg-accent text-accent-fg shadow-lg shadow-black/40 transition-all hover:scale-105 hover:bg-accent-hover active:scale-95 ${className}`}
+      className={`flex ${size} items-center justify-center rounded-full bg-accent text-accent-fg shadow-lg shadow-shade/25 transition-all hover:scale-105 hover:bg-accent-hover active:scale-95 ${className}`}
     >
       <Play className={`${icon} translate-x-[1px] fill-current`} />
     </button>
