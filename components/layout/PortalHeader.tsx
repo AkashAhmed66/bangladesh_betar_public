@@ -20,6 +20,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import ThemeToggle from "@/components/theme/ThemeToggle";
+import { usePortalCategories } from "@/lib/hooks";
 import { portalForPath, type Portal } from "@/lib/portal";
 import { useAuth } from "@/stores/auth";
 import { useUi } from "@/stores/ui";
@@ -30,37 +31,24 @@ const PORTALS: { id: Portal; href: string; label: string; icon: typeof Newspaper
   { id: "listen", href: "/", label: "Listen", icon: Headphones },
 ];
 
-const SUB_NAV: Record<Portal, { href: string; label: string; icon?: typeof Radio }[]> = {
-  news: [
-    { href: "/news", label: "Top stories" },
-    { href: "/news#latest", label: "Latest" },
-    { href: "/news#bangladesh", label: "Bangladesh" },
-    { href: "/news#economy", label: "Economy" },
-    { href: "/news#climate", label: "Climate" },
-    { href: "/news#culture", label: "Culture" },
-    { href: "/news#science", label: "Science" },
-  ],
-  watch: [
-    { href: "/watch", label: "Home" },
-    { href: "/watch#live", label: "Live TV" },
-    { href: "/watch#drama", label: "Drama" },
-    { href: "/watch#documentary", label: "Documentary" },
-    { href: "/watch#culture", label: "Culture & music" },
-    { href: "/watch#kids", label: "Kids" },
-    { href: "/watch#categories", label: "Categories" },
-  ],
-  listen: [
-    { href: "/", label: "Home" },
-    { href: "/live", label: "Live radio", icon: Radio },
-    { href: "/songs", label: "Songs", icon: Music2 },
-    { href: "/albums", label: "Albums" },
-    { href: "/artists", label: "Artists" },
-    { href: "/programmes", label: "Programmes", icon: RadioTower },
-    { href: "/podcasts", label: "Podcasts", icon: Podcast },
-    { href: "/audiobooks", label: "Audio books", icon: BookOpen },
-    { href: "/library", label: "My library", icon: Library },
-  ],
-};
+type SubNavItem = { href: string; label: string; icon?: typeof Radio };
+
+const LISTEN_SUB_NAV: SubNavItem[] = [
+  { href: "/", label: "Home" },
+  { href: "/live", label: "Live radio", icon: Radio },
+  { href: "/songs", label: "Songs", icon: Music2 },
+  { href: "/albums", label: "Albums" },
+  { href: "/artists", label: "Artists" },
+  { href: "/programmes", label: "Programmes", icon: RadioTower },
+  { href: "/podcasts", label: "Podcasts", icon: Podcast },
+  { href: "/audiobooks", label: "Audio books", icon: BookOpen },
+  { href: "/library", label: "My library", icon: Library },
+];
+
+const FALLBACK_NEWS_CATEGORIES = ["Bangladesh", "Economy", "Climate", "Culture", "Science", "Environment", "Media"]
+  .map((label) => ({ label, slug: label.toLowerCase().replaceAll(" ", "-") }));
+const FALLBACK_WATCH_CATEGORIES = ["Live TV", "Drama", "Documentary", "Culture & music", "Kids"]
+  .map((label) => ({ label, slug: label === "Culture & music" ? "culture" : label.toLowerCase().replaceAll(" ", "-") }));
 
 function PortalMark({ portal }: { portal: Portal }) {
   const Icon = portal === "news" ? Newspaper : portal === "watch" ? Clapperboard : Headphones;
@@ -80,6 +68,7 @@ export default function PortalHeader() {
   const pathname = usePathname();
   const portal = portalForPath(pathname);
   const { token, user, entitlements, logout } = useAuth();
+  const { data: categoryResponse } = usePortalCategories();
   const locale = useUi((state) => state.locale);
   const setLocale = useUi((state) => state.setLocale);
   const toast = useUi((state) => state.toast);
@@ -88,6 +77,24 @@ export default function PortalHeader() {
   const menuRef = useRef<HTMLDivElement>(null);
   const menuOpen = menuPath === pathname;
   const headerHidden = hiddenPath === pathname;
+  const newsCategories = categoryResponse?.data.news ?? FALLBACK_NEWS_CATEGORIES;
+  const watchCategories = categoryResponse?.data.watch ?? FALLBACK_WATCH_CATEGORIES;
+  const subNav: SubNavItem[] = portal === "news"
+    ? [
+        { href: "/news", label: "Top stories" },
+        { href: "/news/latest", label: "Latest" },
+        ...newsCategories.map((category) => ({ href: `/news/category/${category.slug}`, label: category.label })),
+      ]
+    : portal === "watch"
+      ? [
+          { href: "/watch", label: "Home" },
+          { href: "/watch/live", label: "Live TV" },
+          ...watchCategories
+            .filter((category) => category.slug !== "live-tv")
+            .map((category) => ({ href: `/watch/category/${category.slug}`, label: category.label })),
+          { href: "/watch/categories", label: "Categories" },
+        ]
+      : LISTEN_SUB_NAV;
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -103,25 +110,56 @@ export default function PortalHeader() {
     if (!scroller) return;
 
     let lastScrollTop = Math.max(0, scroller.scrollTop);
+    let accumulatedDistance = 0;
+    let direction: -1 | 0 | 1 = 0;
+    // This effect restarts only for a route or menu change. Both conditions
+    // intentionally begin with the primary row visible.
+    let isHidden = false;
+    let transitionLockedUntil = 0;
     let animationFrame = 0;
+
+    const setHeaderVisibility = (hidden: boolean) => {
+      if (hidden === isHidden) return;
+
+      isHidden = hidden;
+      accumulatedDistance = 0;
+      direction = 0;
+      transitionLockedUntil = performance.now() + 420;
+      setHiddenPath(hidden ? pathname : null);
+    };
 
     const updateHeader = () => {
       animationFrame = 0;
       const currentScrollTop = Math.max(0, scroller.scrollTop);
       const distance = currentScrollTop - lastScrollTop;
+      lastScrollTop = currentScrollTop;
 
-      if (menuOpen || currentScrollTop <= 12) {
-        setHiddenPath(null);
-        lastScrollTop = currentScrollTop;
+      if (menuOpen || currentScrollTop <= 24) {
+        setHeaderVisibility(false);
         return;
       }
 
-      if (distance > 6) {
-        setHiddenPath(pathname);
-        lastScrollTop = currentScrollTop;
-      } else if (distance < -6) {
-        setHiddenPath(null);
-        lastScrollTop = currentScrollTop;
+      // Collapsing the top row changes the main viewport height and may emit
+      // synthetic scroll movement. Keep the reference position in sync while
+      // the transition runs, but do not treat that movement as user intent.
+      if (performance.now() < transitionLockedUntil || Math.abs(distance) < 0.5) {
+        accumulatedDistance = 0;
+        direction = 0;
+        return;
+      }
+
+      const nextDirection: -1 | 1 = distance > 0 ? 1 : -1;
+      if (nextDirection !== direction) {
+        direction = nextDirection;
+        accumulatedDistance = distance;
+      } else {
+        accumulatedDistance += distance;
+      }
+
+      if (!isHidden && currentScrollTop > 72 && accumulatedDistance >= 28) {
+        setHeaderVisibility(true);
+      } else if (isHidden && accumulatedDistance <= -18) {
+        setHeaderVisibility(false);
       }
     };
 
@@ -144,7 +182,7 @@ export default function PortalHeader() {
         <div className="mx-auto flex h-13 w-full min-w-0 max-w-[1600px] items-stretch px-3 sm:h-15 sm:px-6">
           <Link href="/" className="flex shrink-0 items-center gap-2 pr-3 sm:pr-6" aria-label="Bangladesh Betar home">
             <span className="portal-brand-icon relative grid size-9 place-items-center rounded-full">
-              <RadioTower className="size-5" />
+              <RadioTower className="size-6 stroke-[2.25]" />
               <span className="portal-brand-live absolute right-0 top-0 size-2.5 rounded-full bg-[#f42a41]" />
             </span>
             <span className="hidden leading-none md:block">
@@ -235,7 +273,7 @@ export default function PortalHeader() {
       <div className="relative z-10 mx-auto flex h-13 w-full min-w-0 max-w-[1600px] items-stretch gap-4 px-3 sm:h-15 sm:px-6">
         <PortalMark portal={portal} />
         <nav className="flex min-w-0 flex-1 items-stretch overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label={`${portal} navigation`}>
-          {SUB_NAV[portal].map(({ href, label }) => {
+          {subNav.map(({ href, label }) => {
             const exactPath = href.split("#")[0];
             const active = !href.includes("#") && (
               href === "/"

@@ -261,6 +261,62 @@ export interface HomeResponse {
   sections: HomeSection[];
 }
 
+// ---- News + Watch portals ----
+
+export interface PortalCategory {
+  value: string;
+  label: string;
+  slug: string;
+}
+
+export interface PortalCategories {
+  news: PortalCategory[];
+  watch: PortalCategory[];
+}
+
+export interface NewsArticle {
+  id: number;
+  type: "news_article";
+  slug: string;
+  title: string;
+  summary: string;
+  category: string;
+  body: string[];
+  image_url: string | null;
+  read_time_minutes: number;
+  read_time: string;
+  is_featured: boolean;
+  published_at: string | null;
+  published: string;
+}
+
+export interface WatchEpisode {
+  id: number;
+  title: string;
+  description: string | null;
+  duration_minutes: number;
+  duration: string;
+  position: number;
+  video_url: string | null;
+}
+
+export interface WatchShow {
+  id: number;
+  type: "watch_show";
+  slug: string;
+  title: string;
+  eyebrow: string | null;
+  description: string;
+  category: "Live TV" | "Drama" | "Documentary" | "Culture" | "Kids";
+  image_url: string | null;
+  year: number | null;
+  rating: string | null;
+  is_featured: boolean;
+  published_at: string | null;
+  episodes_count?: number;
+  episodes: WatchEpisode[];
+}
+
 // ---- Auth / user ----
 
 export interface Entitlements {

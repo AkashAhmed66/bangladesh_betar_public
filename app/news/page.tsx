@@ -1,51 +1,72 @@
-import { ArrowRight, Clock3, Radio, Sparkles } from "lucide-react";
+"use client";
+
+/* eslint-disable @next/next/no-img-element */
+import { AlertCircle, ArrowRight, Clock3, LoaderCircle, Radio, Sparkles } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { NEWS_STORIES, type DemoNewsStory } from "@/lib/demoContent";
+import { useNewsArticles } from "@/lib/hooks";
+import type { NewsArticle } from "@/lib/types";
 
-function StoryCard({ story, large = false }: { story: DemoNewsStory; large?: boolean }) {
+function StoryCard({ story, large = false }: { story: NewsArticle; large?: boolean }) {
   return (
     <Link id={story.category.toLowerCase()} href={`/news/${story.slug}`} className="group block min-w-0 scroll-mt-32">
       <div className={`relative overflow-hidden rounded-panel bg-sunken ${large ? "aspect-[16/9]" : "aspect-[16/10]"}`}>
-        <Image src={story.image} alt="" fill sizes={large ? "(max-width: 1024px) 100vw, 55vw" : "(max-width: 640px) 100vw, 33vw"} className="editorial-image object-cover" />
+        {story.image_url ? (
+          <img src={story.image_url} alt="" loading={large ? "eager" : "lazy"} className="editorial-image size-full object-cover" />
+        ) : (
+          <div className="grid size-full place-items-center text-ink-mute"><Radio className="size-10" /></div>
+        )}
       </div>
       <p className="mt-3 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--portal-color)]">{story.category}</p>
       <h3 className={`mt-1 break-words font-display font-bold leading-tight tracking-[-0.025em] group-hover:underline ${large ? "text-2xl sm:text-3xl" : "text-lg sm:text-xl"}`}>
         {story.title}
       </h3>
       <p className="mt-2 clamp-2 text-sm leading-relaxed text-ink-soft">{story.summary}</p>
-      <p className="mt-3 flex items-center gap-1.5 text-xs text-ink-mute"><Clock3 className="size-3.5" /> {story.published} · {story.readTime}</p>
+      <p className="mt-3 flex items-center gap-1.5 text-xs text-ink-mute"><Clock3 className="size-3.5" /> {story.published} · {story.read_time}</p>
     </Link>
   );
 }
 
+function NewsLoading() {
+  return (
+    <div className="grid min-h-[28rem] place-items-center">
+      <div className="flex items-center gap-3 text-sm font-bold text-ink-soft"><LoaderCircle className="size-5 animate-spin text-[var(--portal-color)]" /> Loading the newsroom…</div>
+    </div>
+  );
+}
+
 export default function NewsPage() {
-  const [lead, ...rest] = NEWS_STORIES;
+  const { data, error, isLoading } = useNewsArticles();
+  const stories = data?.data ?? [];
+
+  if (isLoading) return <NewsLoading />;
+  if (error || stories.length === 0) {
+    return (
+      <div className="mx-auto grid min-h-[30rem] max-w-xl place-items-center px-5 text-center">
+        <div><AlertCircle className="mx-auto size-9 text-[var(--portal-color)]" /><h1 className="mt-4 font-display text-3xl font-bold">Newsroom unavailable</h1><p className="mt-2 text-sm text-ink-soft">Published news could not be loaded. Please try again shortly.</p></div>
+      </div>
+    );
+  }
+
+  const lead = stories.find((story) => story.is_featured) ?? stories[0];
+  const rest = stories.filter((story) => story.id !== lead.id);
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-[1480px] px-4 pb-20 pt-7 sm:px-7 sm:pt-10 lg:px-10">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="mb-2 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-[var(--portal-color)]">
-            <Sparkles className="size-3.5" /> Public-interest journalism
-          </p>
+          <p className="mb-2 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-[var(--portal-color)]"><Sparkles className="size-3.5" /> Public-interest journalism</p>
           <h1 className="font-display text-4xl font-bold tracking-[-0.045em] sm:text-5xl">Top stories</h1>
         </div>
         <div className="flex items-center gap-1 overflow-x-auto rounded-full bg-raised p-1 [scrollbar-width:none]">
-          {['All', 'National', 'Trending'].map((label, index) => (
-            <span key={label} className={`shrink-0 rounded-full px-4 py-2 text-sm font-bold ${index === 0 ? 'bg-[var(--portal-color)] text-white' : 'text-ink-soft'}`}>{label}</span>
-          ))}
+          {["All", "National", "Trending"].map((label, index) => <span key={label} className={`shrink-0 rounded-full px-4 py-2 text-sm font-bold ${index === 0 ? "bg-[var(--portal-color)] text-white" : "text-ink-soft"}`}>{label}</span>)}
         </div>
       </div>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] xl:gap-12">
         <div className="min-w-0">
-          <div className="rounded-panel border border-edge bg-raised p-3 sm:p-5">
-            <StoryCard story={lead} large />
-          </div>
-          <div className="mt-8 grid gap-7 sm:grid-cols-2 xl:grid-cols-3">
-            {rest.slice(0, 3).map((story) => <StoryCard key={story.slug} story={story} />)}
-          </div>
+          <div className="rounded-panel border border-edge bg-raised p-3 sm:p-5"><StoryCard story={lead} large /></div>
+          {rest.length > 0 && <div className="mt-8 grid gap-7 sm:grid-cols-2 xl:grid-cols-3">{rest.slice(0, 3).map((story) => <StoryCard key={story.slug} story={story} />)}</div>}
         </div>
 
         <aside className="border-t border-edge pt-6 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-1" aria-labelledby="just-in-title">
@@ -54,7 +75,7 @@ export default function NewsPage() {
             <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-danger"><span className="size-2 animate-pulse rounded-full bg-danger" /> Live</span>
           </div>
           <ol className="mt-5">
-            {NEWS_STORIES.map((story, index) => (
+            {stories.map((story, index) => (
               <li key={story.slug} className="relative border-l border-edge pb-6 pl-6 last:pb-0">
                 <span className="absolute -left-1 top-1 size-2 rounded-full bg-[var(--portal-color)] ring-4 ring-elev" />
                 <div className="flex items-center gap-2 text-xs text-ink-mute"><span className="font-bold text-ink-soft">{story.category}</span><span>·</span><span>{story.published}</span></div>
@@ -63,22 +84,19 @@ export default function NewsPage() {
               </li>
             ))}
           </ol>
-          <Link href="#latest" className="mt-7 inline-flex min-h-11 items-center gap-2 rounded-full bg-ink px-5 text-sm font-bold text-page transition hover:gap-3">More updates <ArrowRight className="size-4" /></Link>
+          <Link href="/news/latest" className="mt-7 inline-flex min-h-11 items-center gap-2 rounded-full bg-ink px-5 text-sm font-bold text-page transition hover:gap-3">More updates <ArrowRight className="size-4" /></Link>
         </aside>
       </div>
 
-      <section id="latest" className="mt-16 border-t border-edge pt-9 scroll-mt-32">
-        <div className="flex items-end justify-between gap-4">
-          <div>
-            <h2 className="editorial-rule font-display text-3xl font-bold tracking-tight">More news</h2>
-            <p className="mt-2 text-sm text-ink-soft">Fresh reporting from across Bangladesh.</p>
+      {rest.length > 0 && (
+        <section id="latest" className="mt-16 border-t border-edge pt-9 scroll-mt-32">
+          <div className="flex items-end justify-between gap-4">
+            <div><h2 className="editorial-rule font-display text-3xl font-bold tracking-tight">More news</h2><p className="mt-2 text-sm text-ink-soft">Fresh reporting from across Bangladesh.</p></div>
+            <span className="hidden rounded-full border border-edge px-3 py-1 text-xs font-bold text-ink-mute sm:inline">Updated by Betar Newsroom</span>
           </div>
-          <span className="hidden rounded-full border border-edge px-3 py-1 text-xs font-bold text-ink-mute sm:inline">Demo editorial content</span>
-        </div>
-        <div className="mt-7 grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
-          {[...rest.slice(3), ...rest.slice(0, 3)].map((story) => <StoryCard key={`more-${story.slug}`} story={story} />)}
-        </div>
-      </section>
+          <div className="mt-7 grid gap-7 sm:grid-cols-2 lg:grid-cols-3">{rest.map((story) => <StoryCard key={`more-${story.slug}`} story={story} />)}</div>
+        </section>
+      )}
 
       <section className="portal-tint-panel mt-16 overflow-hidden rounded-panel" id="culture">
         <div className="grid md:grid-cols-[1fr_1.25fr]">

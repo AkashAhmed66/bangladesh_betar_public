@@ -15,6 +15,7 @@ import type {
   HistoryEntry,
   HomeResponse,
   LiveChannel,
+  NewsArticle,
   Paginated,
   Plan,
   PaymentRecord,
@@ -22,11 +23,13 @@ import type {
   PodcastChannel,
   PodcastEpisode,
   Programme,
+  PortalCategories,
   SearchResults,
   Song,
   SubscriptionStatus,
   Suggestion,
   Taxonomy,
+  WatchShow,
 } from "./types";
 
 const fetcher = <T,>(path: string) => get<T>(path);
@@ -55,6 +58,29 @@ export function usePollingApi<T>(path: string | null, refreshInterval: number) {
 
 // ---- Discovery ----
 export const useHome = () => useApi<HomeResponse>("/home");
+type PortalListParams = {
+  category?: string;
+  page?: number;
+  perPage?: number;
+  sort?: "latest";
+};
+
+function portalListPath(path: "/news" | "/watch", params: PortalListParams): string {
+  const query = new URLSearchParams({
+    per_page: String(params.perPage ?? 24),
+    page: String(params.page ?? 1),
+  });
+  if (params.category) query.set("category", params.category);
+  if (params.sort) query.set("sort", params.sort);
+
+  return `${path}?${query.toString()}`;
+}
+
+export const usePortalCategories = () => useApi<{ data: PortalCategories }>("/portal-categories");
+export const useNewsArticles = (params: PortalListParams = {}) => useApi<Paginated<NewsArticle>>(portalListPath("/news", params));
+export const useNewsArticle = (slug: string) => useApi<{ data: NewsArticle }>(slug ? `/news/${encodeURIComponent(slug)}` : null);
+export const useWatchShows = (params: PortalListParams = {}) => useApi<Paginated<WatchShow>>(portalListPath("/watch", params));
+export const useWatchShow = (slug: string) => useApi<{ data: WatchShow }>(slug ? `/watch/${encodeURIComponent(slug)}` : null);
 export const useCategories = () => useApi<{ data: Taxonomy[] }>("/categories");
 export const useGenres = () => useApi<{ data: Taxonomy[] }>("/genres");
 export const useTrending = () => useApi<{ data: AudioAsset[] }>("/trending");

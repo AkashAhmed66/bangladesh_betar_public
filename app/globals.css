@@ -123,6 +123,7 @@
 }
 .portal-primary-slot.is-hidden {
   height: 0;
+  overflow: clip;
   pointer-events: none;
 }
 .portal-primary-slot.is-hidden .portal-global-bar {
@@ -139,13 +140,9 @@
 }
 
 .portal-global-bar {
-  --portal-header-surface: color-mix(in srgb, var(--portal-color) 9%, rgba(47, 47, 57, 0.92));
-  background:
-    radial-gradient(circle at 20% -110%, color-mix(in srgb, var(--portal-color) 18%, transparent), transparent 48%),
-    var(--portal-header-surface);
-  backdrop-filter: blur(20px) saturate(125%);
-  -webkit-backdrop-filter: blur(20px) saturate(125%);
-  box-shadow: inset 0 1px rgba(255, 255, 255, 0.09);
+  --portal-header-surface: #292a2f;
+  background: var(--portal-header-surface);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.06), inset 0 -1px rgba(255, 255, 255, 0.05);
 }
 
 .portal-brand-icon {
@@ -156,19 +153,20 @@
 .portal-brand-live { box-shadow: 0 0 0 2px var(--portal-header-surface); }
 .portal-brand-title {
   font-family: var(--font-display);
-  font-size: 1.0625rem;
-  font-weight: 800;
+  font-size: 1.1875rem;
+  font-weight: 900;
   line-height: 1;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.05em;
   text-shadow: 0 2px 16px color-mix(in srgb, var(--portal-color) 16%, transparent);
 }
 .portal-brand-title-accent {
   color: color-mix(in srgb, var(--portal-color) 86%, var(--text-primary));
 }
 .portal-brand-subtitle {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.005em;
 }
 
 .portal-tab {
@@ -179,13 +177,11 @@
   margin-top: 1.1rem;
   overflow: hidden;
   color: color-mix(in srgb, var(--tab-color) 72%, var(--text-primary));
-  background: color-mix(in srgb, var(--tab-color) 7%, rgba(255, 255, 255, 0.055));
-  border: 1px solid color-mix(in srgb, var(--tab-color) 20%, rgba(255, 255, 255, 0.1));
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--text-primary) 12%, transparent);
   border-bottom: 0;
   border-radius: 0.85rem 0.85rem 0 0;
-  backdrop-filter: blur(14px) saturate(120%);
-  -webkit-backdrop-filter: blur(14px) saturate(120%);
-  transition: color 180ms ease, background-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+  transition: color 180ms ease, border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
 }
 .portal-tab-news { --tab-color: #3f63e8; --tab-on-color: #ffffff; }
 .portal-tab-watch { --tab-color: #38bfc1; --tab-on-color: #062e30; }
@@ -202,10 +198,10 @@
 .portal-tab-label {
   position: relative;
   font-family: var(--font-display);
-  font-size: 0.95rem;
-  font-weight: 800;
+  font-size: 1.0625rem;
+  font-weight: 900;
   line-height: 1;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.04em;
   text-shadow: 0 2px 14px color-mix(in srgb, var(--tab-color) 24%, transparent);
   transition: transform 180ms ease, letter-spacing 180ms ease, text-shadow 180ms ease;
 }
@@ -216,17 +212,18 @@
   text-shadow: 0 2px 18px color-mix(in srgb, var(--tab-color) 36%, transparent);
 }
 @media (min-width: 640px) {
-  .portal-tab-label { font-size: 1.1rem; }
+  .portal-tab-label { font-size: 1.25rem; }
 }
 .portal-tab:hover {
-  color: color-mix(in srgb, var(--tab-color) 84%, white);
-  background: color-mix(in srgb, var(--tab-color) 13%, rgba(255, 255, 255, 0.08));
+  color: color-mix(in srgb, var(--tab-color) 88%, white);
+  background: transparent;
+  border-color: color-mix(in srgb, var(--text-primary) 22%, transparent);
 }
 .portal-tab.is-active {
-  color: color-mix(in srgb, var(--tab-color) 82%, white);
-  background: color-mix(in srgb, var(--tab-color) 16%, rgba(255, 255, 255, 0.13));
-  border-color: color-mix(in srgb, var(--tab-color) 38%, rgba(255, 255, 255, 0.15));
-  box-shadow: inset 0 1px rgba(255, 255, 255, 0.12), 0 -7px 22px color-mix(in srgb, var(--tab-color) 13%, transparent);
+  color: color-mix(in srgb, var(--tab-color) 88%, white);
+  background: transparent;
+  border-color: color-mix(in srgb, var(--text-primary) 24%, transparent);
+  box-shadow: none;
 }
 .portal-tab.is-active::before { opacity: 1; }
 .portal-tab:focus-visible {
@@ -251,26 +248,25 @@
 }
 
 [data-theme="light"] .portal-global-bar {
-  --portal-header-surface: color-mix(in srgb, var(--portal-color) 5%, rgba(255, 255, 255, 0.9));
-  background:
-    radial-gradient(circle at 18% -120%, color-mix(in srgb, var(--portal-color) 10%, transparent), transparent 50%),
-    var(--portal-header-surface);
-  box-shadow: inset 0 1px rgba(255, 255, 255, 0.95), inset 0 -1px color-mix(in srgb, var(--portal-color) 11%, transparent);
+  --portal-header-surface: #eef0f3;
+  background: var(--portal-header-surface);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.9), inset 0 -1px #d9dde3;
 }
 [data-theme="light"] .portal-tab {
   color: color-mix(in srgb, var(--tab-color) 76%, #25302a);
-  background: color-mix(in srgb, var(--tab-color) 5%, rgba(255, 255, 255, 0.72));
-  border-color: color-mix(in srgb, var(--tab-color) 14%, #d9dfdc);
+  background: transparent;
+  border-color: color-mix(in srgb, #6b7280 22%, transparent);
 }
 [data-theme="light"] .portal-tab:hover {
   color: var(--tab-color);
-  background: color-mix(in srgb, var(--tab-color) 9%, rgba(255, 255, 255, 0.82));
+  background: transparent;
+  border-color: color-mix(in srgb, #6b7280 36%, transparent);
 }
 [data-theme="light"] .portal-tab.is-active {
   color: color-mix(in srgb, var(--tab-color) 92%, #111111);
-  background: color-mix(in srgb, var(--tab-color) 8%, rgba(255, 255, 255, 0.9));
-  border-color: color-mix(in srgb, var(--tab-color) 24%, #d9dfdc);
-  box-shadow: inset 0 1px #ffffff, 0 -8px 20px color-mix(in srgb, var(--tab-color) 9%, transparent);
+  background: transparent;
+  border-color: color-mix(in srgb, #6b7280 42%, transparent);
+  box-shadow: none;
 }
 
 .portal-mark {
@@ -324,6 +320,19 @@
   transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1), filter 300ms ease;
 }
 .group:hover .editorial-image { transform: scale(1.025); }
+
+.story-prose p {
+  text-wrap: pretty;
+}
+.story-prose p:first-child::first-letter {
+  float: left;
+  margin: 0.08em 0.12em 0 0;
+  color: var(--portal-color);
+  font-family: var(--font-display);
+  font-size: 4.15em;
+  font-weight: 800;
+  line-height: 0.78;
+}
 
 /* Map tokens to Tailwind utilities (bg-base, text-ink, border-edge, …) */
 /* NOTE: the page-background color is exposed as `page` (bg-page/text-page),
@@ -557,6 +566,60 @@ input[type="range"].seek::-moz-range-thumb {
 input[type="range"].seek:hover::-moz-range-thumb { opacity: 1; }
 input[type="range"].seek::-moz-range-track {
   height: 4px; border-radius: 999px; background: var(--track-bg, var(--border-strong));
+}
+
+/* Watch player controls retain strong contrast in both portal themes. */
+input[type="range"].advanced-video-seek,
+input[type="range"].advanced-video-volume {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.28);
+  cursor: pointer;
+}
+input[type="range"].advanced-video-seek::-webkit-slider-runnable-track,
+input[type="range"].advanced-video-volume::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: transparent;
+}
+input[type="range"].advanced-video-seek::-webkit-slider-thumb,
+input[type="range"].advanced-video-volume::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -5px;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
+  background: var(--portal-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+input[type="range"].advanced-video-seek::-moz-range-track,
+input[type="range"].advanced-video-volume::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: transparent;
+}
+input[type="range"].advanced-video-seek::-moz-range-progress,
+input[type="range"].advanced-video-volume::-moz-range-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--portal-color);
+}
+input[type="range"].advanced-video-seek::-moz-range-thumb,
+input[type="range"].advanced-video-volume::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
+  background: var(--portal-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+input[type="range"].advanced-video-seek:focus-visible,
+input[type="range"].advanced-video-volume:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 4px;
 }
 
 /* Line-clamp helpers */
