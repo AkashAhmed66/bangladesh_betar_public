@@ -3,8 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import MobileNav from "./MobileNav";
-import Sidebar from "./Sidebar";
-import TopBar from "./TopBar";
+import PortalHeader from "./PortalHeader";
 import PlayerBar from "@/components/player/PlayerBar";
 import QueuePanel from "@/components/player/QueuePanel";
 import NowPlaying from "@/components/player/NowPlaying";
@@ -16,12 +15,15 @@ import RegisterSW from "@/components/pwa/RegisterSW";
 import Toaster from "@/components/ui/Toaster";
 import ThemeController from "@/components/theme/ThemeController";
 import ThemeToggle from "@/components/theme/ThemeToggle";
+import { portalForPath } from "@/lib/portal";
 import { useDownloads } from "@/stores/downloads";
 import { useUi } from "@/stores/ui";
 
-/** Spotify-style chrome: sidebar + rounded main panel + bottom player. */
+/** Shared shell for News, Watch and Listen with one account and theme. */
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const portal = portalForPath(pathname);
+  const isListen = portal === "listen";
   const queuePanelOpen = useUi((s) => s.queuePanelOpen);
   const bare = pathname === "/login" || pathname === "/register";
 
@@ -45,24 +47,21 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-dvh min-w-0 flex-col overflow-hidden">
+    <div data-portal={portal} className="flex h-dvh w-full min-w-0 max-w-full flex-col overflow-hidden bg-page">
       <ThemeController />
-      <div className="flex min-h-0 flex-1">
-        <Sidebar />
-        <div className="flex min-w-0 flex-1 flex-col p-0 sm:p-2 lg:pl-2">
-          <main className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-elev sm:rounded-panel">
-            <TopBar />
-            <div className="min-h-0 flex-1 overflow-y-auto">
-              <div className="px-4 pb-8 pt-4 sm:px-6 sm:pb-10">{children}</div>
-            </div>
-          </main>
-        </div>
-        {queuePanelOpen && <QueuePanel />}
+      <PortalHeader />
+      <div className="relative flex min-h-0 flex-1">
+        <main className="min-h-0 min-w-0 max-w-full flex-1 overflow-x-hidden overflow-y-auto bg-elev">
+          <div className={isListen ? "mx-auto w-full max-w-[1540px] px-4 pb-10 pt-5 sm:px-7 sm:pb-14 sm:pt-7" : "min-h-full"}>
+            {children}
+          </div>
+        </main>
+        {isListen && queuePanelOpen && <QueuePanel />}
       </div>
 
-      <LiveDock />
-      <PlayerBar />
-      <MobileNav />
+      {isListen && <LiveDock />}
+      {isListen && <PlayerBar />}
+      {isListen && <MobileNav />}
 
       <NowPlaying />
       <LoginPromptModal />

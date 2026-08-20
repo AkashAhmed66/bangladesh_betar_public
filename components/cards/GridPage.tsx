@@ -25,7 +25,7 @@ export default function GridPage<T extends CatalogueItem>({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>
+        <h1 className="editorial-rule font-display text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>
         {subtitle && <p className="mt-1 text-sm text-ink-soft">{subtitle}</p>}
       </div>
 
@@ -43,7 +43,7 @@ export default function GridPage<T extends CatalogueItem>({
       ) : items.length === 0 ? (
         <EmptyState title={emptyTitle} />
       ) : (
-        <div className="grid grid-cols-2 gap-2 min-[420px]:grid-cols-3 sm:-mx-3 sm:flex sm:flex-wrap sm:gap-0">
+        <div className="grid grid-cols-2 gap-3 min-[420px]:grid-cols-3 sm:flex sm:flex-wrap sm:gap-4">
           {items.map((item) => (
             <MediaCard key={`${item.type}:${item.id}`} item={item} />
           ))}

@@ -25,11 +25,11 @@
   --border-strong: #34343d;
 
   /* ---- Brand accent (dominant) ---- */
-  --accent: #00d977;           /* emerald — play, links, active states */
-  --accent-hover: #2ef092;
-  --accent-pressed: #00b866;
-  --accent-fg: #032015;        /* text/icons on accent fills */
-  --accent-glow: rgba(0, 217, 119, 0.35);
+  --accent: #d72d4f;
+  --accent-hover: #ed5774;
+  --accent-pressed: #b52140;
+  --accent-fg: #ffffff;
+  --accent-glow: rgba(215, 45, 79, 0.32);
 
   /* ---- Semantic accents ---- */
   --premium: #f0b90b;          /* gold — premium tier        */
@@ -60,24 +60,24 @@
 
 [data-theme="light"] {
   /* Warm daylight palette that keeps the archive's emerald identity. */
-  --bg-base: #edf2ef;
-  --bg-sunken: #e3eae6;
+  --bg-base: #f3f4f6;
+  --bg-sunken: #e9ebef;
   --bg-elev: #ffffff;
-  --bg-raised: #f2f5f3;
-  --bg-highlight: #e3eae6;
-  --bg-overlay: rgba(19, 29, 24, 0.48);
+  --bg-raised: #f7f8fa;
+  --bg-highlight: #eceff3;
+  --bg-overlay: rgba(20, 23, 29, 0.46);
 
-  --text-primary: #101713;
-  --text-secondary: #49584f;
-  --text-muted: #68756d;
-  --border-subtle: #d8e0db;
-  --border-strong: #bec9c2;
+  --text-primary: #15171b;
+  --text-secondary: #505560;
+  --text-muted: #707681;
+  --border-subtle: #dde0e5;
+  --border-strong: #c5cad2;
 
-  --accent: #007a46;
-  --accent-hover: #00663b;
-  --accent-pressed: #005632;
+  --accent: #bd2948;
+  --accent-hover: #a9213e;
+  --accent-pressed: #8f1b34;
   --accent-fg: #ffffff;
-  --accent-glow: rgba(0, 122, 70, 0.22);
+  --accent-glow: rgba(189, 41, 72, 0.2);
 
   --premium: #8a6100;
   --premium-fg: #ffffff;
@@ -92,6 +92,238 @@
   --artwork-panel: rgba(255, 255, 255, 0.72);
   --artwork-vignette: rgba(255, 255, 255, 0.28);
 }
+
+/* Shared three-service shell. Each portal owns one accent while every surface,
+   text color and control still resolves through the same light/dark tokens. */
+[data-portal="listen"] { --portal-color: #d43b55; --portal-soft: #f8dfe3; --portal-on-color: #ffffff; }
+[data-portal="news"] { --portal-color: #3f63e8; --portal-soft: #dce5ff; --portal-on-color: #ffffff; }
+[data-portal="watch"] { --portal-color: #38bfc1; --portal-soft: #d7f4f2; --portal-on-color: #062e30; }
+[data-portal] {
+  --accent: var(--portal-color);
+  --accent-hover: color-mix(in srgb, var(--portal-color) 82%, white);
+  --accent-pressed: color-mix(in srgb, var(--portal-color) 82%, black);
+  --accent-fg: var(--portal-on-color);
+  --accent-glow: color-mix(in srgb, var(--portal-color) 34%, transparent);
+}
+
+.portal-header-shell {
+  isolation: isolate;
+}
+.portal-primary-slot {
+  height: 3.25rem;
+  transition: height 380ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: height;
+}
+.portal-primary-slot .portal-global-bar {
+  transform: translateY(0);
+  opacity: 1;
+  transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 220ms ease;
+  will-change: transform, opacity;
+}
+.portal-primary-slot.is-hidden {
+  height: 0;
+  pointer-events: none;
+}
+.portal-primary-slot.is-hidden .portal-global-bar {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+@media (min-width: 640px) {
+  .portal-primary-slot { height: 3.75rem; }
+  .portal-primary-slot.is-hidden { height: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-primary-slot,
+  .portal-primary-slot .portal-global-bar { transition-duration: 1ms; }
+}
+
+.portal-global-bar {
+  --portal-header-surface: color-mix(in srgb, var(--portal-color) 9%, rgba(47, 47, 57, 0.92));
+  background:
+    radial-gradient(circle at 20% -110%, color-mix(in srgb, var(--portal-color) 18%, transparent), transparent 48%),
+    var(--portal-header-surface);
+  backdrop-filter: blur(20px) saturate(125%);
+  -webkit-backdrop-filter: blur(20px) saturate(125%);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.09);
+}
+
+.portal-brand-icon {
+  color: var(--portal-color);
+  background: color-mix(in srgb, var(--portal-color) 14%, var(--bg-raised));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--portal-color) 30%, transparent);
+}
+.portal-brand-live { box-shadow: 0 0 0 2px var(--portal-header-surface); }
+.portal-brand-title {
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.045em;
+  text-shadow: 0 2px 16px color-mix(in srgb, var(--portal-color) 16%, transparent);
+}
+.portal-brand-title-accent {
+  color: color-mix(in srgb, var(--portal-color) 86%, var(--text-primary));
+}
+.portal-brand-subtitle {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.portal-tab {
+  --tab-color: var(--portal-color);
+  --tab-on-color: var(--portal-on-color);
+  align-self: flex-end;
+  height: calc(100% - 1.1rem);
+  margin-top: 1.1rem;
+  overflow: hidden;
+  color: color-mix(in srgb, var(--tab-color) 72%, var(--text-primary));
+  background: color-mix(in srgb, var(--tab-color) 7%, rgba(255, 255, 255, 0.055));
+  border: 1px solid color-mix(in srgb, var(--tab-color) 20%, rgba(255, 255, 255, 0.1));
+  border-bottom: 0;
+  border-radius: 0.85rem 0.85rem 0 0;
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  transition: color 180ms ease, background-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+}
+.portal-tab-news { --tab-color: #3f63e8; --tab-on-color: #ffffff; }
+.portal-tab-watch { --tab-color: #38bfc1; --tab-on-color: #062e30; }
+.portal-tab-listen { --tab-color: #d43b55; --tab-on-color: #ffffff; }
+.portal-tab::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  opacity: 0;
+  border-radius: 0.85rem 0.85rem 0 0;
+  background: var(--tab-color);
+}
+.portal-tab-label {
+  position: relative;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  text-shadow: 0 2px 14px color-mix(in srgb, var(--tab-color) 24%, transparent);
+  transition: transform 180ms ease, letter-spacing 180ms ease, text-shadow 180ms ease;
+}
+.portal-tab:hover .portal-tab-label,
+.portal-tab.is-active .portal-tab-label {
+  transform: translateY(-0.5px);
+  letter-spacing: -0.025em;
+  text-shadow: 0 2px 18px color-mix(in srgb, var(--tab-color) 36%, transparent);
+}
+@media (min-width: 640px) {
+  .portal-tab-label { font-size: 1.1rem; }
+}
+.portal-tab:hover {
+  color: color-mix(in srgb, var(--tab-color) 84%, white);
+  background: color-mix(in srgb, var(--tab-color) 13%, rgba(255, 255, 255, 0.08));
+}
+.portal-tab.is-active {
+  color: color-mix(in srgb, var(--tab-color) 82%, white);
+  background: color-mix(in srgb, var(--tab-color) 16%, rgba(255, 255, 255, 0.13));
+  border-color: color-mix(in srgb, var(--tab-color) 38%, rgba(255, 255, 255, 0.15));
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.12), 0 -7px 22px color-mix(in srgb, var(--tab-color) 13%, transparent);
+}
+.portal-tab.is-active::before { opacity: 1; }
+.portal-tab:focus-visible {
+  z-index: 2;
+  outline: 3px solid color-mix(in srgb, var(--tab-color) 45%, white);
+  outline-offset: -3px;
+}
+
+.portal-control {
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--portal-color) 5%, var(--bg-raised));
+  border-color: color-mix(in srgb, var(--portal-color) 22%, var(--border-strong));
+}
+.portal-control:hover {
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--portal-color) 13%, var(--bg-raised));
+  border-color: color-mix(in srgb, var(--portal-color) 42%, var(--border-strong));
+}
+.portal-avatar {
+  color: var(--portal-on-color);
+  background: var(--portal-color);
+}
+
+[data-theme="light"] .portal-global-bar {
+  --portal-header-surface: color-mix(in srgb, var(--portal-color) 5%, rgba(255, 255, 255, 0.9));
+  background:
+    radial-gradient(circle at 18% -120%, color-mix(in srgb, var(--portal-color) 10%, transparent), transparent 50%),
+    var(--portal-header-surface);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.95), inset 0 -1px color-mix(in srgb, var(--portal-color) 11%, transparent);
+}
+[data-theme="light"] .portal-tab {
+  color: color-mix(in srgb, var(--tab-color) 76%, #25302a);
+  background: color-mix(in srgb, var(--tab-color) 5%, rgba(255, 255, 255, 0.72));
+  border-color: color-mix(in srgb, var(--tab-color) 14%, #d9dfdc);
+}
+[data-theme="light"] .portal-tab:hover {
+  color: var(--tab-color);
+  background: color-mix(in srgb, var(--tab-color) 9%, rgba(255, 255, 255, 0.82));
+}
+[data-theme="light"] .portal-tab.is-active {
+  color: color-mix(in srgb, var(--tab-color) 92%, #111111);
+  background: color-mix(in srgb, var(--tab-color) 8%, rgba(255, 255, 255, 0.9));
+  border-color: color-mix(in srgb, var(--tab-color) 24%, #d9dfdc);
+  box-shadow: inset 0 1px #ffffff, 0 -8px 20px color-mix(in srgb, var(--tab-color) 9%, transparent);
+}
+
+.portal-mark {
+  color: var(--portal-color);
+  background: color-mix(in srgb, var(--portal-color) 13%, var(--bg-raised));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--portal-color) 25%, transparent);
+}
+.portal-ink { color: var(--portal-color); }
+.portal-sub-active { background: var(--portal-color); }
+
+.portal-tint-panel {
+  --portal-panel-surface: color-mix(in srgb, var(--portal-color) 13%, var(--bg-raised));
+  color: var(--text-primary);
+  background:
+    radial-gradient(circle at 8% 0%, color-mix(in srgb, var(--portal-color) 17%, transparent), transparent 42%),
+    linear-gradient(125deg, var(--portal-panel-surface), color-mix(in srgb, var(--portal-color) 6%, var(--bg-elev)));
+  border: 1px solid color-mix(in srgb, var(--portal-color) 24%, var(--border-subtle));
+  box-shadow: inset 0 1px color-mix(in srgb, white 9%, transparent), 0 18px 45px color-mix(in srgb, var(--portal-color) 8%, transparent);
+}
+.portal-tint-eyebrow {
+  color: color-mix(in srgb, var(--portal-color) 78%, var(--text-primary));
+}
+.portal-tint-action {
+  color: var(--portal-on-color);
+  background: var(--portal-color);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--portal-color) 22%, transparent);
+}
+.portal-tint-action:hover {
+  background: color-mix(in srgb, var(--portal-color) 84%, white);
+  transform: translateY(-1px);
+}
+.portal-tint-image-fade {
+  background: linear-gradient(to right, var(--portal-panel-surface), transparent 70%);
+}
+.portal-full-bleed {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+}
+[data-theme="light"] .portal-tint-panel {
+  --portal-panel-surface: color-mix(in srgb, var(--portal-color) 9%, #ffffff);
+  box-shadow: inset 0 1px #ffffff, 0 16px 40px color-mix(in srgb, var(--portal-color) 8%, transparent);
+}
+
+.editorial-rule {
+  border-left: 5px solid var(--portal-color);
+  padding-left: 0.85rem;
+}
+
+.editorial-image {
+  background: var(--bg-sunken);
+  transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1), filter 300ms ease;
+}
+.group:hover .editorial-image { transform: scale(1.025); }
 
 /* Map tokens to Tailwind utilities (bg-base, text-ink, border-edge, …) */
 /* NOTE: the page-background color is exposed as `page` (bg-page/text-page),

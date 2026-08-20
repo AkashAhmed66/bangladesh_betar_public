@@ -94,7 +94,13 @@ export default function LoginPage() {
 
       <div className="fade-up relative w-full max-w-sm rounded-panel border border-edge bg-elev p-5 sm:p-8">
         <h1 className="text-center font-display text-2xl font-bold">Welcome back</h1>
-        <p className="mt-1 text-center text-sm text-ink-soft">Sign in to continue listening</p>
+        <p className="mt-1 text-center text-sm text-ink-soft">One account for every Betar service</p>
+
+        <div className="mt-4 grid grid-cols-3 gap-2 text-center text-[10px] font-black uppercase tracking-wider">
+          <span className="rounded-full bg-[#3f63e8]/12 px-2 py-1.5 text-[#6f8cff]">News</span>
+          <span className="rounded-full bg-[#38bfc1]/12 px-2 py-1.5 text-[#38bfc1]">Watch</span>
+          <span className="rounded-full bg-[#d43b55]/12 px-2 py-1.5 text-[#d43b55]">Listen</span>
+        </div>
 
         <div className="mt-6 flex gap-1 rounded-full bg-raised p-1">
           {(["email", "otp"] as Mode[]).map((m) => (

@@ -12,10 +12,10 @@
  */
 
 export const BRAND = {
-  name: "Betar Tarango",
-  nameBn: "বেতার তরঙ্গ",
-  tagline: "The sound archive of Bangladesh Betar",
-  shortName: "Tarango",
+  name: "Bangladesh Betar",
+  nameBn: "বাংলাদেশ বেতার",
+  tagline: "News, stories and sound from Bangladesh",
+  shortName: "Betar",
 } as const;
 
 /**

@@ -27,7 +27,7 @@ export default function MobileNav() {
               active ? "text-ink" : "text-ink-mute"
             }`}
           >
-            <Icon className={`size-5 ${active ? "text-accent" : ""}`} />
+            <Icon className={`size-5 ${active ? "text-[var(--portal-color)]" : ""}`} />
             {label}
           </Link>
         );

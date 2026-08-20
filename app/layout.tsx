@@ -29,13 +29,13 @@ export const metadata: Metadata = {
     template: `%s · ${BRAND.name}`,
   },
   description:
-    "Stream the national sound archive of Bangladesh Betar — songs, programmes, podcasts and stories from a century of radio.",
-  applicationName: "Betar Archive",
+    "Bangladesh Betar's digital public service for trusted news, original video and the national sound archive.",
+  applicationName: "Bangladesh Betar",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Betar Archive",
+    title: "Bangladesh Betar",
   },
   icons: {
     icon: [{ url: "/icons/icon.svg", type: "image/svg+xml" }],
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#070708",
+  themeColor: "#18211d",
 };
 
 const themeBootScript = `

@@ -58,7 +58,7 @@ export default function MediaCard({ item }: { item: CatalogueItem }) {
   return (
     <Link
       href={itemHref(item)}
-      className="group relative flex w-full min-w-0 flex-col gap-2 rounded-panel bg-transparent p-2 transition-colors duration-200 hover:bg-raised sm:w-44 sm:shrink-0 sm:gap-3 sm:p-3"
+      className="group relative flex w-full min-w-0 flex-col gap-2 rounded-panel border border-edge bg-raised/55 p-2.5 transition duration-300 hover:-translate-y-1 hover:border-edge-strong hover:bg-raised hover:shadow-xl hover:shadow-shade/15 sm:w-52 sm:shrink-0 sm:gap-3 sm:p-3"
     >
       <div className="relative">
         <Artwork

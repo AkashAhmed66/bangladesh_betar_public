@@ -70,11 +70,11 @@ export default function SectionRow({ title, items, href, loading }: SectionRowPr
       <div
         ref={scroller}
         onScroll={onScroll}
-        className="-mx-3 flex gap-1 overflow-x-auto px-3 pb-2 [scrollbar-width:none] [&>a]:w-40 [&>a]:shrink-0 sm:[&>a]:w-44 [&::-webkit-scrollbar]:hidden"
+        className="-mx-2 flex gap-3 overflow-x-auto px-2 pb-3 [scrollbar-width:none] [&>a]:w-44 [&>a]:shrink-0 sm:[&>a]:w-52 [&::-webkit-scrollbar]:hidden"
       >
         {loading
           ? Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="w-40 shrink-0 p-3 sm:w-44">
+              <div key={i} className="w-44 shrink-0 p-2 sm:w-52">
                 <Skeleton className="aspect-square w-full" />
                 <Skeleton className="mt-3 h-3.5 w-3/4" />
                 <Skeleton className="mt-2 h-3 w-1/2" />
