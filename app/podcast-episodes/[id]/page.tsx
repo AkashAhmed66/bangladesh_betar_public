@@ -5,16 +5,19 @@ import Link from "next/link";
 import { use, useMemo, useState } from "react";
 import DetailHero from "@/components/detail/DetailHero";
 import Comments from "@/components/engagement/Comments";
+import ContentActions from "@/components/engagement/ContentActions";
 import ArtistLinks from "@/components/ui/ArtistLinks";
 import { PlayCircle, PremiumBadge, SectionHeading, Skeleton } from "@/components/ui/Misc";
 import TrackMenu from "@/components/ui/TrackMenu";
 import { displayTitle, altTitle, formatDate, formatDuration } from "@/lib/format";
 import { useAsset, usePodcastEpisode } from "@/lib/hooks";
+import { localizedText, useTranslation } from "@/lib/i18n";
 import { toTrack } from "@/lib/tracks";
 import { useCurrentTrack, usePlayer } from "@/stores/player";
 import { useUi } from "@/stores/ui";
 
 export default function PodcastEpisodePage({ params }: { params: Promise<{ id: string }> }) {
+  const { t } = useTranslation();
   const { id } = use(params);
   const { data, isLoading } = usePodcastEpisode(id);
   const episode = data?.data;
@@ -30,6 +33,7 @@ export default function PodcastEpisodePage({ params }: { params: Promise<{ id: s
   if (isLoading || !episode) {
     return <Skeleton className="h-72 w-full rounded-panel" />;
   }
+  const description = localizedText(episode as unknown as Record<string, unknown>, "description", locale);
 
   const isCurrent = current?.key === track?.key;
   const seasonEp = [
@@ -43,7 +47,7 @@ export default function PodcastEpisodePage({ params }: { params: Promise<{ id: s
         type="podcast_episode"
         id={episode.id}
         artworkUrl={episode.artwork_url ?? episode.channel?.artwork_url}
-        kicker={`Podcast episode${seasonEp ? ` · ${seasonEp}` : ""}`}
+        kicker={`${t("detail.podcastEpisode")}${seasonEp ? ` · ${seasonEp}` : ""}`}
         title={displayTitle(episode, locale)}
         titleAlt={altTitle(episode, locale)}
         subtitle={
@@ -56,7 +60,7 @@ export default function PodcastEpisodePage({ params }: { params: Promise<{ id: s
             )}
             {(episode.artists?.some((a) => a.role === "host") || (episode.hosts?.length ?? 0) > 0) && (
               <span>
-                · Hosted by{" "}
+                · {t("detail.hostedBy")}{" "}
                 <ArtistLinks artists={episode.artists?.filter((a) => a.role === "host")} fallback={episode.hosts?.join(", ")} />
               </span>
             )}
@@ -64,36 +68,37 @@ export default function PodcastEpisodePage({ params }: { params: Promise<{ id: s
         }
         meta={
           <>
-            {episode.published_at && <span>{formatDate(episode.published_at)}</span>}
+            {episode.published_at && <span>{formatDate(episode.published_at, locale)}</span>}
             <span>· {formatDuration(episode.duration_seconds)}</span>
-            <span>· {episode.play_count} plays</span>
+            <span>· {t("detail.plays", { count: episode.play_count })}</span>
           </>
         }
         actions={
           <>
             {track && <PlayCircle size="size-14" icon="size-6" onClick={() => playTrack(track)} />}
             {track && <TrackMenu track={track} />}
+            <ContentActions type="podcast_episode" id={episode.id} title={displayTitle(episode, locale)} text={description || undefined} />
           </>
         }
       />
 
-      {episode.description && (
-        <p className="max-w-3xl whitespace-pre-wrap text-sm leading-relaxed text-ink-soft">{episode.description}</p>
+      {description && (
+        <p className="max-w-3xl whitespace-pre-wrap text-sm leading-relaxed text-ink-soft">{description}</p>
       )}
 
       {episode.chapters && episode.chapters.length > 0 && (
         <section>
           <SectionHeading
-            title={<span className="flex items-center gap-2"><ListOrdered className="size-5 text-accent" /> Chapters</span>}
+            title={<span className="flex items-center gap-2"><ListOrdered className="size-5 text-accent" /> {t("catalogue.chapters")}</span>}
             action={
               <button
                 type="button"
                 onClick={() => setChaptersOpen((o) => !o)}
                 aria-expanded={chaptersOpen}
-                aria-label={chaptersOpen ? "Collapse chapters" : "Expand chapters"}
+                aria-label={chaptersOpen ? t("player.collapseChapters") : t("player.expandChapters")}
                 className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold text-ink-mute transition hover:bg-raised hover:text-ink"
               >
-                {chaptersOpen ? "Hide" : "Show"}
+                {chaptersOpen ? t("catalogue.hide") : t("catalogue.show")}
                 <ChevronDown className={`size-4 transition-transform ${chaptersOpen ? "" : "-rotate-90"}`} />
               </button>
             }

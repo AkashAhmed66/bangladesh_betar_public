@@ -10,6 +10,7 @@ import { formatCount, formatDuration } from "@/lib/format";
 import type { PlayerTrack } from "@/stores/player";
 import { usePlayer } from "@/stores/player";
 import { useUi } from "@/stores/ui";
+import { useTranslation } from "@/lib/i18n";
 
 interface TrackTableProps {
   tracks: PlayerTrack[];
@@ -34,6 +35,7 @@ export default function TrackTable({
   startIndexAt = 0,
   onRemove,
 }: TrackTableProps) {
+  const { t } = useTranslation();
   const playContext = usePlayer((s) => s.playContext);
   const toggle = usePlayer((s) => s.toggle);
   const status = usePlayer((s) => s.status);
@@ -60,7 +62,7 @@ export default function TrackTable({
           >
             {/* Index / play control */}
             <button
-              aria-label={isPlaying ? `Pause ${title}` : `Play ${title}`}
+              aria-label={isPlaying ? t("trackMenu.pauseTitle", { title }) : t("trackMenu.playTitle", { title })}
               onClick={() => (isCurrent ? toggle() : playContext(tracks, i, contextLabel))}
               className="flex size-8 items-center justify-center text-sm tabular-nums text-ink-mute"
             >
@@ -116,7 +118,7 @@ export default function TrackTable({
                     e.stopPropagation();
                     onRemove(i);
                   }}
-                  aria-label={`Remove ${title}`}
+                  aria-label={t("trackMenu.removeTitle", { title })}
                   className="rounded-full p-1 text-ink-mute transition hover:text-danger"
                 >
                   <X className="size-4" />

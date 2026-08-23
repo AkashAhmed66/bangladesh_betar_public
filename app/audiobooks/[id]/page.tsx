@@ -3,12 +3,14 @@
 import { Crown, LogIn } from "lucide-react";
 import Link from "next/link";
 import { use, useEffect, useMemo, useState } from "react";
+import ContentActions from "@/components/engagement/ContentActions";
 import HlsAudio from "@/components/ui/HlsAudio";
 import Artwork from "@/components/ui/Artwork";
 import { Skeleton } from "@/components/ui/Misc";
 import { ApiError } from "@/lib/api";
 import { formatDuration } from "@/lib/format";
 import { useAudioBook } from "@/lib/hooks";
+import { useTranslation } from "@/lib/i18n";
 import { useUi } from "@/stores/ui";
 
 /**
@@ -16,6 +18,7 @@ import { useUi } from "@/stores/ui";
  * text scrolls below — see and hear the book at the same time. Premium only.
  */
 export default function AudioBookPage({ params }: { params: Promise<{ id: string }> }) {
+  const { t } = useTranslation();
   const { id } = use(params);
   const { data, error, isLoading } = useAudioBook(id);
   const openLoginPrompt = useUi((s) => s.openLoginPrompt);
@@ -54,34 +57,34 @@ export default function AudioBookPage({ params }: { params: Promise<{ id: string
         <span className="flex size-16 items-center justify-center rounded-full bg-premium/15 text-premium">
           <Crown className="size-8" />
         </span>
-        <h1 className="font-display text-2xl font-bold">Audio Books are a Premium feature</h1>
+        <h1 className="font-display text-2xl font-bold">{t("detail.bookPremium")}</h1>
         <p className="text-sm text-ink-soft">
           {needsLogin
-            ? "Sign in with a Premium account to read and listen to narrated books in Bangla and English."
-            : "Upgrade to Premium to read and listen to narrated books in Bangla and English."}
+            ? t("detail.bookLoginDescription")
+            : t("detail.bookUpgradeDescription")}
         </p>
         {needsLogin ? (
           <button
-            onClick={() => openLoginPrompt("Sign in to access Audio Books.")}
+            onClick={() => openLoginPrompt(t("detail.bookLoginPrompt"))}
             className="flex items-center gap-2 rounded-full bg-accent px-6 py-2.5 text-sm font-bold text-accent-fg transition hover:brightness-110"
           >
-            <LogIn className="size-4" /> Sign in
+            <LogIn className="size-4" /> {t("auth.signIn")}
           </button>
         ) : (
           <Link
             href="/premium"
             className="flex items-center gap-2 rounded-full bg-premium px-6 py-2.5 text-sm font-bold text-page transition hover:brightness-110"
           >
-            <Crown className="size-4" /> Go Premium
+            <Crown className="size-4" /> {t("detail.goPremium")}
           </Link>
         )}
-        <Link href="/audiobooks" className="text-xs text-ink-mute hover:text-ink hover:underline">← Back to Audio Books</Link>
+        <Link href="/audiobooks" className="text-xs text-ink-mute hover:text-ink hover:underline">← {t("detail.backBooks")}</Link>
       </div>
     );
   }
 
   if (!book) {
-    return <div className="rounded-panel bg-raised p-10 text-center text-sm text-ink-mute">Audio book not found.</div>;
+    return <div className="rounded-panel bg-raised p-10 text-center text-sm text-ink-mute">{t("detail.bookNotFound")}</div>;
   }
 
   const bn = book.language === "bn";
@@ -115,7 +118,7 @@ export default function AudioBookPage({ params }: { params: Promise<{ id: string
                       active === v ? "bg-accent text-accent-fg" : "text-ink-mute hover:text-ink"
                     }`}
                   >
-                    {v === "female" ? "Female voice" : v === "male" ? "Male voice" : "✦ Enhanced"}
+              {v === "female" ? t("detail.femaleVoice") : v === "male" ? t("detail.maleVoice") : `✦ ${t("detail.enhancedVoice")}`}
                   </button>
                 ))}
               </div>
@@ -127,6 +130,8 @@ export default function AudioBookPage({ params }: { params: Promise<{ id: string
           )}
         </div>
       </div>
+
+      <ContentActions type="audio_book" id={book.id} title={book.title} />
 
       {/* ---- The text: read along while listening ---- */}
       <article

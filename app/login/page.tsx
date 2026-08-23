@@ -9,10 +9,18 @@ import type { TokenResponse } from "@/lib/types";
 import { BRAND } from "@/config/theme";
 import { useAuth } from "@/stores/auth";
 import { useUi } from "@/stores/ui";
+import { useTranslation } from "@/lib/i18n";
 
 type Mode = "email" | "otp";
 
+function destinationAfterLogin(): string {
+  const next = new URLSearchParams(window.location.search).get("next");
+
+  return next?.startsWith("/") && !next.startsWith("//") ? next : "/";
+}
+
 export default function LoginPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const setSession = useAuth((s) => s.setSession);
   const toast = useUi((s) => s.toast);
@@ -33,10 +41,10 @@ export default function LoginPage() {
     try {
       const res = await post<TokenResponse>("/auth/login", { email, password, device_name: "web" });
       setSession(res);
-      toast(`Welcome back, ${res.user.name.split(" ")[0]}!`, "success");
-      router.push("/");
+      toast(t("auth.welcomeBackToast", { name: res.user.name.split(" ")[0] }), "success");
+      router.push(destinationAfterLogin());
     } catch (err) {
-      setError(err instanceof ApiError ? err.firstError : "Could not sign in.");
+      setError(err instanceof ApiError ? err.firstError : t("auth.signInFailed"));
     } finally {
       setBusy(false);
     }
@@ -51,7 +59,7 @@ export default function LoginPage() {
       setOtpSent(true);
       toast(res.message, "info");
     } catch (err) {
-      setError(err instanceof ApiError ? err.firstError : "Could not send OTP.");
+      setError(err instanceof ApiError ? err.firstError : t("auth.sendOtpFailed"));
     } finally {
       setBusy(false);
     }
@@ -64,10 +72,10 @@ export default function LoginPage() {
     try {
       const res = await post<TokenResponse>("/auth/otp/verify", { phone, otp });
       setSession(res);
-      toast(`Welcome, ${res.user.name.split(" ")[0]}!`, "success");
-      router.push("/");
+      toast(t("auth.welcomeToast", { name: res.user.name.split(" ")[0] }), "success");
+      router.push(destinationAfterLogin());
     } catch (err) {
-      setError(err instanceof ApiError ? err.firstError : "Could not verify OTP.");
+      setError(err instanceof ApiError ? err.firstError : t("auth.verifyOtpFailed"));
     } finally {
       setBusy(false);
     }
@@ -93,8 +101,8 @@ export default function LoginPage() {
       </Link>
 
       <div className="fade-up relative w-full max-w-sm rounded-panel border border-edge bg-elev p-5 sm:p-8">
-        <h1 className="text-center font-display text-2xl font-bold">Welcome back</h1>
-        <p className="mt-1 text-center text-sm text-ink-soft">One account for every Betar service</p>
+        <h1 className="text-center font-display text-2xl font-bold">{t("auth.welcomeBack")}</h1>
+        <p className="mt-1 text-center text-sm text-ink-soft">{t("auth.oneAccount")}</p>
 
         <div className="mt-4 grid grid-cols-3 gap-2 text-center text-[10px] font-black uppercase tracking-wider">
           <span className="rounded-full bg-[#3f63e8]/12 px-2 py-1.5 text-[#6f8cff]">News</span>
@@ -111,7 +119,7 @@ export default function LoginPage() {
                 mode === m ? "bg-ink text-page" : "text-ink-mute hover:text-ink"
               }`}
             >
-              {m === "email" ? "Email" : "Phone (OTP)"}
+              {m === "email" ? t("auth.email") : t("auth.phoneOtp")}
             </button>
           ))}
         </div>
@@ -121,13 +129,13 @@ export default function LoginPage() {
         {mode === "email" ? (
           <form onSubmit={submitEmail} className="mt-5 flex flex-col gap-3">
             <input className={input} type="email" required placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
-            <input className={input} type="password" required placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
+            <input className={input} type="password" required placeholder={t("auth.password")} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
             <button
               type="submit"
               disabled={busy}
               className="mt-1 flex items-center justify-center gap-2 rounded-full bg-accent py-3 text-sm font-bold text-accent-fg transition enabled:hover:bg-accent-hover disabled:opacity-50"
             >
-              {busy && <Loader2 className="size-4 animate-spin" />} Sign in
+              {busy && <Loader2 className="size-4 animate-spin" />} {t("auth.signIn")}
             </button>
           </form>
         ) : (
@@ -146,7 +154,7 @@ export default function LoginPage() {
             {otpSent && (
               <>
                 <input className={`${input} text-center tracking-[0.5em]`} inputMode="numeric" maxLength={6} required placeholder="••••••" value={otp} onChange={(e) => setOtp(e.target.value)} />
-                <p className="text-center text-xs text-ink-mute">Demo environment — the OTP is 123456</p>
+                <p className="text-center text-xs text-ink-mute">{t("auth.otpDemo")}</p>
               </>
             )}
             <button
@@ -154,19 +162,19 @@ export default function LoginPage() {
               disabled={busy || !otpSent || otp.length < 6}
               className="mt-1 flex items-center justify-center gap-2 rounded-full bg-accent py-3 text-sm font-bold text-accent-fg transition enabled:hover:bg-accent-hover disabled:opacity-50"
             >
-              {busy && <Loader2 className="size-4 animate-spin" />} Verify & sign in
+              {busy && <Loader2 className="size-4 animate-spin" />} {t("auth.verifySignIn")}
             </button>
           </form>
         )}
 
         <p className="mt-6 text-center text-sm text-ink-soft">
-          New to {BRAND.shortName}?{" "}
-          <Link href="/register" className="font-bold text-accent hover:underline">Create an account</Link>
+          {t("auth.newTo", { brand: BRAND.shortName })}{" "}
+          <Link href="/register" className="font-bold text-accent hover:underline">{t("auth.createAccount")}</Link>
         </p>
       </div>
 
       <Link href="/" className="relative mt-6 text-xs font-semibold text-ink-mute transition hover:text-ink">
-        ← Continue as guest
+        ← {t("auth.guest")}
       </Link>
     </div>
   );

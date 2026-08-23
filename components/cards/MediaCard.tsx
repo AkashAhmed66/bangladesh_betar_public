@@ -58,7 +58,7 @@ export default function MediaCard({ item }: { item: CatalogueItem }) {
   return (
     <Link
       href={itemHref(item)}
-      className="group relative flex w-full min-w-0 flex-col gap-2 rounded-panel border border-edge bg-raised/55 p-2.5 transition duration-300 hover:-translate-y-1 hover:border-edge-strong hover:bg-raised hover:shadow-xl hover:shadow-shade/15 sm:w-52 sm:shrink-0 sm:gap-3 sm:p-3"
+      className="group relative flex w-full min-w-0 flex-col gap-3 overflow-hidden rounded-panel border border-edge bg-raised/70 p-2.5 shadow-sm transition duration-300 hover:-translate-y-1.5 hover:border-[color-mix(in_srgb,var(--portal-color)_35%,var(--border-strong))] hover:bg-raised hover:shadow-2xl hover:shadow-shade/20 sm:p-3"
     >
       <div className="relative">
         <Artwork
@@ -70,15 +70,18 @@ export default function MediaCard({ item }: { item: CatalogueItem }) {
           rounded={round ? "rounded-full" : "rounded-card"}
         />
         {isPremium(item) && <PremiumBadge className="absolute left-1.5 top-1.5" />}
+        <span className="absolute bottom-2 left-2 rounded-full border border-white/15 bg-black/55 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-white backdrop-blur-md">
+          {typeLabel(item.type)}
+        </span>
         <div className="absolute bottom-2 right-2 opacity-100 transition-all duration-200 sm:translate-y-2 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100">
           <PlayCircle onClick={() => void playItem(item)} label={`Play ${displayTitle(item, locale)}`} />
         </div>
       </div>
-      <div className="min-w-0">
-        <p className={`clamp-1 text-sm font-semibold ${round ? "text-center" : ""}`}>
+      <div className="min-w-0 px-0.5 pb-1">
+        <p className={`clamp-2 font-display text-[0.95rem] font-bold leading-snug tracking-[-0.02em] sm:text-base ${round ? "text-center" : ""}`}>
           {displayTitle(item, locale)}
         </p>
-        <p className={`clamp-2 mt-0.5 text-xs text-ink-mute ${round ? "text-center" : ""}`}>
+        <p className={`clamp-2 mt-1 text-xs leading-relaxed text-ink-mute ${round ? "text-center" : ""}`}>
           {subtitleFor(item)}
         </p>
       </div>

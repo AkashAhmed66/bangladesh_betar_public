@@ -23,3 +23,6 @@ services:
       # LAN IP with no rebuild). Set to pin a fixed host (production domain).
       NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-}
       NEXT_PUBLIC_LIVEKIT_URL: ${NEXT_PUBLIC_LIVEKIT_URL:-}
+      # Server-only addresses used to generate social preview metadata.
+      API_INTERNAL_BASE: ${API_INTERNAL_BASE:-http://host.docker.internal:15000/api/v1}
+      PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:-http://localhost:15001}

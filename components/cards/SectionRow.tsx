@@ -36,32 +36,32 @@ export default function SectionRow({ title, items, href, loading }: SectionRowPr
   if (!loading && !items?.length) return null;
 
   return (
-    <section className="group/row">
+    <section className="group/row space-y-3 sm:space-y-4">
       <SectionHeading
         title={title}
         action={
           <div className="flex items-center gap-2">
             {href && (
-              <Link href={href} className="text-xs font-bold uppercase tracking-wider text-ink-mute transition hover:text-ink">
+              <Link href={href} className="rounded-full border border-edge bg-raised px-4 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-ink-soft transition hover:border-edge-strong hover:text-ink">
                 Show all
               </Link>
             )}
-            <div className="hidden gap-1 opacity-0 transition group-hover/row:opacity-100 md:flex">
+            <div className="hidden gap-2 md:flex">
               <button
                 onClick={() => page(-1)}
                 disabled={atStart}
                 aria-label="Scroll left"
-                className="rounded-full bg-raised p-1.5 text-ink-soft transition enabled:hover:bg-highlight enabled:hover:text-ink disabled:opacity-30"
+                className="grid size-10 place-items-center rounded-full border border-edge bg-raised text-ink-soft shadow-sm transition enabled:hover:border-edge-strong enabled:hover:bg-highlight enabled:hover:text-ink disabled:opacity-30"
               >
-                <ChevronLeft className="size-4" />
+                <ChevronLeft className="size-5" />
               </button>
               <button
                 onClick={() => page(1)}
                 disabled={atEnd}
                 aria-label="Scroll right"
-                className="rounded-full bg-raised p-1.5 text-ink-soft transition enabled:hover:bg-highlight enabled:hover:text-ink disabled:opacity-30"
+                className="grid size-10 place-items-center rounded-full border border-edge bg-raised text-ink-soft shadow-sm transition enabled:hover:border-edge-strong enabled:hover:bg-highlight enabled:hover:text-ink disabled:opacity-30"
               >
-                <ChevronRight className="size-4" />
+                <ChevronRight className="size-5" />
               </button>
             </div>
           </div>
@@ -70,11 +70,11 @@ export default function SectionRow({ title, items, href, loading }: SectionRowPr
       <div
         ref={scroller}
         onScroll={onScroll}
-        className="-mx-2 flex gap-3 overflow-x-auto px-2 pb-3 [scrollbar-width:none] [&>a]:w-44 [&>a]:shrink-0 sm:[&>a]:w-52 [&::-webkit-scrollbar]:hidden"
+        className="-mx-4 flex scroll-px-4 gap-4 overflow-x-auto px-4 pb-5 [scrollbar-width:none] sm:-mx-7 sm:gap-5 sm:px-7 [&>a]:w-52 [&>a]:shrink-0 sm:[&>a]:w-60 lg:[&>a]:w-64 [&::-webkit-scrollbar]:hidden"
       >
         {loading
           ? Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="w-44 shrink-0 p-2 sm:w-52">
+              <div key={i} className="w-52 shrink-0 sm:w-60 lg:w-64">
                 <Skeleton className="aspect-square w-full" />
                 <Skeleton className="mt-3 h-3.5 w-3/4" />
                 <Skeleton className="mt-2 h-3 w-1/2" />

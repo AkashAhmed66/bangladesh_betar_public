@@ -24,6 +24,7 @@ const bangla = Hind_Siliguri({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.PUBLIC_SITE_URL || "http://localhost:15001"),
   title: {
     default: `${BRAND.name} — ${BRAND.tagline}`,
     template: `%s · ${BRAND.name}`,
@@ -40,6 +41,19 @@ export const metadata: Metadata = {
   icons: {
     icon: [{ url: "/icons/icon.svg", type: "image/svg+xml" }],
     apple: [{ url: "/icons/icon.svg" }],
+  },
+  openGraph: {
+    type: "website",
+    title: `${BRAND.name} — ${BRAND.tagline}`,
+    description: "Bangladesh Betar's digital public service for trusted news, original video and the national sound archive.",
+    siteName: BRAND.name,
+    locale: "en_BD",
+    alternateLocale: ["bn_BD"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${BRAND.name} — ${BRAND.tagline}`,
+    description: "Bangladesh Betar's digital public service for trusted news, original video and the national sound archive.",
   },
 };
 

@@ -3,6 +3,7 @@
 import { Search as SearchIcon, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import ListenPageHero from "@/components/cards/ListenPageHero";
 import MediaCard from "@/components/cards/MediaCard";
 import TrackTable from "@/components/cards/TrackTable";
 import RecordedBroadcastTable from "@/components/live/RecordedBroadcastTable";
@@ -12,14 +13,20 @@ import { EmptyState, PremiumBadge, SectionHeading } from "@/components/ui/Misc";
 import { artworkCss, artworkFor } from "@/lib/artwork";
 import { displayTitle } from "@/lib/format";
 import { useCategories, useGenres, useSearch, useSuggestions } from "@/lib/hooks";
+import { localizedText, useTranslation } from "@/lib/i18n";
 import { toTracks } from "@/lib/tracks";
 import type { CatalogueItem } from "@/lib/types";
-import { useUi } from "@/stores/ui";
 
 const TABS = ["All", "Songs", "Artists", "Programmes", "Episodes", "Podcasts", "Audio Books", "Old Broadcasts", "Radio"] as const;
 type Tab = (typeof TABS)[number];
+const TAB_KEYS: Record<Tab, string> = {
+  All: "all", Songs: "songs", Artists: "artists", Programmes: "programmes",
+  Episodes: "episodes", Podcasts: "podcasts", "Audio Books": "audioBooks",
+  "Old Broadcasts": "oldBroadcasts", Radio: "radio",
+};
 
 export default function SearchPage() {
+  const { locale, t } = useTranslation();
   const [input, setInput] = useState("");
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<Tab>("All");
@@ -38,7 +45,6 @@ export default function SearchPage() {
   const { data: suggestions } = useSuggestions(showSuggest ? input : "");
   const { data: genres } = useGenres();
   const { data: categories } = useCategories();
-  const locale = useUi((s) => s.locale);
 
   const songs = useMemo(() => results?.results.songs?.data ?? [], [results]);
   const artists = useMemo(() => results?.results.artists?.data ?? [], [results]);
@@ -59,10 +65,16 @@ export default function SearchPage() {
     songs.length + artists.length + programmes.length + episodeItems.length + podcasts.length + audiobooks.length + broadcastRecordings.length + liveRadios.length > 0;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8 sm:gap-10">
+      <ListenPageHero
+        eyebrow={t("searchPage.eyebrow")}
+        title={t("searchPage.title")}
+        description={t("searchPage.description")}
+        icon={<SearchIcon className="size-3.5" />}
+      />
       {/* Search box */}
-      <div className="relative max-w-2xl">
-        <div className="flex items-center gap-3 rounded-full border border-edge bg-raised px-5 py-3 transition-colors focus-within:border-accent">
+      <div className="relative -mt-4 max-w-4xl sm:-mt-6">
+        <div className="flex min-h-16 items-center gap-3 rounded-full border border-edge-strong bg-raised px-6 shadow-xl shadow-shade/10 transition-colors focus-within:border-accent focus-within:ring-4 focus-within:ring-[var(--accent-glow)]">
           <SearchIcon className="size-5 shrink-0 text-ink-mute" />
           <input
             ref={inputRef}
@@ -76,16 +88,16 @@ export default function SearchPage() {
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === "Escape") setShowSuggest(false);
             }}
-            placeholder="What do you want to listen to?"
+            placeholder={t("searchPage.placeholder")}
             // Inline `outline: none` beats the global unlayered :focus-visible
             // rule, so the input never draws its own (inner) outline — the
             // container's focus-within border is the focus indicator instead.
             style={{ outline: "none" }}
-            className="w-full bg-transparent text-sm placeholder:text-ink-mute"
-            aria-label="Search the archive"
+            className="w-full bg-transparent text-base font-semibold placeholder:font-medium placeholder:text-ink-mute sm:text-lg"
+            aria-label={t("searchPage.eyebrow")}
           />
           {input && (
-            <button onClick={() => { setInput(""); setQuery(""); }} aria-label="Clear search">
+            <button onClick={() => { setInput(""); setQuery(""); }} aria-label={t("searchPage.clear")}>
               <X className="size-4 text-ink-mute hover:text-ink" />
             </button>
           )}
@@ -118,7 +130,7 @@ export default function SearchPage() {
       {!query && (
         <>
           <section>
-            <SectionHeading title="Browse genres" />
+            <SectionHeading title={t("searchPage.genres")} />
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {(genres?.data ?? []).map((g) => {
                 const art = artworkFor("genre", g.id);
@@ -129,15 +141,15 @@ export default function SearchPage() {
                     className="artwork-themed artwork-surface relative overflow-hidden rounded-card p-4 text-artwork-ink transition hover:scale-[1.02]"
                     style={artworkCss(art)}
                   >
-                    <p className="font-display text-base font-bold">{g.name}</p>
-                    {g.name_bn && <p className="font-bangla text-xs text-artwork-ink/60">{g.name_bn}</p>}
+                    <p className="font-display text-base font-bold">{localizedText(g as unknown as Record<string, unknown>, "name", locale)}</p>
+                    {g.name_bn && <p className="font-bangla text-xs text-artwork-ink/60">{locale === "bn" ? g.name : g.name_bn}</p>}
                   </Link>
                 );
               })}
             </div>
           </section>
           <section>
-            <SectionHeading title="Browse categories" />
+            <SectionHeading title={t("searchPage.categories")} />
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {(categories?.data ?? []).map((c) => {
                 const art = artworkFor("category", c.id + 40);
@@ -148,8 +160,8 @@ export default function SearchPage() {
                     className="artwork-themed artwork-surface relative overflow-hidden rounded-card p-4 text-artwork-ink transition hover:scale-[1.02]"
                     style={artworkCss(art)}
                   >
-                    <p className="font-display text-base font-bold">{c.name}</p>
-                    {c.name_bn && <p className="font-bangla text-xs text-artwork-ink/60">{c.name_bn}</p>}
+                    <p className="font-display text-base font-bold">{localizedText(c as unknown as Record<string, unknown>, "name", locale)}</p>
+                    {c.name_bn && <p className="font-bangla text-xs text-artwork-ink/60">{locale === "bn" ? c.name : c.name_bn}</p>}
                   </Link>
                 );
               })}
@@ -162,39 +174,39 @@ export default function SearchPage() {
       {query && (
         <>
           <div className="flex flex-wrap gap-2">
-            {TABS.map((t) => (
+            {TABS.map((tabName) => (
               <button
-                key={t}
-                onClick={() => setTab(t)}
+                key={tabName}
+                onClick={() => setTab(tabName)}
                 className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
-                  tab === t ? "bg-ink text-page" : "bg-raised text-ink-soft hover:bg-highlight"
+                  tab === tabName ? "bg-ink text-page" : "bg-raised text-ink-soft hover:bg-highlight"
                 }`}
               >
-                {t}
+                {t(`searchPage.${TAB_KEYS[tabName]}`)}
               </button>
             ))}
           </div>
 
-          {isLoading && <p className="text-sm text-ink-mute">Searching “{query}”…</p>}
+          {isLoading && <p className="text-sm text-ink-mute">{t("searchPage.searching", { query })}</p>}
 
           {!isLoading && !hasAny && (
             <EmptyState
               icon={<SearchIcon className="size-10" />}
-              title={`No results for “${query}”`}
-              subtitle="Check the spelling, or try a song, audio book, programme, podcast or episode — Bangla titles and book text work too."
+              title={t("searchPage.noResults", { query })}
+              subtitle={t("searchPage.noResultsDescription")}
             />
           )}
 
           {(tab === "All" || tab === "Songs") && songTracks.length > 0 && (
             <section>
-              <SectionHeading title="Songs" />
-              <TrackTable tracks={tab === "All" ? songTracks.slice(0, 5) : songTracks} contextLabel={`Search: ${query}`} showPlays playCounts={songs.map((s) => s.play_count)} />
+              <SectionHeading title={t("searchPage.songs")} />
+              <TrackTable tracks={tab === "All" ? songTracks.slice(0, 5) : songTracks} contextLabel={t("searchPage.context", { query })} showPlays playCounts={songs.map((s) => s.play_count)} />
             </section>
           )}
 
           {(tab === "All" || tab === "Artists") && artists.length > 0 && (
             <section>
-              <SectionHeading title="Artists" />
+              <SectionHeading title={t("searchPage.artists")} />
               <div className="-mx-3 flex flex-wrap">
                 {(tab === "All" ? artists.slice(0, 6) : artists).map((a) => (
                   <MediaCard key={`artist-${a.id}`} item={a} />
@@ -205,7 +217,7 @@ export default function SearchPage() {
 
           {(tab === "All" || tab === "Programmes") && programmes.length > 0 && (
             <section>
-              <SectionHeading title="Programmes" />
+              <SectionHeading title={t("searchPage.programmes")} />
               <div className="-mx-3 flex flex-wrap">
                 {programmes.map((p) => <MediaCard key={`programme-${p.id}`} item={p} />)}
               </div>
@@ -214,14 +226,14 @@ export default function SearchPage() {
 
           {(tab === "All" || tab === "Episodes") && episodeTracks.length > 0 && (
             <section>
-              <SectionHeading title="Episodes" />
-              <TrackTable tracks={tab === "All" ? episodeTracks.slice(0, 5) : episodeTracks} contextLabel={`Search: ${query}`} showPlays playCounts={episodeItems.map((e) => e.play_count)} />
+              <SectionHeading title={t("searchPage.episodes")} />
+              <TrackTable tracks={tab === "All" ? episodeTracks.slice(0, 5) : episodeTracks} contextLabel={t("searchPage.context", { query })} showPlays playCounts={episodeItems.map((e) => e.play_count)} />
             </section>
           )}
 
           {(tab === "All" || tab === "Podcasts") && podcasts.length > 0 && (
             <section>
-              <SectionHeading title="Podcasts" />
+              <SectionHeading title={t("searchPage.podcasts")} />
               <div className="-mx-3 flex flex-wrap">
                 {podcasts.map((p) => <MediaCard key={`podcast-${p.id}`} item={p as CatalogueItem} />)}
               </div>
@@ -230,7 +242,7 @@ export default function SearchPage() {
 
           {(tab === "All" || tab === "Audio Books") && audiobooks.length > 0 && (
             <section>
-              <SectionHeading title="Audio Books" />
+              <SectionHeading title={t("searchPage.audioBooks")} />
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {(tab === "All" ? audiobooks.slice(0, 6) : audiobooks).map((book) => {
                   return (
@@ -258,14 +270,14 @@ export default function SearchPage() {
 
           {(tab === "All" || tab === "Old Broadcasts") && broadcastRecordings.length > 0 && (
             <section>
-              <SectionHeading title="Old broadcasts" />
+              <SectionHeading title={t("searchPage.oldBroadcasts")} />
               <RecordedBroadcastTable recordings={tab === "All" ? broadcastRecordings.slice(0, 5) : broadcastRecordings} />
             </section>
           )}
 
           {(tab === "All" || tab === "Radio") && liveRadios.length > 0 && (
             <section>
-              <SectionHeading title="Live radio" />
+              <SectionHeading title={t("searchPage.liveRadio")} />
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {liveRadios.map((r) => (
                   <Link

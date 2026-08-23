@@ -9,6 +9,7 @@ import { usePlans, useSubscription } from "@/lib/hooks";
 import type { Plan } from "@/lib/types";
 import { useAuth } from "@/stores/auth";
 import { useUi } from "@/stores/ui";
+import { localizedText, useTranslation } from "@/lib/i18n";
 
 const METHODS = [
   { value: "bkash", label: "bKash" },
@@ -17,20 +18,21 @@ const METHODS = [
   { value: "card", label: "Card" },
 ] as const;
 
-function featureList(plan: Plan): string[] {
+function featureList(plan: Plan, t: (key: string, params?: Record<string, string | number>) => string): string[] {
   const f = plan.features ?? {};
   const isPremium = plan.code === "premium";
   return [
-    isPremium ? "Full-length premium collection" : "Full free catalogue",
-    f["ads"] ? "Ad-supported listening" : "Ad-free listening",
-    `Audio quality up to ${f["max_quality_kbps"] ?? 128} kbps`,
-    f["skips_per_hour"] != null ? `${f["skips_per_hour"]} skips per hour` : "Unlimited skips",
-    ...(f["offline_downloads"] ? ["Offline downloads (mobile)"] : []),
-    ...(f["equalizer"] ? ["Equalizer & advanced playback"] : []),
+    isPremium ? t("premiumPage.premiumCollection") : t("premiumPage.freeCatalogue"),
+    f["ads"] ? t("premiumPage.adSupported") : t("premiumPage.adFree"),
+    t("premiumPage.quality", { quality: Number(f["max_quality_kbps"] ?? 128) }),
+    f["skips_per_hour"] != null ? t("premiumPage.skips", { count: Number(f["skips_per_hour"]) }) : t("premiumPage.unlimitedSkips"),
+    ...(f["offline_downloads"] ? [t("premiumPage.offline")] : []),
+    ...(f["equalizer"] ? [t("premiumPage.equalizer")] : []),
   ];
 }
 
 export default function PremiumPage() {
+  const { locale, t } = useTranslation();
   const { data: plans } = usePlans();
   const { data: sub, mutate: refreshSub } = useSubscription();
   const token = useAuth((s) => s.token);
@@ -63,7 +65,7 @@ export default function PremiumPage() {
       setCheckoutPlan(null);
       await Promise.all([refreshSub(), refreshMe()]);
     } catch (err) {
-      setError(err instanceof ApiError ? err.firstError : "Payment failed. Try again.");
+      setError(err instanceof ApiError ? err.firstError : t("premiumPage.paymentFailed"));
     } finally {
       setBusy(false);
     }
@@ -80,15 +82,14 @@ export default function PremiumPage() {
         />
         <Crown className="relative mx-auto size-10 text-premium" />
         <h1 className="relative mt-4 font-display text-3xl font-bold tracking-tight sm:text-5xl">
-          Listen without limits
+          {t("premiumPage.title")}
         </h1>
         <p className="relative mx-auto mt-3 max-w-xl text-sm leading-relaxed text-ink-soft sm:text-base">
-          Unlock the full archive — premium collections, ad-free playback, higher quality and unlimited skips.
-          Support the preservation of a century of Bangladeshi radio.
+          {t("premiumPage.description")}
         </p>
         {isPremium && (
           <p className="relative mx-auto mt-4 inline-flex items-center gap-2 rounded-full bg-premium/15 px-5 py-2 text-sm font-bold text-premium">
-            <BadgeCheck className="size-4" /> You are a Premium member
+            <BadgeCheck className="size-4" /> {t("premiumPage.member")}
           </p>
         )}
       </section>
@@ -103,8 +104,8 @@ export default function PremiumPage() {
               cycle === c ? "bg-ink text-page" : "text-ink-mute hover:text-ink"
             }`}
           >
-            {c}
-            {c === "annual" && <span className="ml-1.5 text-[10px] font-bold uppercase text-accent">Save more</span>}
+            {t(`premiumPage.${c}`)}
+            {c === "annual" && <span className="ml-1.5 text-[10px] font-bold uppercase text-accent">{t("premiumPage.saveMore")}</span>}
           </button>
         ))}
       </div>
@@ -123,21 +124,21 @@ export default function PremiumPage() {
             >
               {premium && (
                 <span className="absolute -top-3 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-premium px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-premium-fg">
-                  <Sparkles className="size-3" /> Most popular
+                  <Sparkles className="size-3" /> {t("premiumPage.mostPopular")}
                 </span>
               )}
               <div>
-                <h2 className="font-display text-xl font-bold">{plan.name}</h2>
-                {plan.description && <p className="mt-1 text-xs text-ink-soft">{plan.description}</p>}
+                <h2 className="font-display text-xl font-bold">{localizedText(plan as unknown as Record<string, unknown>, "name", locale)}</h2>
+                {localizedText(plan as unknown as Record<string, unknown>, "description", locale) && <p className="mt-1 text-xs text-ink-soft">{localizedText(plan as unknown as Record<string, unknown>, "description", locale)}</p>}
               </div>
               <p className="font-display text-4xl font-bold">
-                {price === 0 ? "Free" : formatMoney(price, plan.currency)}
+                {price === 0 ? t("premiumPage.free") : formatMoney(price, plan.currency, locale)}
                 {price > 0 && (
-                  <span className="text-sm font-normal text-ink-mute">/{cycle === "annual" ? "year" : "month"}</span>
+                  <span className="text-sm font-normal text-ink-mute">/{cycle === "annual" ? t("premiumPage.year") : t("premiumPage.month")}</span>
                 )}
               </p>
               <ul className="flex flex-col gap-2.5">
-                {featureList(plan).map((feat) => (
+                {featureList(plan, t).map((feat) => (
                   <li key={feat} className="flex items-center gap-2.5 text-sm text-ink-soft">
                     <Check className={`size-4 shrink-0 ${premium ? "text-premium" : "text-accent"}`} /> {feat}
                   </li>
@@ -149,7 +150,7 @@ export default function PremiumPage() {
                   disabled={isPremium}
                   onClick={() => {
                     if (!token) {
-                      openLoginPrompt("Sign in to upgrade to Premium.");
+                      openLoginPrompt(t("premiumPage.loginUpgrade"));
                       return;
                     }
                     setTrial(false);
@@ -158,18 +159,18 @@ export default function PremiumPage() {
                   }}
                   className="rounded-full bg-premium py-3 text-sm font-bold text-premium-fg transition enabled:hover:scale-[1.02] disabled:opacity-50"
                 >
-                  {isPremium ? "Current plan" : `Get Premium ${cycle}`}
+                  {isPremium ? t("premiumPage.current") : t("premiumPage.getPremium", { cycle: t(`premiumPage.${cycle}`) })}
                 </button>
               ) : (
                 <p className="rounded-full border border-edge py-3 text-center text-sm font-bold text-ink-mute">
-                  {isPremium ? "Included" : "Your current plan"}
+                  {isPremium ? t("premiumPage.included") : t("premiumPage.yourCurrent")}
                 </p>
               )}
               {premium && !isPremium && plan.trial_days > 0 && (
                 <button
                   onClick={() => {
                     if (!token) {
-                      openLoginPrompt("Sign in to start your free trial.");
+                      openLoginPrompt(t("premiumPage.loginTrial"));
                       return;
                     }
                     setTrial(true);
@@ -178,7 +179,7 @@ export default function PremiumPage() {
                   }}
                   className="-mt-2 text-center text-xs font-bold text-premium hover:underline"
                 >
-                  or start a {plan.trial_days}-day free trial
+                  {t("premiumPage.trialLink", { days: plan.trial_days })}
                 </button>
               )}
             </div>
@@ -187,7 +188,7 @@ export default function PremiumPage() {
       </div>
 
       {/* Checkout modal */}
-      <Modal open={checkoutPlan !== null} onClose={() => setCheckoutPlan(null)} title={trial ? "Start free trial" : "Checkout"}>
+      <Modal open={checkoutPlan !== null} onClose={() => setCheckoutPlan(null)} title={trial ? t("premiumPage.trialTitle") : t("premiumPage.checkout")}>
         {checkoutPlan && (
           <div className="flex flex-col gap-4">
             <div className="rounded-card bg-raised p-4">
@@ -196,14 +197,14 @@ export default function PremiumPage() {
               </p>
               <p className="mt-1 font-display text-2xl font-bold">
                 {trial
-                  ? `Free for ${checkoutPlan.trial_days} days`
-                  : formatMoney(cycle === "annual" ? checkoutPlan.price_annual : checkoutPlan.price_monthly, checkoutPlan.currency)}
+                  ? t("premiumPage.freeDays", { days: checkoutPlan.trial_days })
+                  : formatMoney(cycle === "annual" ? checkoutPlan.price_annual : checkoutPlan.price_monthly, checkoutPlan.currency, locale)}
               </p>
-              {trial && <p className="mt-1 text-xs text-ink-mute">No charge today. Cancel any time before the trial ends.</p>}
+              {trial && <p className="mt-1 text-xs text-ink-mute">{t("premiumPage.noCharge")}</p>}
             </div>
 
             <div>
-              <p className="mb-2 text-sm font-semibold">Payment method</p>
+              <p className="mb-2 text-sm font-semibold">{t("premiumPage.paymentMethod")}</p>
               <div className="grid grid-cols-2 gap-2">
                 {METHODS.map((m) => (
                   <button
@@ -223,7 +224,7 @@ export default function PremiumPage() {
               <input
                 value={promo}
                 onChange={(e) => setPromo(e.target.value.toUpperCase())}
-                placeholder="Promo code (try BETAR50)"
+                placeholder={t("premiumPage.promo")}
                 className="rounded-card border border-edge-strong bg-raised px-4 py-2.5 text-sm outline-none transition placeholder:text-ink-mute focus:border-accent"
               />
             )}
@@ -236,10 +237,10 @@ export default function PremiumPage() {
               className="flex items-center justify-center gap-2 rounded-full bg-premium py-3 text-sm font-bold text-premium-fg transition enabled:hover:scale-[1.02] disabled:opacity-50"
             >
               {busy && <Loader2 className="size-4 animate-spin" />}
-              {trial ? "Start trial" : "Confirm & pay"}
+              {trial ? t("premiumPage.startTrial") : t("premiumPage.confirmPay")}
             </button>
             <p className="text-center text-[11px] leading-relaxed text-ink-mute">
-              Demo environment — the payment gateway is simulated. No real charge occurs.
+              {t("premiumPage.demo")}
             </p>
           </div>
         )}

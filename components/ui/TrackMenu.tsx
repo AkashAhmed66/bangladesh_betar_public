@@ -9,6 +9,7 @@ import { usePlayer } from "@/stores/player";
 import { useAuth } from "@/stores/auth";
 import { useDownloads } from "@/stores/downloads";
 import { useUi } from "@/stores/ui";
+import { useTranslation } from "@/lib/i18n";
 
 const subscribeToDocument = () => () => undefined;
 const browserSnapshot = () => true;
@@ -27,6 +28,7 @@ interface TrackMenuProps {
  * previously made it appear broken inside track lists).
  */
 export default function TrackMenu({ track, className = "", extraItems = [] }: TrackMenuProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const mounted = useSyncExternalStore(subscribeToDocument, browserSnapshot, serverSnapshot);
   const [coords, setCoords] = useState<{ top?: number; bottom?: number; right: number }>({ right: 0 });
@@ -83,7 +85,7 @@ export default function TrackMenu({ track, className = "", extraItems = [] }: Tr
     <div className={`relative ${className}`}>
       <button
         ref={btnRef}
-        aria-label="More options"
+        aria-label={t("trackMenu.moreOptions")}
         aria-expanded={open}
         onClick={toggle}
         className="rounded-full p-1 text-ink-mute transition hover:text-ink"
@@ -104,34 +106,34 @@ export default function TrackMenu({ track, className = "", extraItems = [] }: Tr
             }}
           >
             <button className={item} onClick={() => queueNext(track)}>
-              <ListStart className="size-4" /> Play next
+              <ListStart className="size-4" /> {t("trackMenu.playNext")}
             </button>
             <button className={item} onClick={() => queueLast(track)}>
-              <ListEnd className="size-4" /> Add to queue
+              <ListEnd className="size-4" /> {t("trackMenu.addQueue")}
             </button>
             <button
               className={item}
-              onClick={() => (token ? openAddToPlaylist(track) : openLoginPrompt("Sign in to build playlists."))}
+              onClick={() => (token ? openAddToPlaylist(track) : openLoginPrompt(t("trackMenu.playlistLogin")))}
             >
-              <ListPlus className="size-4" /> Add to playlist
+              <ListPlus className="size-4" /> {t("trackMenu.addPlaylist")}
             </button>
             {/* Offline saves store the ENCRYPTED HLS package — never a plain
                 audio file (download-protection policy). */}
             {downloaded ? (
               <button className={item} onClick={() => removeDownload(track.assetId)}>
-                <Check className="size-4 text-accent" /> Saved offline — remove
+                <Check className="size-4 text-accent" /> {t("trackMenu.savedOfflineRemove")}
               </button>
             ) : dlProgress != null ? (
               <span className={`${item} cursor-default`}>
-                <Loader2 className="size-4 animate-spin" /> Saving… {dlProgress}%
+                <Loader2 className="size-4 animate-spin" /> {t("trackMenu.saving", { progress: dlProgress })}
               </span>
             ) : (
               <button className={item} onClick={() => download(track)}>
-                <LockKeyhole className="size-4" /> Save offline (encrypted)
+                <LockKeyhole className="size-4" /> {t("trackMenu.saveOffline")}
               </button>
             )}
             <Link href={track.href} className={item}>
-              <Info className="size-4" /> Go to details
+              <Info className="size-4" /> {t("trackMenu.details")}
             </Link>
             {extraItems.map((ei) => (
               <button key={ei.label} className={`${item} ${ei.danger ? "text-danger hover:text-danger" : ""}`} onClick={ei.onClick}>
@@ -140,7 +142,7 @@ export default function TrackMenu({ track, className = "", extraItems = [] }: Tr
             ))}
             <div className="my-1 border-t border-edge" />
             <Link href={`/assets/${track.assetId}/report`} className={`${item} text-danger hover:text-danger`}>
-              <Flag className="size-4" /> Report this recording
+              <Flag className="size-4" /> {t("trackMenu.reportRecording")}
             </Link>
           </div>,
           document.body,

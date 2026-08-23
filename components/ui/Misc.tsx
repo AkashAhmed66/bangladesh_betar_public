@@ -1,6 +1,7 @@
 "use client";
 
 import { Crown, Play } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 /** Spotify-style circular accent play button that lifts on hover. */
 export function PlayCircle({
@@ -32,11 +33,12 @@ export function PlayCircle({
 }
 
 export function PremiumBadge({ className = "" }: { className?: string }) {
+  const { t } = useTranslation();
   return (
     <span
       className={`inline-flex items-center gap-1 rounded-full bg-premium/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-premium ${className}`}
     >
-      <Crown className="size-3" /> Premium
+      <Crown className="size-3" /> {t("trackMenu.premium")}
     </span>
   );
 }
@@ -53,8 +55,8 @@ export function SectionHeading({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="mb-4 flex flex-wrap items-end justify-between gap-3 sm:gap-4">
-      <h2 className="font-display text-xl font-bold tracking-tight sm:text-2xl">{title}</h2>
+    <div className="mb-5 flex flex-wrap items-end justify-between gap-3 sm:mb-6 sm:gap-4">
+      <h2 className="font-display text-2xl font-bold tracking-[-0.035em] sm:text-3xl">{title}</h2>
       {action}
     </div>
   );

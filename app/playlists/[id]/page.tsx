@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import { use, useMemo, useState } from "react";
 import TrackTable from "@/components/cards/TrackTable";
 import DetailHero from "@/components/detail/DetailHero";
+import ContentActions from "@/components/engagement/ContentActions";
 import Modal from "@/components/ui/Modal";
 import FollowButton from "@/components/ui/FollowButton";
 import { PlayCircle, Skeleton, EmptyState } from "@/components/ui/Misc";
 import { destroy, put } from "@/lib/api";
 import { displayTitle, altTitle, formatCount } from "@/lib/format";
+import { localizedText, useTranslation } from "@/lib/i18n";
 import { useMyPlaylist, usePublicPlaylist } from "@/lib/hooks";
 import { playlistTracks } from "@/lib/tracks";
 import { useAuth } from "@/stores/auth";
@@ -17,6 +19,7 @@ import { usePlayer } from "@/stores/player";
 import { useUi } from "@/stores/ui";
 
 export default function PlaylistPage({ params }: { params: Promise<{ id: string }> }) {
+  const { locale, t } = useTranslation();
   const { id } = use(params);
   const token = useAuth((s) => s.token);
   const router = useRouter();
@@ -28,12 +31,13 @@ export default function PlaylistPage({ params }: { params: Promise<{ id: string 
 
   const playlist = data?.data;
   const playContext = usePlayer((s) => s.playContext);
-  const locale = useUi((s) => s.locale);
   const toast = useUi((s) => s.toast);
 
   const [editOpen, setEditOpen] = useState(false);
   const [title, setTitle] = useState("");
+  const [titleBn, setTitleBn] = useState("");
   const [description, setDescription] = useState("");
+  const [descriptionBn, setDescriptionBn] = useState("");
   const [isPublic, setIsPublic] = useState(false);
 
   const tracks = useMemo(() => playlistTracks(playlist?.items), [playlist]);
@@ -51,10 +55,11 @@ export default function PlaylistPage({ params }: { params: Promise<{ id: string 
   }
 
   const isOwner = playlist.is_owner === true;
+  const localizedDescription = localizedText(playlist as unknown as Record<string, unknown>, "description", locale);
 
   const saveEdit = async () => {
     try {
-      await put(`/me/playlists/${playlist.id}`, { title, description: description || null, is_public: isPublic });
+      await put(`/me/playlists/${playlist.id}`, { title, title_bn: titleBn || null, description: description || null, description_bn: descriptionBn || null, is_public: isPublic });
       toast("Playlist updated.", "success");
       setEditOpen(false);
       void mutate();
@@ -95,7 +100,7 @@ export default function PlaylistPage({ params }: { params: Promise<{ id: string 
         kicker={playlist.is_editorial ? "Editorial playlist" : playlist.is_owner ? "Your playlist" : "Playlist"}
         title={displayTitle(playlist, locale)}
         titleAlt={altTitle(playlist, locale)}
-        subtitle={playlist.description ?? undefined}
+        subtitle={localizedDescription || undefined}
         meta={
           <>
             {playlist.is_editorial ? (
@@ -122,12 +127,15 @@ export default function PlaylistPage({ params }: { params: Promise<{ id: string 
               </button>
             )}
             {!isOwner && <FollowButton type="playlist" id={playlist.id} initial={playlist.is_following} />}
+            {playlist.is_public && <ContentActions type="playlist" id={playlist.id} title={displayTitle(playlist, locale)} text={localizedDescription || undefined} />}
             {isOwner && (
               <>
                 <button
                   onClick={() => {
                     setTitle(playlist.title);
+                    setTitleBn(playlist.title_bn ?? "");
                     setDescription(playlist.description ?? "");
+                    setDescriptionBn(playlist.description_bn ?? "");
                     setIsPublic(playlist.is_public ?? false);
                     setEditOpen(true);
                   }}
@@ -163,7 +171,7 @@ export default function PlaylistPage({ params }: { params: Promise<{ id: string 
       <Modal open={editOpen} onClose={() => setEditOpen(false)} title="Edit playlist">
         <div className="flex flex-col gap-4">
           <label className="flex flex-col gap-1.5 text-sm font-semibold">
-            Title
+            {t("libraryPages.titleEnglish")}
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -171,10 +179,27 @@ export default function PlaylistPage({ params }: { params: Promise<{ id: string 
             />
           </label>
           <label className="flex flex-col gap-1.5 text-sm font-semibold">
-            Description
+            {t("libraryPages.titleBangla")}
+            <input
+              value={titleBn}
+              onChange={(e) => setTitleBn(e.target.value)}
+              className="rounded-card border border-edge-strong bg-raised px-3 py-2 text-sm font-normal outline-none focus:border-accent"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5 text-sm font-semibold">
+            {t("libraryPages.descriptionEnglish")}
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+              className="resize-none rounded-card border border-edge-strong bg-raised px-3 py-2 text-sm font-normal outline-none focus:border-accent"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5 text-sm font-semibold">
+            {t("libraryPages.descriptionBangla")}
+            <textarea
+              value={descriptionBn}
+              onChange={(e) => setDescriptionBn(e.target.value)}
               rows={3}
               className="resize-none rounded-card border border-edge-strong bg-raised px-3 py-2 text-sm font-normal outline-none focus:border-accent"
             />

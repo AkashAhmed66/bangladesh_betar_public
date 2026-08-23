@@ -5,6 +5,7 @@ import { post } from "@/lib/api";
 import type { FollowableType } from "@/lib/types";
 import { useAuth } from "@/stores/auth";
 import { useUi } from "@/stores/ui";
+import { useTranslation } from "@/lib/i18n";
 
 interface FollowButtonProps {
   type: FollowableType;
@@ -14,6 +15,7 @@ interface FollowButtonProps {
 }
 
 export default function FollowButton({ type, id, initial = false, className = "" }: FollowButtonProps) {
+  const { t } = useTranslation();
   const token = useAuth((s) => s.token);
   const openLogin = useUi((s) => s.openLoginPrompt);
   const toast = useUi((s) => s.toast);
@@ -28,7 +30,7 @@ export default function FollowButton({ type, id, initial = false, className = ""
 
   const toggle = async () => {
     if (!token) {
-      openLogin("Sign in to follow and get updates in your library.");
+      openLogin(t("actions.signInFollow"));
       return;
     }
     setFollowing((f) => !f);
@@ -40,7 +42,7 @@ export default function FollowButton({ type, id, initial = false, className = ""
       setFollowing(res.following);
     } catch {
       setFollowing((f) => !f);
-      toast("Could not update follows.", "error");
+      toast(t("actions.followFailed"), "error");
     }
   };
 
@@ -54,7 +56,7 @@ export default function FollowButton({ type, id, initial = false, className = ""
           : "border-edge-strong text-ink hover:border-ink hover:scale-[1.02]"
       } ${className}`}
     >
-      {following ? "Following" : "Follow"}
+      {following ? t("actions.following") : t("actions.follow")}
     </button>
   );
 }

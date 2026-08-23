@@ -23,9 +23,11 @@ import { formatCount, formatDuration } from "@/lib/format";
 import { useAsset } from "@/lib/hooks";
 import { useCurrentTrack, usePlayer } from "@/stores/player";
 import { useUi } from "@/stores/ui";
+import { useTranslation } from "@/lib/i18n";
 
 /** Immersive full-screen player with waveform seeking and asset context. */
 export default function NowPlaying() {
+  const { t } = useTranslation();
   const open = useUi((s) => s.nowPlayingOpen);
   const setOpen = useUi((s) => s.setNowPlayingOpen);
   const locale = useUi((s) => s.locale);
@@ -58,12 +60,12 @@ export default function NowPlaying() {
       <div className="relative z-10 flex items-center justify-between px-4 py-3 sm:px-6 sm:py-5">
         <button
           onClick={() => setOpen(false)}
-          aria-label="Minimise player"
+          aria-label={t("player.minimise")}
           className="rounded-full bg-raised/70 p-2 text-ink-soft transition hover:text-ink"
         >
           <ChevronDown className="size-5" />
         </button>
-        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-ink-mute">Now playing</p>
+        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-ink-mute">{t("player.nowPlaying")}</p>
         <span className="w-9" />
       </div>
 
@@ -92,8 +94,8 @@ export default function NowPlaying() {
           <p className="mt-1 text-sm text-ink-soft">{track.subtitle}</p>
           {asset && (
             <p className="mt-2 text-xs text-ink-mute">
-              {formatCount(asset.play_count)} plays
-              {asset.first_broadcast_on ? ` · first broadcast ${asset.first_broadcast_on.slice(0, 4)}` : ""}
+              {t("player.plays", { count: formatCount(asset.play_count) })}
+              {asset.first_broadcast_on ? ` · ${t("player.firstBroadcast", { year: asset.first_broadcast_on.slice(0, 4) })}` : ""}
               {asset.station ? ` · ${asset.station}` : ""}
             </p>
           )}
@@ -117,17 +119,17 @@ export default function NowPlaying() {
           <button
             onClick={toggleShuffle}
             aria-pressed={shuffle}
-            aria-label="Shuffle"
+            aria-label={t("player.shuffle")}
             className={shuffle ? "text-accent" : "text-ink-mute hover:text-ink"}
           >
             <Shuffle className="size-5" />
           </button>
-          <button onClick={prev} aria-label="Previous" className="text-ink-soft transition hover:text-ink">
+          <button onClick={prev} aria-label={t("player.previous")} className="text-ink-soft transition hover:text-ink">
             <SkipBack className="size-7 fill-current" />
           </button>
           <button
             onClick={toggle}
-            aria-label={isPlaying ? "Pause" : "Play"}
+            aria-label={isPlaying ? t("player.pause") : t("player.play")}
             className="flex size-14 items-center justify-center rounded-full bg-ink text-page shadow-xl transition hover:scale-105 sm:size-16"
           >
             {status === "loading" ? (
@@ -138,12 +140,12 @@ export default function NowPlaying() {
               <Play className="size-6 translate-x-[2px] fill-current" />
             )}
           </button>
-          <button onClick={() => next(true)} aria-label="Next" className="text-ink-soft transition hover:text-ink">
+          <button onClick={() => next(true)} aria-label={t("player.next")} className="text-ink-soft transition hover:text-ink">
             <SkipForward className="size-7 fill-current" />
           </button>
           <button
             onClick={cycleRepeat}
-            aria-label={`Repeat: ${repeat}`}
+            aria-label={t("player.repeat", { mode: repeat })}
             className={repeat !== "off" ? "text-accent" : "text-ink-mute hover:text-ink"}
           >
             {repeat === "one" ? <Repeat1 className="size-5" /> : <Repeat className="size-5" />}
@@ -166,10 +168,10 @@ export default function NowPlaying() {
               type="button"
               onClick={() => setChaptersOpen((o) => !o)}
               aria-expanded={chaptersOpen}
-              aria-label={chaptersOpen ? "Collapse chapters" : "Expand chapters"}
+              aria-label={chaptersOpen ? t("player.collapseChapters") : t("player.expandChapters")}
               className="mb-2 flex w-full items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink-mute transition hover:text-ink"
             >
-              <ListOrdered className="size-4" /> Chapters
+              <ListOrdered className="size-4" /> {t("player.chapters")}
               <ChevronDown className={`ml-auto size-4 transition-transform ${chaptersOpen ? "" : "-rotate-90"}`} />
             </button>
             {chaptersOpen && (
@@ -191,7 +193,7 @@ export default function NowPlaying() {
                     <span className={`flex-1 text-sm ${active ? "font-semibold text-ink" : "font-medium text-ink-soft"}`}>
                       {ch.title}
                     </span>
-                    {active && <span className="text-[10px] font-bold uppercase tracking-wider text-accent">Playing</span>}
+                    {active && <span className="text-[10px] font-bold uppercase tracking-wider text-accent">{t("player.playing")}</span>}
                   </button>
                 );
               })}

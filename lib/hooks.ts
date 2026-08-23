@@ -30,6 +30,7 @@ import type {
   Suggestion,
   Taxonomy,
   WatchShow,
+  WatchLiveChannel,
 } from "./types";
 
 const fetcher = <T,>(path: string) => get<T>(path);
@@ -121,6 +122,10 @@ export const useLiveChannels = () =>
   usePollingApi<{ data: LiveChannel[] }>("/live-channels", 10_000);
 export const useLiveChannel = (id: number | string) =>
   usePollingApi<{ data: LiveChannel }>(`/live-channels/${id}`, 10_000);
+export const useWatchLiveChannels = () =>
+  usePollingApi<{ data: WatchLiveChannel[] }>("/watch-live-channels", 5_000);
+export const useWatchLiveChannel = (id: number | string) =>
+  usePollingApi<{ data: WatchLiveChannel }>(id ? `/watch-live-channels/${id}` : null, 5_000);
 export const useBroadcastRecordings = (page = 1) =>
   useApi<Paginated<BroadcastRecording>>(`/broadcast-recordings?page=${page}`);
 

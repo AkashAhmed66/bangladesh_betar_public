@@ -305,6 +305,67 @@
   width: 100vw;
   margin-left: calc(50% - 50vw);
 }
+
+/* Full-bleed Listen artwork must follow the available content pane, not the
+   browser viewport. The distinction matters while the desktop queue occupies
+   space beside <main>. Container units keep every hero centred in either state. */
+.listen-scroll-region {
+  container-type: inline-size;
+}
+.listen-scroll-region .portal-full-bleed {
+  width: 100cqw;
+  margin-left: calc(50% - 50cqw);
+}
+
+.listen-page-hero {
+  background:
+    linear-gradient(115deg, color-mix(in srgb, var(--portal-color) 14%, var(--bg-elev)), var(--bg-elev) 58%),
+    var(--bg-elev);
+}
+.listen-page-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.2;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--portal-color) 22%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--portal-color) 22%, transparent) 1px, transparent 1px);
+  background-size: 52px 52px;
+  mask-image: linear-gradient(90deg, black, transparent 72%);
+}
+.listen-hero-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(1px);
+  background: color-mix(in srgb, var(--portal-color) 17%, transparent);
+  box-shadow: 0 0 90px color-mix(in srgb, var(--portal-color) 15%, transparent);
+}
+.listen-hero-orb-one { width: 28rem; height: 28rem; right: 8%; top: -60%; }
+.listen-hero-orb-two { width: 13rem; height: 13rem; right: 28%; bottom: -44%; opacity: 0.55; }
+.listen-spectrum-bar {
+  transform-origin: bottom;
+  background: linear-gradient(to top, color-mix(in srgb, var(--portal-color) 30%, transparent), var(--portal-color));
+  box-shadow: 0 0 22px color-mix(in srgb, var(--portal-color) 22%, transparent);
+  animation: listen-spectrum 1.8s ease-in-out infinite alternate;
+}
+@keyframes listen-spectrum {
+  from { transform: scaleY(0.62); opacity: 0.45; }
+  to { transform: scaleY(1); opacity: 0.9; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .listen-spectrum-bar { animation: none; }
+}
+
+.queue-panel-drawer {
+  animation: queue-panel-enter 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes queue-panel-enter {
+  from { opacity: 0; transform: translateX(1.25rem); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .queue-panel-drawer { animation-duration: 1ms; }
+}
 [data-theme="light"] .portal-tint-panel {
   --portal-panel-surface: color-mix(in srgb, var(--portal-color) 9%, #ffffff);
   box-shadow: inset 0 1px #ffffff, 0 16px 40px color-mix(in srgb, var(--portal-color) 8%, transparent);
@@ -568,6 +629,10 @@ input[type="range"].seek::-moz-range-track {
   height: 4px; border-radius: 999px; background: var(--track-bg, var(--border-strong));
 }
 
+html[data-locale="bn"] body {
+  font-family: var(--font-bangla-face), var(--font-jakarta), sans-serif;
+}
+
 /* Watch player controls retain strong contrast in both portal themes. */
 input[type="range"].advanced-video-seek,
 input[type="range"].advanced-video-volume {
@@ -620,6 +685,201 @@ input[type="range"].advanced-video-seek:focus-visible,
 input[type="range"].advanced-video-volume:focus-visible {
   outline: 2px solid white;
   outline-offset: 4px;
+}
+
+/* Watch Live uses a broadcast-studio treatment. Decorative layers stay in
+   CSS so the live video and channel artwork remain the visual focus. */
+.watch-live-page {
+  --watch-live-page: #05090b;
+  --watch-live-surface: #0a1013;
+  --watch-live-text: #f7fbfc;
+  --watch-live-muted: rgba(231, 241, 243, 0.62);
+  --watch-live-border: rgba(255, 255, 255, 0.11);
+  --watch-live-chip: rgba(255, 255, 255, 0.055);
+  --watch-live-card: rgba(255, 255, 255, 0.035);
+  --watch-live-card-hover: rgba(255, 255, 255, 0.24);
+  --watch-live-selected: rgba(117, 227, 223, 0.08);
+  --watch-live-accent: #75e3df;
+  min-height: 100%;
+  color: var(--watch-live-text);
+  background: var(--watch-live-page);
+  transition: color 240ms ease, background-color 240ms ease;
+}
+.watch-live-accent { color: var(--watch-live-accent); }
+.watch-live-muted { color: var(--watch-live-muted); }
+.watch-live-idle-dot { background: color-mix(in srgb, var(--watch-live-text) 35%, transparent); }
+.watch-live-primary-action {
+  color: var(--watch-live-page);
+  background: var(--watch-live-text);
+  box-shadow: 0 12px 34px color-mix(in srgb, var(--watch-live-accent) 18%, transparent);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.watch-live-primary-action:hover { transform: translateY(-1px); }
+.watch-live-empty {
+  background:
+    radial-gradient(circle at 72% 14%, color-mix(in srgb, var(--watch-live-accent) 15%, transparent), transparent 32%),
+    var(--watch-live-page);
+}
+.watch-live-hero {
+  isolation: isolate;
+  border-color: var(--watch-live-border);
+  background:
+    radial-gradient(circle at 78% 12%, rgba(56, 191, 193, 0.16), transparent 34%),
+    radial-gradient(circle at 8% 82%, rgba(37, 99, 235, 0.12), transparent 30%),
+    linear-gradient(145deg, #071114 0%, #05090b 52%, #080d10 100%);
+}
+.watch-live-chip {
+  color: var(--watch-live-muted);
+  border-color: var(--watch-live-border);
+  background: var(--watch-live-chip);
+}
+.watch-live-player-shell {
+  border-color: var(--watch-live-border);
+  box-shadow: 0 35px 100px rgba(0, 0, 0, 0.48);
+}
+.watch-live-channel-meta {
+  color: var(--watch-live-text);
+  border-color: var(--watch-live-border);
+  background: var(--watch-live-surface);
+}
+.watch-live-channel-card {
+  color: var(--watch-live-text);
+  border-color: var(--watch-live-border);
+  background: var(--watch-live-card);
+}
+.watch-live-channel-card:hover { border-color: var(--watch-live-card-hover); }
+.watch-live-channel-card.is-selected {
+  border-color: color-mix(in srgb, var(--watch-live-accent) 72%, transparent);
+  background: var(--watch-live-selected);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--watch-live-accent) 16%, transparent);
+}
+.watch-live-grid {
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(117, 227, 223, 0.095) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(117, 227, 223, 0.095) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: linear-gradient(to bottom, black, transparent 84%);
+}
+.watch-live-orb {
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+  border-radius: 9999px;
+  filter: blur(10px);
+  animation: watch-live-drift 13s ease-in-out infinite alternate;
+}
+.watch-live-orb-one {
+  width: clamp(18rem, 34vw, 34rem);
+  height: clamp(18rem, 34vw, 34rem);
+  right: -9%;
+  top: -24%;
+  background: rgba(56, 191, 193, 0.11);
+  box-shadow: 0 0 110px rgba(56, 191, 193, 0.12);
+}
+.watch-live-orb-two {
+  width: clamp(13rem, 24vw, 24rem);
+  height: clamp(13rem, 24vw, 24rem);
+  left: -8%;
+  bottom: -20%;
+  background: rgba(59, 130, 246, 0.09);
+  box-shadow: 0 0 90px rgba(59, 130, 246, 0.1);
+  animation-delay: -6s;
+}
+.watch-live-card-fallback {
+  background:
+    radial-gradient(circle at 50% 44%, rgba(117, 227, 223, 0.18), transparent 28%),
+    linear-gradient(135deg, #102126, #071012);
+}
+
+/* The compact live promotion on the Watch home page follows the same palette. */
+.watch-live-promo {
+  color: #f7fbfc;
+  border-color: rgba(255, 255, 255, 0.11);
+  background: #071013;
+  box-shadow: 0 20px 56px rgba(2, 10, 12, 0.17);
+  transition: color 240ms ease, border-color 240ms ease, background-color 240ms ease;
+}
+.watch-live-promo-image { opacity: 0.35; }
+.watch-live-promo-overlay {
+  background: linear-gradient(90deg, rgba(7, 16, 19, 1), rgba(7, 16, 19, 0.92) 52%, rgba(7, 16, 19, 0.45));
+}
+.watch-live-promo-icon {
+  color: #75e3df;
+  border-color: rgba(165, 243, 242, 0.2);
+  background: rgba(103, 232, 249, 0.1);
+  box-shadow: 0 0 45px rgba(56, 191, 193, 0.18);
+}
+.watch-live-promo-accent { color: #75e3df; }
+.watch-live-promo-dot { background: #75e3df; }
+.watch-live-promo-muted { color: rgba(231, 241, 243, 0.66); }
+.watch-live-promo-action { color: #071013; background: #ffffff; }
+
+[data-theme="light"] .watch-live-page {
+  --watch-live-page: #f4f9fa;
+  --watch-live-surface: rgba(255, 255, 255, 0.94);
+  --watch-live-text: #10282d;
+  --watch-live-muted: #506a70;
+  --watch-live-border: rgba(17, 86, 91, 0.16);
+  --watch-live-chip: rgba(255, 255, 255, 0.68);
+  --watch-live-card: rgba(255, 255, 255, 0.78);
+  --watch-live-card-hover: rgba(20, 127, 130, 0.42);
+  --watch-live-selected: rgba(56, 191, 193, 0.12);
+  --watch-live-accent: #147f82;
+}
+[data-theme="light"] .watch-live-hero {
+  background:
+    radial-gradient(circle at 78% 12%, rgba(56, 191, 193, 0.17), transparent 34%),
+    radial-gradient(circle at 8% 82%, rgba(37, 99, 235, 0.08), transparent 30%),
+    linear-gradient(145deg, #f8fcfc 0%, #edf8f8 52%, #f5f8fa 100%);
+}
+[data-theme="light"] .watch-live-grid {
+  opacity: 0.2;
+  background-image:
+    linear-gradient(rgba(20, 127, 130, 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20, 127, 130, 0.16) 1px, transparent 1px);
+}
+[data-theme="light"] .watch-live-player-shell {
+  box-shadow: 0 30px 80px rgba(23, 74, 79, 0.18);
+}
+[data-theme="light"] .watch-live-card-fallback {
+  background:
+    radial-gradient(circle at 50% 44%, rgba(20, 127, 130, 0.15), transparent 28%),
+    linear-gradient(135deg, #e8f7f7, #f7fbfb);
+}
+[data-theme="light"] .watch-live-orb-one {
+  background: rgba(56, 191, 193, 0.13);
+  box-shadow: 0 0 110px rgba(56, 191, 193, 0.12);
+}
+[data-theme="light"] .watch-live-orb-two {
+  background: rgba(59, 130, 246, 0.07);
+}
+[data-theme="light"] .watch-live-promo {
+  color: #10282d;
+  border-color: rgba(17, 86, 91, 0.16);
+  background: #eef9f9;
+  box-shadow: 0 18px 46px rgba(23, 74, 79, 0.11);
+}
+[data-theme="light"] .watch-live-promo-image { opacity: 0.16; }
+[data-theme="light"] .watch-live-promo-overlay {
+  background: linear-gradient(90deg, rgba(247, 252, 252, 0.99), rgba(240, 250, 250, 0.93) 55%, rgba(237, 248, 248, 0.7));
+}
+[data-theme="light"] .watch-live-promo-icon {
+  color: #147f82;
+  border-color: rgba(20, 127, 130, 0.2);
+  background: rgba(56, 191, 193, 0.11);
+  box-shadow: 0 0 42px rgba(56, 191, 193, 0.13);
+}
+[data-theme="light"] .watch-live-promo-accent { color: #147f82; }
+[data-theme="light"] .watch-live-promo-dot { background: #147f82; }
+[data-theme="light"] .watch-live-promo-muted { color: #506a70; }
+[data-theme="light"] .watch-live-promo-action { color: #ffffff; background: #147f82; }
+@keyframes watch-live-drift {
+  from { transform: translate3d(-1%, 1%, 0) scale(0.96); }
+  to { transform: translate3d(4%, -3%, 0) scale(1.06); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .watch-live-orb { animation: none; }
 }
 
 /* Line-clamp helpers */

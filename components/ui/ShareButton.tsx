@@ -2,6 +2,7 @@
 
 import { Share2 } from "lucide-react";
 import { useUi } from "@/stores/ui";
+import { useTranslation } from "@/lib/i18n";
 
 interface ShareButtonProps {
   title: string;
@@ -16,6 +17,7 @@ interface ShareButtonProps {
  * and falls back to copying the link to the clipboard with a toast.
  */
 export default function ShareButton({ title, text, url, className = "" }: ShareButtonProps) {
+  const { t } = useTranslation();
   const toast = useUi((s) => s.toast);
 
   const share = async () => {
@@ -33,9 +35,9 @@ export default function ShareButton({ title, text, url, className = "" }: ShareB
 
     try {
       await navigator.clipboard.writeText(link);
-      toast("Link copied to clipboard", "success");
+      toast(t("actions.linkCopied"), "success");
     } catch {
-      toast("Could not copy the link", "error");
+      toast(t("actions.copyFailed"), "error");
     }
   };
 
@@ -43,8 +45,8 @@ export default function ShareButton({ title, text, url, className = "" }: ShareB
     <button
       type="button"
       onClick={share}
-      aria-label="Share"
-      title="Share"
+      aria-label={t("actions.share")}
+      title={t("actions.share")}
       className={`flex size-11 items-center justify-center rounded-full border border-edge-strong text-ink-soft transition hover:scale-[1.03] hover:border-ink hover:text-ink ${className}`}
     >
       <Share2 className="size-5" />

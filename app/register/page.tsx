@@ -9,8 +9,10 @@ import type { TokenResponse } from "@/lib/types";
 import { BRAND } from "@/config/theme";
 import { useAuth } from "@/stores/auth";
 import { useUi } from "@/stores/ui";
+import { useTranslation } from "@/lib/i18n";
 
 export default function RegisterPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const setSession = useAuth((s) => s.setSession);
   const toast = useUi((s) => s.toast);
@@ -37,10 +39,10 @@ export default function RegisterPage() {
     try {
       const res = await post<TokenResponse>("/auth/register", form);
       setSession(res);
-      toast(`Welcome to ${BRAND.name}, ${res.user.name.split(" ")[0]}!`, "success");
+      toast(t("auth.welcomeBrand", { brand: BRAND.name, name: res.user.name.split(" ")[0] }), "success");
       router.push("/");
     } catch (err) {
-      setError(err instanceof ApiError ? err.firstError : "Could not create account.");
+      setError(err instanceof ApiError ? err.firstError : t("auth.createFailed"));
     } finally {
       setBusy(false);
     }
@@ -66,17 +68,17 @@ export default function RegisterPage() {
       </Link>
 
       <div className="fade-up relative w-full max-w-sm rounded-panel border border-edge bg-elev p-5 sm:p-8">
-        <h1 className="text-center font-display text-2xl font-bold">Create your account</h1>
-        <p className="mt-1 text-center text-sm text-ink-soft">Free forever. Premium if you want more.</p>
+        <h1 className="text-center font-display text-2xl font-bold">{t("auth.createTitle")}</h1>
+        <p className="mt-1 text-center text-sm text-ink-soft">{t("auth.createSubtitle")}</p>
 
         {error && <p className="mt-4 rounded-card bg-danger/10 px-4 py-2.5 text-sm text-danger">{error}</p>}
 
         <form onSubmit={submit} className="mt-5 flex flex-col gap-3">
-          <input className={input} required placeholder="Full name" value={form.name} onChange={(e) => set("name", e.target.value)} autoComplete="name" />
-          <input className={input} type="email" required placeholder="Email address" value={form.email} onChange={(e) => set("email", e.target.value)} autoComplete="email" />
-          <input className={input} type="tel" placeholder="Phone (optional)" value={form.phone} onChange={(e) => set("phone", e.target.value)} autoComplete="tel" />
-          <input className={input} type="password" required minLength={6} placeholder="Password (min 6 characters)" value={form.password} onChange={(e) => set("password", e.target.value)} autoComplete="new-password" />
-          <input className={input} type="password" required placeholder="Confirm password" value={form.password_confirmation} onChange={(e) => set("password_confirmation", e.target.value)} autoComplete="new-password" />
+          <input className={input} required placeholder={t("auth.fullName")} value={form.name} onChange={(e) => set("name", e.target.value)} autoComplete="name" />
+          <input className={input} type="email" required placeholder={t("auth.emailAddress")} value={form.email} onChange={(e) => set("email", e.target.value)} autoComplete="email" />
+          <input className={input} type="tel" placeholder={t("auth.phoneOptional")} value={form.phone} onChange={(e) => set("phone", e.target.value)} autoComplete="tel" />
+          <input className={input} type="password" required minLength={6} placeholder={t("auth.passwordHint")} value={form.password} onChange={(e) => set("password", e.target.value)} autoComplete="new-password" />
+          <input className={input} type="password" required placeholder={t("auth.confirmPassword")} value={form.password_confirmation} onChange={(e) => set("password_confirmation", e.target.value)} autoComplete="new-password" />
 
           <div className="flex gap-1 rounded-full bg-raised p-1">
             {(["bn", "en"] as const).map((l) => (
@@ -88,7 +90,7 @@ export default function RegisterPage() {
                   form.locale === l ? "bg-ink text-page" : "text-ink-mute hover:text-ink"
                 }`}
               >
-                {l === "bn" ? "বাংলা" : "English"}
+                {l === "bn" ? t("listen.bangla") : t("listen.english")}
               </button>
             ))}
           </div>
@@ -101,7 +103,7 @@ export default function RegisterPage() {
               onChange={(e) => set("accept_terms", e.target.checked)}
               className="mt-0.5 size-4 accent-(--accent)"
             />
-            I agree to the terms of service and privacy policy of Bangladesh Betar.
+            {t("auth.terms")}
           </label>
 
           <button
@@ -109,13 +111,13 @@ export default function RegisterPage() {
             disabled={busy}
             className="mt-1 flex items-center justify-center gap-2 rounded-full bg-accent py-3 text-sm font-bold text-accent-fg transition enabled:hover:bg-accent-hover disabled:opacity-50"
           >
-            {busy && <Loader2 className="size-4 animate-spin" />} Create account
+            {busy && <Loader2 className="size-4 animate-spin" />} {t("auth.createAccount")}
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-ink-soft">
-          Already have an account?{" "}
-          <Link href="/login" className="font-bold text-accent hover:underline">Sign in</Link>
+          {t("auth.alreadyAccount")}{" "}
+          <Link href="/login" className="font-bold text-accent hover:underline">{t("auth.signIn")}</Link>
         </p>
       </div>
     </div>

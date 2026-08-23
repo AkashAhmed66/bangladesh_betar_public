@@ -14,6 +14,7 @@ import {
   VolumeX,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 
 const PLAYBACK_RATES = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 
@@ -37,6 +38,7 @@ function formatTime(value: number): string {
 }
 
 export default function AdvancedVideoPlayer({ src, title, poster, autoPlay = false }: AdvancedVideoPlayerProps) {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [paused, setPaused] = useState(true);
@@ -166,7 +168,7 @@ export default function AdvancedVideoPlayer({ src, title, poster, autoPlay = fal
       className="group/player relative size-full overflow-hidden bg-black text-white outline-none"
       tabIndex={0}
       role="region"
-      aria-label={`${title} video player`}
+      aria-label={t("videoPlayer.region", { title })}
       onKeyDown={handleKeyDown}
     >
       <video
@@ -212,13 +214,13 @@ export default function AdvancedVideoPlayer({ src, title, poster, autoPlay = fal
 
       <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between bg-gradient-to-b from-black/70 to-transparent px-4 pb-10 pt-4 opacity-0 transition-opacity group-hover/player:opacity-100 group-focus-within/player:opacity-100">
         <p className="truncate pr-4 text-xs font-bold text-white/85 sm:text-sm">{title}</p>
-        <span className="shrink-0 rounded-full border border-white/20 bg-black/30 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] backdrop-blur-md">Betar Watch</span>
+        <span className="shrink-0 rounded-full border border-white/20 bg-black/30 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] backdrop-blur-md">{t("watch.portalName")}</span>
       </div>
 
       {isBuffering && !hasError && (
         <div className="pointer-events-none absolute inset-0 grid place-items-center bg-black/15" aria-live="polite">
           <span className="grid size-14 place-items-center rounded-full bg-black/55 backdrop-blur-md"><LoaderCircle className="size-7 animate-spin" /></span>
-          <span className="sr-only">Video is buffering</span>
+          <span className="sr-only">{t("videoPlayer.buffering")}</span>
         </div>
       )}
 
@@ -227,7 +229,7 @@ export default function AdvancedVideoPlayer({ src, title, poster, autoPlay = fal
           type="button"
           onClick={() => void togglePlayback()}
           className="absolute left-1/2 top-1/2 grid size-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-white/25 bg-black/55 text-white shadow-2xl backdrop-blur-md transition hover:scale-105 hover:bg-[var(--portal-color)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:size-20"
-          aria-label={currentTime > 0 && currentTime < duration ? "Resume video" : "Play video"}
+          aria-label={currentTime > 0 && currentTime < duration ? t("videoPlayer.resume") : t("watch.playVideo")}
         >
           <Play className="ml-1 size-7 fill-current sm:size-8" />
         </button>
@@ -235,12 +237,12 @@ export default function AdvancedVideoPlayer({ src, title, poster, autoPlay = fal
 
       {hasError && (
         <div className="absolute inset-0 grid place-items-center bg-black/80 p-6 text-center" role="alert">
-          <div><p className="font-display text-xl font-bold">This video could not be played</p><p className="mt-2 text-sm text-white/65">Please check your connection or try again later.</p></div>
+          <div><p className="font-display text-xl font-bold">{t("videoPlayer.error")}</p><p className="mt-2 text-sm text-white/65">{t("videoPlayer.errorDescription")}</p></div>
         </div>
       )}
 
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/75 to-transparent px-3 pb-3 pt-16 transition-opacity sm:px-5 sm:pb-4">
-        <label className="block py-2" aria-label={`Seek video, ${formatTime(currentTime)} of ${formatTime(duration)}`}>
+        <label className="block py-2" aria-label={t("videoPlayer.seek", { current: formatTime(currentTime), duration: formatTime(duration) })}>
           <input
             type="range"
             min={0}
@@ -254,31 +256,31 @@ export default function AdvancedVideoPlayer({ src, title, poster, autoPlay = fal
         </label>
 
         <div className="flex items-center gap-0.5 sm:gap-1">
-          <button type="button" onClick={() => void togglePlayback()} className={controlClass} aria-label={paused ? "Play video" : "Pause video"} title={paused ? "Play (K)" : "Pause (K)"}>
+          <button type="button" onClick={() => void togglePlayback()} className={controlClass} aria-label={paused ? t("watch.playVideo") : t("videoPlayer.pause")} title={paused ? t("videoPlayer.playShortcut") : t("videoPlayer.pauseShortcut")}>
             {paused ? <Play className="size-4.5 fill-current" /> : <Pause className="size-4.5 fill-current" />}
           </button>
-          <button type="button" onClick={() => seekBy(-10)} className={controlClass} aria-label="Skip back 10 seconds" title="Back 10 seconds (J)"><Rewind className="size-4.5" /></button>
-          <button type="button" onClick={() => seekBy(10)} className={controlClass} aria-label="Skip forward 10 seconds" title="Forward 10 seconds (L)"><FastForward className="size-4.5" /></button>
+          <button type="button" onClick={() => seekBy(-10)} className={controlClass} aria-label={t("videoPlayer.skipBack")} title={t("videoPlayer.backShortcut")}><Rewind className="size-4.5" /></button>
+          <button type="button" onClick={() => seekBy(10)} className={controlClass} aria-label={t("videoPlayer.skipForward")} title={t("videoPlayer.forwardShortcut")}><FastForward className="size-4.5" /></button>
           <div className="group/volume flex items-center">
-            <button type="button" onClick={toggleMute} className={controlClass} aria-label={muted || volume === 0 ? "Unmute video" : "Mute video"} title="Mute (M)">
+            <button type="button" onClick={toggleMute} className={controlClass} aria-label={muted || volume === 0 ? t("videoPlayer.unmute") : t("videoPlayer.mute")} title={t("videoPlayer.muteShortcut")}>
               {muted || volume === 0 ? <VolumeX className="size-4.5" /> : <Volume2 className="size-4.5" />}
             </button>
-            <input type="range" min={0} max={1} step={0.05} value={muted ? 0 : volume} onChange={(event) => changeVolume(Number(event.target.value))} className="advanced-video-volume hidden w-0 transition-all group-hover/volume:w-20 group-focus-within/volume:w-20 sm:block" aria-label="Video volume" />
+            <input type="range" min={0} max={1} step={0.05} value={muted ? 0 : volume} onChange={(event) => changeVolume(Number(event.target.value))} className="advanced-video-volume hidden w-0 transition-all group-hover/volume:w-20 group-focus-within/volume:w-20 sm:block" aria-label={t("videoPlayer.volume")} />
           </div>
           <span className="ml-1 whitespace-nowrap text-[10px] font-bold tabular-nums text-white/75 sm:text-xs">{formatTime(currentTime)} <span className="hidden text-white/40 sm:inline">/ {formatTime(duration)}</span></span>
 
           <div className="ml-auto flex items-center gap-0.5 sm:gap-1">
-            <label className="relative flex h-9 items-center gap-1 rounded-full px-2 text-xs font-black text-white transition hover:bg-white/15 sm:h-10" title="Playback speed">
+            <label className="relative flex h-9 items-center gap-1 rounded-full px-2 text-xs font-black text-white transition hover:bg-white/15 sm:h-10" title={t("videoPlayer.speed")}>
               <Gauge className="hidden size-4 sm:block" />
-              <span className="sr-only">Playback speed</span>
-              <select value={playbackRate} onChange={(event) => changePlaybackRate(Number(event.target.value))} className="cursor-pointer appearance-none bg-transparent pr-1 text-xs font-black text-white outline-none" aria-label="Playback speed">
+              <span className="sr-only">{t("videoPlayer.speed")}</span>
+              <select value={playbackRate} onChange={(event) => changePlaybackRate(Number(event.target.value))} className="cursor-pointer appearance-none bg-transparent pr-1 text-xs font-black text-white outline-none" aria-label={t("videoPlayer.speed")}>
                 {PLAYBACK_RATES.map((rate) => <option key={rate} value={rate} className="bg-black text-white">{rate}x</option>)}
               </select>
             </label>
             {canUsePip && (
-              <button type="button" onClick={() => void togglePictureInPicture()} className={`${controlClass} hidden sm:grid`} aria-label={isPip ? "Exit picture in picture" : "Open picture in picture"} title="Picture in picture"><PictureInPicture2 className="size-4.5" /></button>
+              <button type="button" onClick={() => void togglePictureInPicture()} className={`${controlClass} hidden sm:grid`} aria-label={isPip ? t("videoPlayer.exitPip") : t("videoPlayer.openPip")} title={t("videoPlayer.pip")}><PictureInPicture2 className="size-4.5" /></button>
             )}
-            <button type="button" onClick={() => void toggleFullscreen()} className={controlClass} aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"} title="Fullscreen (F)">
+            <button type="button" onClick={() => void toggleFullscreen()} className={controlClass} aria-label={isFullscreen ? t("videoPlayer.exitFullscreen") : t("videoPlayer.enterFullscreen")} title={t("videoPlayer.fullscreenShortcut")}>
               {isFullscreen ? <Minimize className="size-4.5" /> : <Maximize className="size-4.5" />}
             </button>
           </div>

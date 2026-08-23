@@ -51,7 +51,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <ThemeController />
       <PortalHeader />
       <div className="relative flex min-h-0 flex-1">
-        <main className="min-h-0 min-w-0 max-w-full flex-1 overflow-x-hidden overflow-y-auto bg-elev">
+        <main className={`min-h-0 min-w-0 max-w-full flex-1 overflow-x-hidden overflow-y-auto bg-elev ${isListen ? "listen-scroll-region" : ""}`}>
           <div className={isListen ? "mx-auto w-full max-w-[1540px] px-4 pb-10 pt-5 sm:px-7 sm:pb-14 sm:pt-7" : "min-h-full"}>
             {children}
           </div>

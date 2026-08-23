@@ -4,14 +4,15 @@ import { BadgeCheck, ExternalLink, Music2 } from "lucide-react";
 import { use, useMemo, useRef, useState } from "react";
 import MediaCard from "@/components/cards/MediaCard";
 import TrackTable from "@/components/cards/TrackTable";
+import ContentActions from "@/components/engagement/ContentActions";
 import Artwork from "@/components/ui/Artwork";
 import FollowButton from "@/components/ui/FollowButton";
 import { EmptyState, PlayCircle, SectionHeading, Skeleton } from "@/components/ui/Misc";
 import Pagination from "@/components/ui/Pagination";
-import ShareButton from "@/components/ui/ShareButton";
 import { artworkCss, artworkFor } from "@/lib/artwork";
 import { formatCount } from "@/lib/format";
 import { useArtist } from "@/lib/hooks";
+import { useTranslation } from "@/lib/i18n";
 import { toTracks } from "@/lib/tracks";
 import type { Song } from "@/lib/types";
 import { usePlayer } from "@/stores/player";
@@ -57,6 +58,7 @@ function SongTable({ songs, label, startIndexAt = 0 }: { songs: Song[]; label: s
 }
 
 export default function ArtistPage({ params }: { params: Promise<{ id: string }> }) {
+  const { t } = useTranslation();
   const { id } = use(params);
   const { data, isLoading } = useArtist(id);
   const artist = data?.data;
@@ -170,13 +172,13 @@ export default function ArtistPage({ params }: { params: Promise<{ id: string }>
           />
         )}
         <FollowButton type="artist" id={artist.id} initial={artist.is_following} />
-        <ShareButton title={artist.name} text={`${artist.name} on Betar Tarango`} />
+        <ContentActions type="artist" id={artist.id} title={name} text={bio ?? `${name} on Betar Tarango`} />
       </div>
 
       {/* ---- Popular ---- */}
       {popular.length > 0 && (
         <section>
-          <SectionHeading title="Popular" />
+          <SectionHeading title={t("listen.popular")} />
           <SongTable songs={popular} label={artist.name} />
         </section>
       )}
@@ -184,7 +186,7 @@ export default function ArtistPage({ params }: { params: Promise<{ id: string }>
       {/* ---- Discography ---- */}
       {albums.length > 0 && (
         <section>
-          <SectionHeading title="Discography" />
+          <SectionHeading title={t("listen.discography")} />
           <div className="-mx-3 flex flex-wrap">
             {albums.map((a) => <MediaCard key={a.id} item={a} />)}
           </div>
@@ -195,7 +197,7 @@ export default function ArtistPage({ params }: { params: Promise<{ id: string }>
       {songs.length > 0 && (
         <section ref={recordingsRef} className="scroll-mt-24">
           <SectionHeading
-            title="All recordings"
+              title={t("listen.allRecordings")}
             action={<span className="text-xs text-ink-mute">{songs.length} tracks</span>}
           />
           {tabs.length > 1 && (
@@ -237,7 +239,7 @@ export default function ArtistPage({ params }: { params: Promise<{ id: string }>
       {/* ---- Related artists ---- */}
       {similar.length > 0 && (
         <section>
-          <SectionHeading title="Related artists" />
+          <SectionHeading title={t("listen.relatedArtists")} />
           <div className="-mx-3 flex flex-wrap">
             {similar.map((a) => <MediaCard key={a.id} item={a} />)}
           </div>
@@ -247,7 +249,7 @@ export default function ArtistPage({ params }: { params: Promise<{ id: string }>
       {/* ---- About ---- */}
       {(bio || socials.length > 0) && (
         <section>
-          <SectionHeading title="About" />
+          <SectionHeading title={t("listen.about")} />
           {bio && (
             <p className={`max-w-3xl whitespace-pre-line text-sm leading-relaxed text-ink-soft ${locale === "bn" ? "font-bangla text-base" : ""}`}>
               {bio}

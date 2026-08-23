@@ -11,6 +11,7 @@ const THEME_COLORS: Record<ColorTheme, string> = {
 /** Keeps the persisted preference, document palette, and browser chrome in sync. */
 export default function ThemeController() {
   const theme = useUi((state) => state.theme);
+  const locale = useUi((state) => state.locale);
   const setTheme = useUi((state) => state.setTheme);
 
   useEffect(() => {
@@ -22,6 +23,11 @@ export default function ThemeController() {
       .querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')
       .forEach((meta) => meta.setAttribute("content", THEME_COLORS[theme]));
   }, [theme]);
+
+  useEffect(() => {
+    document.documentElement.lang = locale;
+    document.documentElement.dataset.locale = locale;
+  }, [locale]);
 
   useEffect(() => {
     const syncAcrossTabs = (event: StorageEvent) => {
