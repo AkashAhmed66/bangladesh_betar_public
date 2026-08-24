@@ -16,12 +16,13 @@ import {
   RadioTower,
   Search,
   User,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import ThemeToggle from "@/components/theme/ThemeToggle";
-import { usePortalCategories } from "@/lib/hooks";
+import { usePortalCategories, usePortalContentSearch } from "@/lib/hooks";
 import { localizedText, useTranslation } from "@/lib/i18n";
 import { portalForPath, type Portal } from "@/lib/portal";
 import type { PortalCategory } from "@/lib/types";
@@ -83,11 +84,22 @@ export default function PortalHeader() {
   const [menuPath, setMenuPath] = useState<string | null>(null);
   const [hiddenPath, setHiddenPath] = useState<string | null>(null);
   const [moreMenuPath, setMoreMenuPath] = useState<string | null>(null);
+  const [searchPath, setSearchPath] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const menuRef = useRef<HTMLDivElement>(null);
   const moreMenuRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const menuOpen = menuPath === pathname;
   const moreMenuOpen = moreMenuPath === pathname;
+  const searchOpen = searchPath === pathname && (portal === "news" || portal === "watch");
   const headerHidden = hiddenPath === pathname;
+  const searchPortal = portal === "news" || portal === "watch" ? portal : null;
+  const { data: searchResults, isLoading: searchLoading } = usePortalContentSearch(
+    searchOpen ? searchPortal : null,
+    debouncedSearchQuery,
+  );
   const newsCategories = categoryResponse?.data.news ?? FALLBACK_NEWS_CATEGORIES;
   const watchCategories = categoryResponse?.data.watch ?? FALLBACK_WATCH_CATEGORIES;
   const categoryLabel = (category: PortalCategory) => localizedText(category as unknown as Record<string, unknown>, "label", locale);
@@ -141,6 +153,37 @@ export default function PortalHeader() {
   }, [moreMenuOpen]);
 
   useEffect(() => {
+    if (!searchOpen) return;
+
+    const focusFrame = window.requestAnimationFrame(() => searchInputRef.current?.focus());
+    const close = (event: MouseEvent) => {
+      if (!searchRef.current?.contains(event.target as Node)) {
+        setSearchPath(null);
+        setSearchQuery("");
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSearchPath(null);
+        setSearchQuery("");
+      }
+    };
+
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [searchOpen]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearchQuery(searchQuery.trim()), 250);
+    return () => window.clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
     const scroller = document.querySelector<HTMLElement>("main");
     if (!scroller) return;
 
@@ -169,7 +212,7 @@ export default function PortalHeader() {
       const distance = currentScrollTop - lastScrollTop;
       lastScrollTop = currentScrollTop;
 
-      if (menuOpen || moreMenuOpen || currentScrollTop <= 24) {
+      if (menuOpen || moreMenuOpen || searchOpen || currentScrollTop <= 24) {
         setHeaderVisibility(false);
         return;
       }
@@ -208,7 +251,7 @@ export default function PortalHeader() {
       scroller.removeEventListener("scroll", handleScroll);
       if (animationFrame) window.cancelAnimationFrame(animationFrame);
     };
-  }, [menuOpen, moreMenuOpen, pathname]);
+  }, [menuOpen, moreMenuOpen, pathname, searchOpen]);
 
   return (
     <header className="portal-header-shell relative z-50 w-full min-w-0 max-w-full shrink-0 overflow-x-clip border-b border-edge bg-elev">
@@ -372,12 +415,106 @@ export default function PortalHeader() {
             </div>
           )}
         </nav>
-        <Link
-          href="/search"
-          className="hidden min-h-11 shrink-0 items-center gap-2 self-center rounded-full bg-raised px-4 text-sm font-semibold text-ink-soft transition hover:bg-highlight hover:text-ink lg:flex"
-        >
-          <Search className="size-4.5" /> {t("common.search")}
-        </Link>
+        {portal === "listen" ? (
+          <Link
+            href="/search"
+            className="hidden min-h-11 shrink-0 items-center gap-2 self-center rounded-full bg-raised px-4 text-sm font-semibold text-ink-soft transition hover:bg-highlight hover:text-ink lg:flex"
+          >
+            <Search className="size-4.5" /> {t("common.search")}
+          </Link>
+        ) : (
+          <div ref={searchRef} className={`portal-header-search relative z-40 shrink-0 self-center ${searchOpen ? "is-open" : ""}`}>
+            {searchOpen ? (
+              <form
+                role="search"
+                className="flex h-11 w-full items-center gap-2 rounded-full border border-edge bg-raised px-3 shadow-lg shadow-shade/10"
+                onSubmit={(event) => event.preventDefault()}
+              >
+                <Search className="size-4.5 shrink-0 text-[var(--portal-color)]" aria-hidden="true" />
+                <input
+                  ref={searchInputRef}
+                  type="search"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder={t(`${portal}.searchPlaceholder`)}
+                  aria-label={t(`${portal}.searchPlaceholder`)}
+                  className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-ink outline-none placeholder:text-ink-mute"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchPath(null);
+                    setSearchQuery("");
+                  }}
+                  className="grid size-7 shrink-0 place-items-center rounded-full text-ink-mute transition hover:bg-highlight hover:text-ink"
+                  aria-label={t("common.closeSearch")}
+                >
+                  <X className="size-4" />
+                </button>
+              </form>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuPath(null);
+                  setMoreMenuPath(null);
+                  setSearchPath(pathname);
+                }}
+                aria-expanded="false"
+                className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-raised px-3 text-sm font-semibold text-ink-soft transition hover:bg-highlight hover:text-ink lg:px-4"
+              >
+                <Search className="size-4.5 shrink-0" />
+                <span className="hidden lg:inline">{t("common.search")}</span>
+              </button>
+            )}
+
+            {searchOpen && debouncedSearchQuery.length >= 2 && (
+              <div className="fade-up absolute right-0 top-[calc(100%+0.5rem)] w-full min-w-[min(22rem,calc(100vw-1.5rem))] overflow-hidden rounded-panel border border-edge bg-raised p-2 text-ink shadow-2xl shadow-shade/35">
+                <p className="px-3 pb-2 pt-1 text-[10px] font-black uppercase tracking-[0.16em] text-[var(--portal-color)]">
+                  {t(`${portal}.searchResults`)}
+                </p>
+                {searchLoading ? (
+                  <p className="px-3 py-5 text-sm text-ink-mute">{t("common.searching")}</p>
+                ) : searchResults?.data.length ? (
+                  <div className="grid gap-1">
+                    {searchResults.data.map((item) => {
+                      const title = localizedText(item as unknown as Record<string, unknown>, "title", locale);
+                      const category = localizedText(item as unknown as Record<string, unknown>, "category", locale);
+                      return (
+                        <Link
+                          key={`${item.type}-${item.id}`}
+                          href={`/${portal}/${item.slug}`}
+                          onClick={() => {
+                            setSearchPath(null);
+                            setSearchQuery("");
+                          }}
+                          className="group flex items-center gap-3 rounded-card p-2 transition hover:bg-highlight"
+                        >
+                          <span className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-md bg-highlight text-[var(--portal-color)]">
+                            {item.image_url ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={item.image_url} alt="" className="size-full object-cover" />
+                            ) : item.type === "news_article" ? (
+                              <Newspaper className="size-5" />
+                            ) : (
+                              <Clapperboard className="size-5" />
+                            )}
+                          </span>
+                          <span className="min-w-0">
+                            <span className="clamp-2 block font-display text-sm font-bold leading-snug group-hover:text-[var(--portal-color)]">{title}</span>
+                            <span className="mt-1 block truncate text-xs text-ink-mute">{category}</span>
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="px-3 py-5 text-sm text-ink-mute">{t(`${portal}.noSearchResults`)}</p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </header>
   );

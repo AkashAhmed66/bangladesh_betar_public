@@ -63,6 +63,7 @@ type PortalListParams = {
   category?: string;
   page?: number;
   perPage?: number;
+  search?: string;
   sort?: "latest";
 };
 
@@ -72,6 +73,7 @@ function portalListPath(path: "/news" | "/watch", params: PortalListParams): str
     page: String(params.page ?? 1),
   });
   if (params.category) query.set("category", params.category);
+  if (params.search?.trim()) query.set("q", params.search.trim());
   if (params.sort) query.set("sort", params.sort);
 
   return `${path}?${query.toString()}`;
@@ -82,6 +84,12 @@ export const useNewsArticles = (params: PortalListParams = {}) => useApi<Paginat
 export const useNewsArticle = (slug: string) => useApi<{ data: NewsArticle }>(slug ? `/news/${encodeURIComponent(slug)}` : null);
 export const useWatchShows = (params: PortalListParams = {}) => useApi<Paginated<WatchShow>>(portalListPath("/watch", params));
 export const useWatchShow = (slug: string) => useApi<{ data: WatchShow }>(slug ? `/watch/${encodeURIComponent(slug)}` : null);
+export const usePortalContentSearch = (portal: "news" | "watch" | null, query: string) =>
+  useApi<Paginated<NewsArticle | WatchShow>>(
+    portal && query.trim().length >= 2
+      ? portalListPath(`/${portal}` as "/news" | "/watch", { search: query, perPage: 6 })
+      : null,
+  );
 export const useCategories = () => useApi<{ data: Taxonomy[] }>("/categories");
 export const useGenres = () => useApi<{ data: Taxonomy[] }>("/genres");
 export const useTrending = () => useApi<{ data: AudioAsset[] }>("/trending");

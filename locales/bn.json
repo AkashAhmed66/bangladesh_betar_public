@@ -9,6 +9,8 @@
     "listen": "শুনুন",
     "home": "হোম",
     "search": "অনুসন্ধান",
+    "searching": "খোঁজা হচ্ছে…",
+    "closeSearch": "অনুসন্ধান বন্ধ করুন",
     "login": "লগ ইন",
     "account": "অ্যাকাউন্ট",
     "support": "সহায়তা",
@@ -384,6 +386,9 @@
     "shareFailed": "এই পোস্টটি শেয়ার করা যায়নি।"
   },
   "news": {
+    "searchPlaceholder": "বেতার সংবাদ খুঁজুন…",
+    "searchResults": "সংবাদ অনুসন্ধানের ফল",
+    "noSearchResults": "আপনার অনুসন্ধানের সঙ্গে কোনো প্রকাশিত সংবাদ মেলেনি।",
     "topStories": "প্রধান সংবাদ",
     "all": "সব",
     "national": "জাতীয়",
@@ -440,6 +445,9 @@
     "recentlyPublished": "সম্প্রতি প্রকাশিত"
   },
   "watch": {
+    "searchPlaceholder": "বেতার ওয়াচ খুঁজুন…",
+    "searchResults": "ওয়াচ অনুসন্ধানের ফল",
+    "noSearchResults": "আপনার অনুসন্ধানের সঙ্গে কোনো প্রকাশিত অনুষ্ঠান মেলেনি।",
     "liveTv": "সরাসরি টিভি",
     "moreCategories": "আরও দেখুন বিভাগ",
     "moreCategoriesDescription": "আরও ভিডিও চ্যানেল ও অনুষ্ঠান সংগ্রহ দেখুন।",
