@@ -1,9 +1,12 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element */
-import { AlertCircle, ArrowLeft, ArrowRight, Clock3, LoaderCircle, Newspaper } from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowRight, Clock3, LoaderCircle, Newspaper, Radio, RadioTower } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { Fragment, useState } from "react";
+import NewsAdSlot from "@/components/portal/NewsAdSlot";
+import NewsFilterPanel from "@/components/portal/NewsFilterPanel";
+import NewsRankingRail from "@/components/portal/NewsRankingRail";
 import { useNewsArticles, usePortalCategories } from "@/lib/hooks";
 import { localizedText, useTranslation } from "@/lib/i18n";
 import type { NewsArticle } from "@/lib/types";
@@ -15,25 +18,46 @@ interface NewsListingPageProps {
   latest?: boolean;
 }
 
-function ArticleCard({ article }: { article: NewsArticle }) {
+function StoryImage({ story, eager = false }: { story: NewsArticle; eager?: boolean }) {
+  return story.image_url ? (
+    <img src={story.image_url} alt="" loading={eager ? "eager" : "lazy"} className="size-full object-cover transition duration-700 group-hover:scale-[1.03]" />
+  ) : (
+    <span className="grid size-full place-items-center bg-sunken text-ink-mute"><Newspaper className="size-8" /></span>
+  );
+}
+
+function SectionLead({ article, pageTitle }: { article: NewsArticle; pageTitle: string }) {
   const { locale, t } = useTranslation();
-  const title = localizedText(article as unknown as Record<string, unknown>, "title", locale);
-  const summary = localizedText(article as unknown as Record<string, unknown>, "summary", locale);
-  const category = localizedText(article as unknown as Record<string, unknown>, "category", locale);
   return (
-    <Link href={`/news/${article.slug}`} className="group block min-w-0">
-      <div className="relative aspect-[16/10] overflow-hidden rounded-panel bg-sunken">
-        {article.image_url ? (
-          <img src={article.image_url} alt="" loading="lazy" className="editorial-image size-full object-cover" />
-        ) : (
-          <div className="grid size-full place-items-center text-ink-mute"><Newspaper className="size-10" /></div>
-        )}
-      </div>
-      <p className="mt-3 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--portal-color)]">{category}</p>
-      <h2 className="mt-1 break-words font-display text-xl font-bold leading-tight tracking-[-0.025em] group-hover:underline">{title}</h2>
-      <p className="mt-2 clamp-2 text-sm leading-relaxed text-ink-soft">{summary}</p>
-      <p className="mt-3 flex items-center gap-1.5 text-xs text-ink-mute"><Clock3 className="size-3.5" /> {article.published} · {t("news.readTime", { minutes: article.read_time_minutes })}</p>
-    </Link>
+    <article className="group overflow-hidden border border-edge bg-raised">
+      <Link href={`/news/${article.slug}`} className="grid lg:grid-cols-[1.25fr_0.85fr]">
+        <div className="aspect-[16/10] min-h-64 overflow-hidden bg-sunken lg:aspect-auto"><StoryImage story={article} eager /></div>
+        <div className="relative flex flex-col justify-center p-6 sm:p-8">
+          <span className="absolute inset-y-0 left-0 hidden w-1 bg-[var(--portal-color)] lg:block" />
+          <p className="text-[10px] font-black uppercase tracking-[0.17em] text-[var(--portal-color)]">{pageTitle}</p>
+          <h2 className="mt-3 text-balance font-bangla text-3xl font-bold leading-[1.12] tracking-[-0.035em] group-hover:text-[var(--portal-color)] sm:text-4xl">{localizedText(article as unknown as Record<string, unknown>, "title", locale)}</h2>
+          <p className="mt-4 clamp-3 text-sm leading-7 text-ink-soft">{localizedText(article as unknown as Record<string, unknown>, "summary", locale)}</p>
+          <p className="mt-5 flex items-center gap-1.5 text-xs text-ink-mute"><Clock3 className="size-3.5" /> {article.published} <span aria-hidden="true">·</span> {t("news.readTime", { minutes: article.read_time_minutes })}</p>
+        </div>
+      </Link>
+    </article>
+  );
+}
+
+function StreamStory({ article, index }: { article: NewsArticle; index: number }) {
+  const { locale, t } = useTranslation();
+  return (
+    <article className="group border-t border-edge py-5 first:border-t-0 first:pt-0">
+      <Link href={`/news/${article.slug}`} className="grid grid-cols-[7.5rem_1fr] gap-4 sm:grid-cols-[12rem_1fr] sm:gap-6">
+        <div className="aspect-[4/3] overflow-hidden bg-sunken sm:aspect-[16/10]"><StoryImage story={article} /></div>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2"><span className="font-display text-xs font-black text-ink-mute">{String(index + 1).padStart(2, "0")}</span><span className="text-[10px] font-black uppercase tracking-[0.14em] text-[var(--portal-color)]">{localizedText(article as unknown as Record<string, unknown>, "category", locale)}</span></div>
+          <h3 className="clamp-3 mt-2 font-bangla text-lg font-bold leading-snug group-hover:text-[var(--portal-color)] sm:text-2xl">{localizedText(article as unknown as Record<string, unknown>, "title", locale)}</h3>
+          <p className="mt-2 hidden clamp-2 text-sm leading-6 text-ink-soft sm:block">{localizedText(article as unknown as Record<string, unknown>, "summary", locale)}</p>
+          <p className="mt-3 flex items-center gap-1.5 text-[11px] text-ink-mute"><Clock3 className="size-3.5" /> {article.published} <span aria-hidden="true">·</span> {t("news.readTime", { minutes: article.read_time_minutes })}</p>
+        </div>
+      </Link>
+    </article>
   );
 }
 
@@ -53,37 +77,76 @@ export default function NewsListingPage({ title, description, categorySlug, late
     : latest
       ? t("news.latestDescription")
       : description;
+  const lead = articles[0];
+  const stream = articles.slice(1);
 
   return (
-    <div className="mx-auto w-full max-w-[1480px] px-4 pb-20 pt-8 sm:px-7 sm:pt-12 lg:px-10">
-      <div className="border-b border-edge pb-8 sm:flex sm:items-end sm:justify-between sm:gap-8">
-        <div className="max-w-3xl">
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--portal-color)]">{t("news.portalName")}</p>
-          <h1 className="mt-2 font-display text-4xl font-bold tracking-[-0.045em] sm:text-5xl">{pageTitle}</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-soft sm:text-base">{pageDescription}</p>
+    <div className="news-section-edition pb-0">
+      <div className="mx-auto w-full max-w-[1480px] px-4 pt-7 sm:px-7 sm:pt-10 lg:px-10">
+        <header className={`news-section-banner relative overflow-hidden border-y border-edge bg-raised px-5 py-8 sm:px-8 sm:py-10 ${latest ? "is-latest" : ""}`}>
+          <span className="absolute inset-y-0 left-0 w-1.5 bg-[var(--portal-color)]" />
+          <div className="relative flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+            <div className="max-w-4xl">
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--portal-color)]">{latest ? t("news.latestEdition") : t("news.sectionEdition")}</p>
+              <h1 className="mt-2 font-bangla text-4xl font-bold tracking-[-0.05em] sm:text-6xl">{pageTitle}</h1>
+              <p className="mt-4 max-w-3xl text-sm leading-7 text-ink-soft sm:text-base">{pageDescription}</p>
+            </div>
+            <Link href="/news" className="inline-flex min-h-11 shrink-0 items-center gap-2 self-start border border-edge bg-elev px-5 text-sm font-black text-ink-soft transition hover:border-[var(--portal-color)] hover:text-[var(--portal-color)] sm:self-auto"><ArrowLeft className="size-4" /> {t("news.topStoriesLink")}</Link>
+          </div>
+        </header>
+
+        <NewsAdSlot format="leaderboard" className="my-8" />
+
+        <div className="grid items-start gap-9 xl:grid-cols-[minmax(0,1fr)_20rem] xl:gap-10">
+          <main className="min-w-0">
+            {isLoading ? (
+              <div className="grid min-h-[30rem] place-items-center"><div className="flex items-center gap-3 text-sm font-bold text-ink-soft"><LoaderCircle className="size-5 animate-spin text-[var(--portal-color)]" /> {t("news.loading")}</div></div>
+            ) : error ? (
+              <div className="grid min-h-[30rem] place-items-center border border-edge bg-raised text-center"><div><AlertCircle className="mx-auto size-9 text-danger" /><h2 className="mt-4 font-display text-2xl font-bold">{t("news.sectionError")}</h2><p className="mt-2 text-sm text-ink-soft">{t("news.retry")}</p></div></div>
+            ) : !lead ? (
+              <div className="grid min-h-[30rem] place-items-center border border-dashed border-edge bg-raised px-6 text-center"><div><Newspaper className="mx-auto size-10 text-ink-mute" /><h2 className="mt-4 font-display text-2xl font-bold">{t("news.empty")}</h2><p className="mt-2 text-sm text-ink-soft">{t("news.emptyDescription")}</p></div></div>
+            ) : (
+              <>
+                <SectionLead article={lead} pageTitle={pageTitle} />
+                {stream.length > 0 && (
+                  <section className="mt-10 border-t-4 border-ink pt-5" aria-labelledby="section-stream-title">
+                    <div className="flex items-end justify-between gap-4"><div><h2 id="section-stream-title" className="font-bangla text-3xl font-bold">{t("news.moreNews")}</h2><p className="mt-1 text-sm text-ink-soft">{t("news.moreNewsDescription")}</p></div><span className="hidden text-xs font-black uppercase tracking-[0.14em] text-ink-mute sm:block">{t("news.resultsCount", { count: data?.meta?.total ?? articles.length })}</span></div>
+                    <div className="mt-6">
+                      {stream.map((article, index) => (
+                        <Fragment key={article.id}>
+                          <StreamStory article={article} index={(currentPage - 1) * 12 + index + 1} />
+                          {index === 3 && <NewsAdSlot format="in-article" className="my-8" />}
+                        </Fragment>
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </>
+            )}
+
+            {lastPage > 1 && (
+              <nav className="mt-10 flex flex-wrap items-center justify-center gap-3 border-t border-edge pt-8" aria-label={t("news.paginationLabel")}>
+                <button type="button" disabled={currentPage <= 1} onClick={() => { setPage((value) => Math.max(1, value - 1)); document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" }); }} className="inline-flex min-h-11 items-center gap-2 border border-edge px-5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40"><ArrowLeft className="size-4" /> {t("common.previous")}</button>
+                <span className="px-2 text-sm font-bold text-ink-mute">{t("common.pageOf", { page: currentPage, pages: lastPage })}</span>
+                <button type="button" disabled={currentPage >= lastPage} onClick={() => { setPage((value) => Math.min(lastPage, value + 1)); document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" }); }} className="inline-flex min-h-11 items-center gap-2 border border-edge px-5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40">{t("common.next")} <ArrowRight className="size-4" /></button>
+              </nav>
+            )}
+          </main>
+
+          <aside className="space-y-7 xl:sticky xl:top-5">
+            <NewsRankingRail />
+            <NewsAdSlot format="rectangle" />
+            <section className="overflow-hidden border-t-4 border-[var(--portal-color)] bg-raised p-6">
+              <RadioTower className="size-7 text-[var(--portal-color)]" />
+              <h2 className="mt-4 font-bangla text-2xl font-bold">{t("news.newsYouCanHear")}</h2>
+              <p className="mt-2 text-sm leading-6 text-ink-soft">{t("news.newsYouCanHearDescription")}</p>
+              <Link href="/programmes" className="mt-5 inline-flex min-h-11 items-center gap-2 bg-[var(--portal-color)] px-4 text-sm font-black text-white"><Radio className="size-4" /> {t("news.exploreNewsProgrammes")}</Link>
+            </section>
+          </aside>
         </div>
-        <Link href="/news" className="mt-5 inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-edge px-5 text-sm font-bold text-ink-soft transition hover:bg-highlight hover:text-ink sm:mt-0"><ArrowLeft className="size-4" /> {t("news.topStoriesLink")}</Link>
       </div>
 
-      {isLoading ? (
-        <div className="grid min-h-[24rem] place-items-center"><div className="flex items-center gap-3 text-sm font-bold text-ink-soft"><LoaderCircle className="size-5 animate-spin text-[var(--portal-color)]" /> {t("news.loading")}</div></div>
-      ) : error ? (
-        <div className="grid min-h-[24rem] place-items-center text-center"><div><AlertCircle className="mx-auto size-9 text-danger" /><h2 className="mt-4 font-display text-2xl font-bold">{t("news.sectionError")}</h2><p className="mt-2 text-sm text-ink-soft">{t("news.retry")}</p></div></div>
-      ) : articles.length === 0 ? (
-        <div className="grid min-h-[24rem] place-items-center rounded-panel border border-dashed border-edge bg-raised px-6 text-center"><div><Newspaper className="mx-auto size-10 text-ink-mute" /><h2 className="mt-4 font-display text-2xl font-bold">{t("news.empty")}</h2><p className="mt-2 text-sm text-ink-soft">{t("news.emptyDescription")}</p></div></div>
-      ) : (
-        <div className="mt-9 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {articles.map((article) => <ArticleCard key={article.id} article={article} />)}
-        </div>
-      )}
-
-      {lastPage > 1 && (
-        <nav className="mt-12 flex items-center justify-center gap-3" aria-label="News pagination">
-          <button type="button" disabled={currentPage <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))} className="inline-flex min-h-11 items-center gap-2 rounded-full border border-edge px-5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40"><ArrowLeft className="size-4" /> {t("common.previous")}</button>
-          <span className="px-2 text-sm font-bold text-ink-mute">{t("common.pageOf", { page: currentPage, pages: lastPage })}</span>
-          <button type="button" disabled={currentPage >= lastPage} onClick={() => setPage((value) => Math.min(lastPage, value + 1))} className="inline-flex min-h-11 items-center gap-2 rounded-full border border-edge px-5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40">{t("common.next")} <ArrowRight className="size-4" /></button>
-        </nav>
-      )}
+      <div className="mt-16"><NewsFilterPanel /></div>
     </div>
   );
 }

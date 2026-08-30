@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import NewsFooter from "@/components/portal/NewsFooter";
 
 export const metadata: Metadata = {
   title: "Betar News",
@@ -18,5 +19,5 @@ export const metadata: Metadata = {
 };
 
 export default function NewsLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return children;
+  return <div className="min-h-full bg-elev"><div className="min-h-[60vh]">{children}</div><NewsFooter /></div>;
 }

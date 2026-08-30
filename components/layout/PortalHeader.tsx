@@ -49,8 +49,33 @@ const LISTEN_SUB_NAV: { href: string; labelKey: string; icon?: typeof Radio }[] 
   { href: "/library", labelKey: "listenNav.library", icon: Library },
 ];
 
-const FALLBACK_NEWS_CATEGORIES = ["Bangladesh", "Economy", "Climate", "Culture", "Science", "Environment", "Media"]
-  .map((label, index): PortalCategory => ({ id: -(index + 1), value: label, label, label_bn: null, slug: label.toLowerCase().replaceAll(" ", "-"), description: null, description_bn: null, show_in_header: index < 3 }));
+const FALLBACK_NEWS_CATEGORY_DATA: Array<[string, string, string, boolean]> = [
+  ["Bangladesh", "বাংলাদেশ", "bangladesh", true],
+  ["Politics", "রাজনীতি", "politics", true],
+  ["World", "বিশ্ব", "world", true],
+  ["Business", "বাণিজ্য", "business", true],
+  ["Sports", "খেলা", "sports", true],
+  ["Entertainment", "বিনোদন", "entertainment", true],
+  ["Jobs", "চাকরি", "jobs", true],
+  ["Lifestyle", "জীবনযাপন", "lifestyle", true],
+  ["Video", "ভিডিও", "video", true],
+  ["Economy", "অর্থনীতি", "economy", false],
+  ["Climate", "জলবায়ু", "climate", false],
+  ["Culture", "সংস্কৃতি", "culture", false],
+  ["Science", "বিজ্ঞান", "science", false],
+  ["Environment", "পরিবেশ", "environment", false],
+  ["Media", "গণমাধ্যম", "media", false],
+];
+const FALLBACK_NEWS_CATEGORIES: PortalCategory[] = FALLBACK_NEWS_CATEGORY_DATA.map(([label, labelBn, slug, showInHeader], index) => ({
+  id: -(index + 1),
+  value: label,
+  label,
+  label_bn: labelBn,
+  slug,
+  description: null,
+  description_bn: null,
+  show_in_header: showInHeader,
+}));
 const FALLBACK_WATCH_CATEGORIES = ["Live TV", "Drama", "Documentary", "Culture & music", "Kids"]
   .map((label, index): PortalCategory => ({ id: -(index + 1), value: label === "Culture & music" ? "Culture" : label, label, label_bn: null, slug: label === "Culture & music" ? "culture" : label.toLowerCase().replaceAll(" ", "-"), description: null, description_bn: null, show_in_header: index < 3 }));
 
@@ -95,6 +120,7 @@ export default function PortalHeader() {
   const moreMenuOpen = moreMenuPath === pathname;
   const searchOpen = searchPath === pathname && (portal === "news" || portal === "watch");
   const headerHidden = hiddenPath === pathname;
+  const headerHiddenRef = useRef(headerHidden);
   const searchPortal = portal === "news" || portal === "watch" ? portal : null;
   const { data: searchResults, isLoading: searchLoading } = usePortalContentSearch(
     searchOpen ? searchPortal : null,
@@ -115,7 +141,6 @@ export default function PortalHeader() {
       : [];
   const subNav: SubNavItem[] = portal === "news"
     ? [
-        { href: "/news", label: t("news.topStories") },
         { href: "/news/latest", label: t("news.latest") },
         ...headerCategories.map((category) => ({ href: categoryHref("news", category), label: categoryLabel(category) })),
       ]
@@ -126,6 +151,10 @@ export default function PortalHeader() {
           { href: "/watch/categories", label: t("common.categories") },
         ]
       : LISTEN_SUB_NAV.map((item) => ({ href: item.href, icon: item.icon, label: t(item.labelKey) }));
+
+  useEffect(() => {
+    headerHiddenRef.current = headerHidden;
+  }, [headerHidden]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -184,22 +213,47 @@ export default function PortalHeader() {
   }, [searchQuery]);
 
   useEffect(() => {
-    const scroller = document.querySelector<HTMLElement>("main");
+    const revealBeforeInternalNavigation = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const target = event.target instanceof Element ? event.target : null;
+      const link = target?.closest<HTMLAnchorElement>("a[href]");
+      if (!link || link.target === "_blank" || link.hasAttribute("download")) return;
+
+      const destination = new URL(link.href, window.location.href);
+      if (destination.origin !== window.location.origin) return;
+
+      // Reveal before Next starts its transition, including same-path links
+      // where usePathname intentionally does not change.
+      headerHiddenRef.current = false;
+      setHiddenPath(null);
+    };
+    const revealRestoredPage = () => {
+      headerHiddenRef.current = false;
+      setHiddenPath(null);
+    };
+
+    document.addEventListener("click", revealBeforeInternalNavigation, true);
+    window.addEventListener("pageshow", revealRestoredPage);
+    return () => {
+      document.removeEventListener("click", revealBeforeInternalNavigation, true);
+      window.removeEventListener("pageshow", revealRestoredPage);
+    };
+  }, []);
+
+  useEffect(() => {
+    const scroller = document.querySelector<HTMLElement>("[data-app-scroll-container]");
     if (!scroller) return;
 
     let lastScrollTop = Math.max(0, scroller.scrollTop);
     let accumulatedDistance = 0;
     let direction: -1 | 0 | 1 = 0;
-    // This effect restarts only for a route or menu change. Both conditions
-    // intentionally begin with the primary row visible.
-    let isHidden = false;
     let transitionLockedUntil = 0;
     let animationFrame = 0;
 
     const setHeaderVisibility = (hidden: boolean) => {
-      if (hidden === isHidden) return;
+      if (hidden === headerHiddenRef.current) return;
 
-      isHidden = hidden;
+      headerHiddenRef.current = hidden;
       accumulatedDistance = 0;
       direction = 0;
       transitionLockedUntil = performance.now() + 420;
@@ -234,9 +288,9 @@ export default function PortalHeader() {
         accumulatedDistance += distance;
       }
 
-      if (!isHidden && currentScrollTop > 72 && accumulatedDistance >= 28) {
+      if (!headerHiddenRef.current && currentScrollTop > 72 && accumulatedDistance >= 28) {
         setHeaderVisibility(true);
-      } else if (isHidden && accumulatedDistance <= -18) {
+      } else if (headerHiddenRef.current && accumulatedDistance <= -18) {
         setHeaderVisibility(false);
       }
     };
@@ -247,6 +301,9 @@ export default function PortalHeader() {
     };
 
     scroller.addEventListener("scroll", handleScroll, { passive: true });
+    // Reconcile immediately after a route/menu transition instead of waiting
+    // for an unrelated future scroll event to repair stale visibility.
+    updateHeader();
     return () => {
       scroller.removeEventListener("scroll", handleScroll);
       if (animationFrame) window.cancelAnimationFrame(animationFrame);
@@ -368,6 +425,7 @@ export default function PortalHeader() {
               <Link
                 key={href}
                 href={href}
+                scroll={false}
                 className={`portal-sub-link relative flex shrink-0 items-center px-3 text-sm font-bold transition sm:px-4 ${
                   active ? "text-ink" : "text-ink-soft hover:text-ink"
                 }`}
@@ -382,6 +440,8 @@ export default function PortalHeader() {
               <button
                 type="button"
                 onClick={() => {
+                  headerHiddenRef.current = false;
+                  setHiddenPath(null);
                   setMenuPath(null);
                   setMoreMenuPath((openPath) => openPath === pathname ? null : pathname);
                 }}
@@ -402,7 +462,7 @@ export default function PortalHeader() {
                       {moreCategories.map((category) => {
                         const description = locale === "bn" ? category.description_bn ?? category.description : category.description;
                         return (
-                          <Link key={category.slug} href={categoryHref(portal, category)} onClick={() => setMoreMenuPath(null)} className="group rounded-card border border-edge bg-raised px-4 py-3 transition hover:border-[var(--portal-color)] hover:bg-highlight">
+                          <Link key={category.slug} href={categoryHref(portal, category)} scroll={false} onClick={() => setMoreMenuPath(null)} className="group rounded-card border border-edge bg-raised px-4 py-3 transition hover:border-[var(--portal-color)] hover:bg-highlight">
                             <span className="font-display text-base font-bold group-hover:text-[var(--portal-color)]">{categoryLabel(category)}</span>
                             {description && <span className="mt-1 clamp-2 block text-xs leading-relaxed text-ink-mute">{description}</span>}
                           </Link>
@@ -456,6 +516,8 @@ export default function PortalHeader() {
               <button
                 type="button"
                 onClick={() => {
+                  headerHiddenRef.current = false;
+                  setHiddenPath(null);
                   setMenuPath(null);
                   setMoreMenuPath(null);
                   setSearchPath(pathname);

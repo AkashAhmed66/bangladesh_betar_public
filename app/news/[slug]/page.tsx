@@ -3,9 +3,12 @@
 /* eslint-disable @next/next/no-img-element */
 import { AlertCircle, ArrowLeft, ArrowRight, Clock3, LoaderCircle, Newspaper, Quote, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { use } from "react";
+import { use, useEffect } from "react";
 import ContentActions from "@/components/engagement/ContentActions";
+import NewsAdSlot from "@/components/portal/NewsAdSlot";
 import NewsMediaGallery from "@/components/portal/NewsMediaGallery";
+import NewsRankingRail from "@/components/portal/NewsRankingRail";
+import { post } from "@/lib/api";
 import { useApi, useNewsArticle } from "@/lib/hooks";
 import { localizedList, localizedText, useTranslation } from "@/lib/i18n";
 import type { NewsArticle, Paginated } from "@/lib/types";
@@ -43,6 +46,14 @@ export default function NewsStoryPage({ params }: { params: Promise<{ slug: stri
   const relatedPath = story ? `/news?category=${encodeURIComponent(story.category_slug || categorySlug(story.category))}&per_page=5` : null;
   const { data: relatedResponse } = useApi<Paginated<NewsArticle>>(relatedPath);
   const related = (relatedResponse?.data ?? []).filter((article) => article.id !== story?.id).slice(0, 3);
+
+  useEffect(() => {
+    if (!story) return;
+    const key = `betar.news.read.${story.id}`;
+    if (window.sessionStorage.getItem(key)) return;
+    window.sessionStorage.setItem(key, "1");
+    void post(`/news/${encodeURIComponent(story.slug)}/view`).catch(() => window.sessionStorage.removeItem(key));
+  }, [story]);
 
   if (isLoading) return <div className="grid min-h-[32rem] place-items-center"><div className="flex items-center gap-3 text-sm font-bold text-ink-soft"><LoaderCircle className="size-6 animate-spin text-[var(--portal-color)]" /> {t("news.articleLoading")}</div></div>;
   if (error || !story) {
@@ -99,6 +110,8 @@ export default function NewsStoryPage({ params }: { params: Promise<{ slug: stri
           media={story.media?.length ? story.media : story.image_url ? [{ id: `lead-${story.id}`, type: "image", url: story.image_url, name: title, mime_type: null, size_bytes: null, position: 0 }] : []}
         />
 
+        <NewsAdSlot format="in-article" className="mt-12" />
+
         <div className="mt-12 grid items-start gap-12 lg:grid-cols-[minmax(0,48rem)_minmax(17rem,1fr)] lg:gap-20">
           <div>
             <div className="story-prose space-y-7 font-bangla text-lg leading-8 text-ink-soft sm:text-xl sm:leading-9">
@@ -131,6 +144,8 @@ export default function NewsStoryPage({ params }: { params: Promise<{ slug: stri
               <p className="mt-2 text-sm leading-relaxed text-ink-soft">{t("news.independentReportingDescription")}</p>
               <Link href="/news/latest" className="mt-5 inline-flex items-center gap-2 text-sm font-black text-[var(--portal-color)] hover:gap-3">{t("news.seeLatest")} <ArrowRight className="size-4" /></Link>
             </section>
+            <NewsRankingRail />
+            <NewsAdSlot format="rectangle" />
           </aside>
         </div>
 

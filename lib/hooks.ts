@@ -64,7 +64,7 @@ type PortalListParams = {
   page?: number;
   perPage?: number;
   search?: string;
-  sort?: "latest";
+  sort?: "latest" | "popular";
 };
 
 function portalListPath(path: "/news" | "/watch", params: PortalListParams): string {

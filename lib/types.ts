@@ -322,6 +322,7 @@ export interface NewsArticle {
   media?: NewsArticleMedia[];
   read_time_minutes: number;
   read_time: string;
+  views_count: number;
   is_featured: boolean;
   published_at: string | null;
   published: string;

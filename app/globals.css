@@ -108,6 +108,7 @@
 
 .portal-header-shell {
   isolation: isolate;
+  min-height: 3.25rem;
 }
 .portal-primary-slot {
   height: 3.25rem;
@@ -131,6 +132,7 @@
   opacity: 0;
 }
 @media (min-width: 640px) {
+  .portal-header-shell { min-height: 3.75rem; }
   .portal-primary-slot { height: 3.75rem; }
   .portal-primary-slot.is-hidden { height: 0; }
 }
@@ -276,6 +278,38 @@
 }
 .portal-ink { color: var(--portal-color); }
 .portal-sub-active { background: var(--portal-color); }
+
+.newsroom-page {
+  background-image: linear-gradient(to bottom, transparent 47px, color-mix(in srgb, var(--border-subtle) 38%, transparent) 48px);
+  background-size: 100% 48px;
+  background-position-y: 1px;
+}
+.news-section-edition {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--portal-color) 4%, var(--bg-base)), var(--bg-base) 21rem);
+}
+.news-section-banner {
+  background:
+    radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--portal-color) 17%, transparent), transparent 34%),
+    linear-gradient(125deg, color-mix(in srgb, var(--portal-color) 8%, var(--bg-raised)), var(--bg-raised) 62%);
+}
+.news-section-banner.is-latest {
+  background:
+    linear-gradient(115deg, color-mix(in srgb, var(--portal-color) 17%, var(--bg-raised)), var(--bg-raised) 58%),
+    repeating-linear-gradient(135deg, transparent 0 18px, color-mix(in srgb, var(--portal-color) 5%, transparent) 18px 19px);
+}
+.news-ranking { box-shadow: 0 16px 38px color-mix(in srgb, var(--shadow-color) 16%, transparent); }
+.news-ad-slot { contain: layout paint; }
+.news-ad-leaderboard { max-width: 970px; }
+.news-ad-leaderboard > :last-child { height: 100px; }
+.news-ad-rectangle { max-width: 300px; }
+.news-ad-rectangle > :last-child { height: 250px; }
+.news-ad-in-article { max-width: 970px; }
+.news-ad-in-article > :last-child { height: 250px; }
+@media (min-width: 768px) {
+  .news-ad-leaderboard > :last-child,
+  .news-ad-in-article > :last-child { height: 90px; }
+}
+[data-theme="light"] .news-footer { background: #f4f5f7; }
 
 .portal-header-search {
   width: 2.75rem;
