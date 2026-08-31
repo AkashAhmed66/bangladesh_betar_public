@@ -291,6 +291,7 @@ export interface HomeResponse {
 
 export interface PortalCategory {
   id: number;
+  parent_id?: number | null;
   value: string;
   label: string;
   label_bn: string | null;
@@ -298,6 +299,7 @@ export interface PortalCategory {
   description: string | null;
   description_bn: string | null;
   show_in_header: boolean;
+  subcategories?: PortalCategory[];
 }
 
 export interface PortalCategories {

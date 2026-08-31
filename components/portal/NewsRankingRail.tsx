@@ -7,10 +7,10 @@ import { useState } from "react";
 import { useNewsArticles } from "@/lib/hooks";
 import { localizedText, useTranslation } from "@/lib/i18n";
 
-export default function NewsRankingRail({ className = "" }: { className?: string }) {
+export default function NewsRankingRail({ className = "", category }: { className?: string; category?: string }) {
   const { locale, t } = useTranslation();
   const [tab, setTab] = useState<"latest" | "popular">("latest");
-  const { data, isLoading } = useNewsArticles({ sort: tab, perPage: 6 });
+  const { data, isLoading } = useNewsArticles({ category, sort: tab, perPage: 6 });
   const stories = data?.data ?? [];
 
   return (

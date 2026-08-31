@@ -81,17 +81,20 @@ export default function NewsStoryPage({ params }: { params: Promise<{ slug: stri
             <Link href={`/news/category/${story.category_slug || categorySlug(story.category)}`} className="text-[var(--portal-color)] hover:underline">{category}</Link>
           </nav>
 
-          <div className="mt-8 grid items-end gap-8 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-14">
+          <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-14">
             <div className="max-w-5xl">
               <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-[var(--portal-color)]"><Sparkles className="size-3.5" /> {t("news.publicInterest")}</p>
               <h1 className="mt-4 max-w-5xl text-balance font-display text-4xl font-bold leading-[1.02] tracking-[-0.055em] sm:text-6xl lg:text-7xl">{title}</h1>
               <p className="mt-6 max-w-4xl text-lg leading-relaxed text-ink-soft sm:text-xl lg:text-2xl">{summary}</p>
             </div>
-            <div className="border-l-4 border-[var(--portal-color)] pl-5">
-              <p className="text-xs font-black uppercase tracking-[0.15em] text-ink-mute">{t("news.filedBy")}</p>
-              <p className="mt-1 font-display text-xl font-bold">{t("news.newsroom")}</p>
-              <p className="mt-3 text-sm leading-relaxed text-ink-soft">{t("news.newsroomDescription")}</p>
-            </div>
+            <aside className="mx-auto w-full max-w-[20rem] space-y-6 lg:mx-0 lg:justify-self-end" aria-label={t("news.articleSidebar")}>
+              <NewsAdSlot format="square" />
+              <div className="border-l-4 border-[var(--portal-color)] pl-5">
+                <p className="text-xs font-black uppercase tracking-[0.15em] text-ink-mute">{t("news.filedBy")}</p>
+                <p className="mt-1 font-display text-xl font-bold">{t("news.newsroom")}</p>
+                <p className="mt-3 text-sm leading-relaxed text-ink-soft">{t("news.newsroomDescription")}</p>
+              </div>
+            </aside>
           </div>
 
           <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-edge pt-5 text-sm text-ink-mute">

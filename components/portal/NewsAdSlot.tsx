@@ -3,11 +3,12 @@
 import { useEffect } from "react";
 import { useTranslation } from "@/lib/i18n";
 
-type AdFormat = "leaderboard" | "rectangle" | "in-article";
+type AdFormat = "leaderboard" | "rectangle" | "square" | "in-article";
 
 const SLOT_ENV: Record<AdFormat, string | undefined> = {
   leaderboard: process.env.NEXT_PUBLIC_ADSENSE_NEWS_LEADERBOARD_SLOT,
   rectangle: process.env.NEXT_PUBLIC_ADSENSE_NEWS_RECTANGLE_SLOT,
+  square: process.env.NEXT_PUBLIC_ADSENSE_NEWS_SQUARE_SLOT ?? process.env.NEXT_PUBLIC_ADSENSE_NEWS_RECTANGLE_SLOT,
   "in-article": process.env.NEXT_PUBLIC_ADSENSE_NEWS_IN_ARTICLE_SLOT,
 };
 
@@ -41,7 +42,7 @@ export default function NewsAdSlot({ format, className = "" }: { format: AdForma
           className="adsbygoogle block size-full"
           data-ad-client={client}
           data-ad-slot={slot}
-          data-ad-format="auto"
+          data-ad-format={format === "square" ? "rectangle" : "auto"}
           data-full-width-responsive="true"
         />
       ) : (

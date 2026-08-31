@@ -65,6 +65,8 @@ type PortalListParams = {
   perPage?: number;
   search?: string;
   sort?: "latest" | "popular";
+  featured?: boolean;
+  excludeFeatured?: boolean;
 };
 
 function portalListPath(path: "/news" | "/watch", params: PortalListParams): string {
@@ -75,6 +77,8 @@ function portalListPath(path: "/news" | "/watch", params: PortalListParams): str
   if (params.category) query.set("category", params.category);
   if (params.search?.trim()) query.set("q", params.search.trim());
   if (params.sort) query.set("sort", params.sort);
+  if (params.featured) query.set("featured", "1");
+  if (params.excludeFeatured) query.set("exclude_featured", "1");
 
   return `${path}?${query.toString()}`;
 }

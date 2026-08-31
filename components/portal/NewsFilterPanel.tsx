@@ -53,7 +53,12 @@ export default function NewsFilterPanel() {
               </label>
               <select value={fields.category} onChange={(event) => setFields((current) => ({ ...current, category: event.target.value }))} className="min-h-12 w-full rounded-card border border-edge bg-elev px-3 text-sm font-bold text-ink outline-none focus:border-[var(--portal-color)]" aria-label={t("news.filterCategory")}>
                 <option value="">{t("news.allCategories")}</option>
-                {categories.map((category) => <option key={category.id} value={category.slug}>{localizedText(category as unknown as Record<string, unknown>, "label", locale)}</option>)}
+                {categories.map((category) => (
+                  <optgroup key={category.id} label={localizedText(category as unknown as Record<string, unknown>, "label", locale)}>
+                    <option value={category.slug}>{t("news.allSection", { category: localizedText(category as unknown as Record<string, unknown>, "label", locale) })}</option>
+                    {(category.subcategories ?? []).map((subcategory) => <option key={subcategory.id} value={subcategory.slug}>{localizedText(subcategory as unknown as Record<string, unknown>, "label", locale)}</option>)}
+                  </optgroup>
+                ))}
               </select>
               <select value={fields.sort} onChange={(event) => setFields((current) => ({ ...current, sort: event.target.value as FilterState["sort"] }))} className="min-h-12 w-full rounded-card border border-edge bg-elev px-3 text-sm font-bold text-ink outline-none focus:border-[var(--portal-color)]" aria-label={t("news.filterSort")}>
                 <option value="latest">{t("news.latestFirst")}</option>
