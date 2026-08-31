@@ -56,7 +56,7 @@ function NewsLoading() {
 
 export default function NewsPage() {
   const { locale, t } = useTranslation();
-  const { data, error, isLoading } = useNewsArticles({ perPage: 24 });
+  const { data, error, isLoading } = useNewsArticles({ perPage: 32 });
   const stories = data?.data ?? [];
 
   if (isLoading) return <NewsLoading />;
@@ -69,9 +69,9 @@ export default function NewsPage() {
   const sideStories = remaining.slice(0, 3);
   const latestStories = remaining.slice(3, 11);
   const categoryGroups = Array.from(new Set(stories.map((story) => story.category_slug || story.category)))
-    .slice(0, 3)
     .map((category) => ({ category, stories: stories.filter((story) => (story.category_slug || story.category) === category).slice(0, 4) }))
-    .filter((group) => group.stories.length > 1);
+    .filter((group) => group.stories.length > 1)
+    .slice(0, 5);
   const today = new Intl.DateTimeFormat(locale === "bn" ? "bn-BD" : "en-BD", { dateStyle: "full", timeZone: "Asia/Dhaka" }).format(new Date());
 
   return (
