@@ -1,7 +1,7 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element */
-import { AlertCircle, ArrowLeft, ArrowRight, CalendarDays, CirclePlay, Clock3, Film, Layers3, LoaderCircle, Play, Radio, Sparkles } from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowRight, CalendarDays, CirclePlay, Clock3, Film, Layers3, LoaderCircle, Play, Radio, Sparkles, Star } from "lucide-react";
 import Link from "next/link";
 import { use, useState } from "react";
 import AdvancedVideoPlayer from "@/components/player/AdvancedVideoPlayer";
@@ -16,19 +16,64 @@ function categorySlug(category: string): string {
   return category.toLowerCase().replaceAll(" ", "-");
 }
 
-function RelatedShow({ show }: { show: WatchShow }) {
-  const { locale } = useTranslation();
+function RelatedShowCard({ show }: { show: WatchShow }) {
+  const { locale, t } = useTranslation();
   const category = localizedText(show as unknown as Record<string, unknown>, "category", locale);
+  const title = localizedText(show as unknown as Record<string, unknown>, "title", locale);
+  const description = localizedText(show as unknown as Record<string, unknown>, "description", locale);
+  const eyebrow = localizedText(show as unknown as Record<string, unknown>, "eyebrow", locale) || category;
+
   return (
-    <Link href={`/watch/${show.slug}`} className="group block min-w-0">
-      <div className="relative aspect-video overflow-hidden rounded-card bg-sunken">
-        {show.image_url ? <img src={show.image_url} alt="" loading="lazy" className="editorial-image size-full object-cover" /> : <div className="grid size-full place-items-center text-ink-mute"><Film className="size-9" /></div>}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-        <span className="absolute bottom-3 right-3 grid size-10 place-items-center rounded-full bg-white text-black shadow-xl transition group-hover:scale-105"><Play className="size-4 fill-current" /></span>
+    <Link href={`/watch/${show.slug}`} className="group flex flex-col overflow-hidden rounded-panel border border-edge bg-raised transition hover:border-[var(--portal-color)]/40 hover:shadow-lg hover:shadow-shade/10">
+      {/* Thumbnail */}
+      <div className="relative aspect-video overflow-hidden bg-sunken">
+        {show.image_url ? (
+          <img
+            src={show.image_url}
+            alt=""
+            loading="lazy"
+            className="editorial-image size-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <div className="grid size-full place-items-center text-ink-mute">
+            <Film className="size-10" />
+          </div>
+        )}
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+        {/* Play button */}
+        <span className="absolute right-3 bottom-3 grid size-10 place-items-center rounded-full bg-[var(--portal-color)] text-[var(--portal-on-color)] shadow-xl transition-transform group-hover:scale-110">
+          <Play className="ml-0.5 size-4 fill-current" />
+        </span>
+        {/* Rating badge */}
+        {show.rating && (
+          <span className="absolute left-3 top-3 rounded-md bg-black/60 px-2 py-0.5 text-[10px] font-black text-white backdrop-blur-sm">
+            {show.rating}
+          </span>
+        )}
+        {/* Episodes count */}
+        <span className="absolute left-3 bottom-3 flex items-center gap-1 text-[10px] font-black text-white/90">
+          <Layers3 className="size-3" /> {t("common.episodes", { count: show.episodes_count ?? show.episodes?.length ?? 0 })}
+        </span>
       </div>
-      <p className="mt-3 text-[10px] font-black uppercase tracking-[0.16em] text-[var(--portal-color)]">{localizedText(show as unknown as Record<string, unknown>, "eyebrow", locale) || category}</p>
-      <h3 className="mt-1 font-display text-xl font-bold group-hover:underline">{localizedText(show as unknown as Record<string, unknown>, "title", locale)}</h3>
-      <p className="mt-1 clamp-2 text-sm leading-relaxed text-ink-mute">{localizedText(show as unknown as Record<string, unknown>, "description", locale)}</p>
+
+      {/* Info */}
+      <div className="flex flex-1 flex-col gap-1.5 p-4">
+        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--portal-color)]">
+          {eyebrow}
+        </p>
+        <h3 className="font-display text-base font-bold leading-snug group-hover:underline">
+          {title}
+        </h3>
+        <p className="clamp-2 text-xs leading-relaxed text-ink-mute">
+          {description}
+        </p>
+        <div className="mt-auto flex items-center gap-2 pt-2 text-[11px] font-bold text-ink-mute">
+          {show.year && <span className="flex items-center gap-1"><Star className="size-3 text-amber-500" />{show.year}</span>}
+          <span className="text-ink-mute/60">·</span>
+          <span>{category}</span>
+        </div>
+      </div>
     </Link>
   );
 }
@@ -45,9 +90,18 @@ export default function WatchShowPage({ params }: { params: Promise<{ slug: stri
   const [selectedEpisodeId, setSelectedEpisodeId] = useState<number | null>(null);
   const [autoPlay, setAutoPlay] = useState(false);
   const show = data?.data;
-  const relatedPath = show ? `/watch?category=${encodeURIComponent(show.category_slug || categorySlug(show.category))}&per_page=5` : null;
+
+  // Fetch same-category shows plus all shows for a broad pool
+  const relatedPath = show ? `/watch?category=${encodeURIComponent(show.category_slug || categorySlug(show.category))}&per_page=8` : null;
   const { data: relatedResponse } = useApi<Paginated<WatchShow>>(relatedPath);
-  const related = (relatedResponse?.data ?? []).filter((item) => item.id !== show?.id).slice(0, 4);
+  const { data: allShowsResponse } = useApi<Paginated<WatchShow>>("/watch?per_page=20");
+
+  // Build related: same category first, then fill with other shows to reach at least 4
+  const sameCat = (relatedResponse?.data ?? []).filter((item) => item.id !== show?.id);
+  const allOthers = (allShowsResponse?.data ?? []).filter(
+    (item) => item.id !== show?.id && !sameCat.some((s) => s.id === item.id),
+  );
+  const related = [...sameCat, ...allOthers].slice(0, 8);
 
   if (isLoading) return <div className="grid min-h-[32rem] place-items-center"><div className="flex items-center gap-3 text-sm font-bold text-ink-soft"><LoaderCircle className="size-6 animate-spin text-[var(--portal-color)]" /> {t("watch.showLoading")}</div></div>;
   if (error || !show) {
@@ -212,9 +266,35 @@ export default function WatchShowPage({ params }: { params: Promise<{ slug: stri
         </div>
 
         {related.length > 0 && (
-          <section className="mt-20 border-t border-edge pt-10">
-            <div className="flex items-end justify-between gap-5"><div><p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--portal-color)]">{t("watch.becauseYouWatched")}</p><h2 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">{t("news.moreIn", { category })}</h2></div><Link href={`/watch/category/${show.category_slug || categorySlug(show.category)}`} className="hidden items-center gap-2 text-sm font-black text-ink-soft hover:text-ink sm:flex">{t("watch.viewAll")} <ArrowRight className="size-4" /></Link></div>
-            <div className="mt-7 grid gap-7 sm:grid-cols-2 lg:grid-cols-4">{related.map((item) => <RelatedShow key={item.id} show={item} />)}</div>
+          <section className="mt-20">
+            {/* Section header */}
+            <div className="mb-8 flex flex-col gap-4 border-t border-edge pt-10 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Sparkles className="size-4 text-[var(--portal-color)]" />
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--portal-color)]">
+                    {t("watch.moreLikeThis")}
+                  </p>
+                </div>
+                <h2 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">
+                  {t("watch.similarProgrammes")}
+                </h2>
+                <p className="mt-1 text-sm text-ink-mute">{t("watch.similarProgrammesDescription")}</p>
+              </div>
+              <Link
+                href="/watch"
+                className="flex shrink-0 items-center gap-2 rounded-full border border-edge px-5 py-2.5 text-sm font-black text-ink-soft transition hover:border-[var(--portal-color)] hover:text-ink sm:w-auto"
+              >
+                {t("watch.browseAll")} <ArrowRight className="size-4" />
+              </Link>
+            </div>
+
+            {/* Cards grid */}
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {related.map((item) => (
+                <RelatedShowCard key={item.id} show={item} />
+              ))}
+            </div>
           </section>
         )}
       </div>

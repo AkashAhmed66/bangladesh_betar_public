@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import MobileNav from "./MobileNav";
 import PortalHeader from "./PortalHeader";
+import PortalFooter from "@/components/portal/PortalFooter";
 import PlayerBar from "@/components/player/PlayerBar";
 import QueuePanel from "@/components/player/QueuePanel";
 import NowPlaying from "@/components/player/NowPlaying";
@@ -26,7 +27,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const portal = portalForPath(pathname);
   const isListen = portal === "listen";
   const queuePanelOpen = useUi((s) => s.queuePanelOpen);
-  const bare = pathname === "/login" || pathname === "/register";
+  const isClips = pathname === "/watch/clips" || pathname === "/clips";
+  const bare = pathname === "/login" || pathname === "/register" || isClips;
 
   // Load the offline-downloads index once so download state is known app-wide.
   useEffect(() => {
@@ -70,11 +72,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   if (bare) {
     return (
-      <div className="flex h-dvh flex-col overflow-y-auto bg-page">
+      <div className={`flex h-dvh w-full flex-col overflow-hidden ${isClips ? "bg-black text-white" : "bg-page overflow-y-auto"}`}>
         <ThemeController />
-        <div className="fixed right-3 top-3 z-50 sm:right-5 sm:top-5">
-          <ThemeToggle />
-        </div>
+        {!isClips && (
+          <div className="fixed right-3 top-3 z-50 sm:right-5 sm:top-5">
+            <ThemeToggle />
+          </div>
+        )}
         {children}
         <Toaster />
         <RegisterSW />
@@ -95,6 +99,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <div className={isListen ? "mx-auto w-full max-w-[1540px] px-4 pb-10 pt-5 sm:px-7 sm:pb-14 sm:pt-7" : "min-h-full"}>
             {children}
           </div>
+          {isListen && <PortalFooter portal="listen" />}
         </main>
         {isListen && queuePanelOpen && <QueuePanel />}
       </div>

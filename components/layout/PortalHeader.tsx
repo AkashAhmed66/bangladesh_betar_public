@@ -35,7 +35,7 @@ const PORTALS: { id: Portal; href: string; labelKey: string; icon: typeof Newspa
   { id: "listen", href: "/", labelKey: "common.listen", icon: Headphones },
 ];
 
-type SubNavItem = { href: string; label: string; icon?: typeof Radio };
+type SubNavItem = { href: string; label: string; icon?: typeof Radio; badge?: string };
 
 const LISTEN_SUB_NAV: { href: string; labelKey: string; icon?: typeof Radio }[] = [
   { href: "/", labelKey: "common.home" },
@@ -76,8 +76,31 @@ const FALLBACK_NEWS_CATEGORIES: PortalCategory[] = FALLBACK_NEWS_CATEGORY_DATA.m
   description_bn: null,
   show_in_header: showInHeader,
 }));
-const FALLBACK_WATCH_CATEGORIES = ["Live TV", "Drama", "Documentary", "Culture & music", "Kids"]
-  .map((label, index): PortalCategory => ({ id: -(index + 1), value: label === "Culture & music" ? "Culture" : label, label, label_bn: null, slug: label === "Culture & music" ? "culture" : label.toLowerCase().replaceAll(" ", "-"), description: null, description_bn: null, show_in_header: index < 3 }));
+const FALLBACK_WATCH_CATEGORY_DATA: [string, string, string, boolean][] = [
+  ["Live TV", "সরাসরি টিভি", "live-tv", true],
+  ["Movies", "চলচ্চিত্র", "movies", true],
+  ["Series", "ধারাবাহিক", "series", true],
+  ["Short Films", "স্বল্পদৈর্ঘ্য চলচ্চিত্র", "short-films", true],
+  ["Songs", "গান ও সংগীত", "songs", true],
+  ["Drama", "নাটক", "drama", true],
+  ["Documentary", "প্রামাণ্যচিত্র", "documentary", true],
+  ["Comedy", "কৌতুক ও রম্য", "comedy", false],
+  ["Living and Culture", "জীবনধারা ও সংস্কৃতি", "living-and-culture", false],
+  ["Horror", "ভৌতিক ও রহস্য", "horror", false],
+  ["News and Current Affairs", "সংবাদ ও সমসাময়িক", "news-and-current-affairs", false],
+  ["Popular Programmes", "জনপ্রিয় অনুষ্ঠান", "popular-programmes", false],
+  ["Crime Drama", "ক্রাইম ড্রামা", "crime-drama", false],
+];
+const FALLBACK_WATCH_CATEGORIES: PortalCategory[] = FALLBACK_WATCH_CATEGORY_DATA.map(([label, labelBn, slug, showInHeader], index) => ({
+  id: -(index + 1),
+  value: label,
+  label,
+  label_bn: labelBn,
+  slug,
+  description: null,
+  description_bn: null,
+  show_in_header: showInHeader,
+}));
 
 function categoryHref(portal: "news" | "watch", category: PortalCategory): string {
   if (portal === "watch" && category.slug === "live-tv") return "/watch/live";
@@ -137,7 +160,7 @@ export default function PortalHeader() {
   const moreCategories = portal === "news"
     ? newsCategories.filter((category) => !category.show_in_header)
     : portal === "watch"
-      ? watchCategories.filter((category) => !category.show_in_header)
+      ? watchCategories.filter((category) => !category.show_in_header && !["movies", "series", "short-films", "songs", "live-tv"].includes(category.slug))
       : [];
   const subNav: SubNavItem[] = portal === "news"
     ? [
@@ -147,7 +170,15 @@ export default function PortalHeader() {
     : portal === "watch"
       ? [
           { href: "/watch", label: t("common.home") },
-          ...headerCategories.map((category) => ({ href: categoryHref("watch", category), label: categoryLabel(category) })),
+          { href: "/watch/clips", label: t("watch.clips", { defaultValue: "Clips" }), badge: "Shorts" },
+          { href: "/watch/category/movies", label: t("watch.movies", { defaultValue: "Movies" }) },
+          { href: "/watch/category/series", label: t("watch.series", { defaultValue: "Series" }) },
+          { href: "/watch/category/short-films", label: t("watch.shortFilms", { defaultValue: "Short Films" }) },
+          { href: "/watch/category/songs", label: t("watch.songs", { defaultValue: "Songs" }) },
+          { href: "/watch/live", label: t("watch.liveTv", { defaultValue: "Live TV" }) },
+          ...headerCategories
+            .filter((category) => !["movies", "series", "short-films", "songs", "live-tv"].includes(category.slug))
+            .map((category) => ({ href: categoryHref("watch", category), label: categoryLabel(category) })),
           { href: "/watch/categories", label: t("common.categories") },
         ]
       : LISTEN_SUB_NAV.map((item) => ({ href: item.href, icon: item.icon, label: t(item.labelKey) }));
@@ -412,12 +443,12 @@ export default function PortalHeader() {
       <div className="relative z-10 mx-auto flex h-13 w-full min-w-0 max-w-[1600px] items-stretch gap-4 px-3 sm:h-15 sm:px-6">
         <PortalMark portal={portal} label={t(`common.${portal}`)} />
         <nav className="flex min-w-0 flex-1 items-stretch overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label={`${portal} navigation`}>
-          {subNav.map(({ href, label }) => {
+          {subNav.map(({ href, label, badge }) => {
             const exactPath = href.split("#")[0];
             const active = !href.includes("#") && (
               href === "/"
                 ? pathname === "/"
-                : portal === "listen" || exactPath === "/watch/live"
+                : portal === "listen" || exactPath === "/watch/live" || exactPath === "/watch/clips"
                   ? pathname === exactPath || pathname.startsWith(`${exactPath}/`)
                   : pathname === exactPath
             );
@@ -426,11 +457,16 @@ export default function PortalHeader() {
                 key={href}
                 href={href}
                 scroll={false}
-                className={`portal-sub-link relative flex shrink-0 items-center px-3 text-sm font-bold transition sm:px-4 ${
+                className={`portal-sub-link relative flex shrink-0 items-center gap-1.5 px-3 text-sm font-bold transition sm:px-4 ${
                   active ? "text-ink" : "text-ink-soft hover:text-ink"
                 }`}
               >
-                {label}
+                <span>{label}</span>
+                {badge && (
+                  <span className="rounded-full bg-rose-500/20 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-rose-500">
+                    {badge}
+                  </span>
+                )}
                 {active && <span className="portal-sub-active absolute inset-x-3 bottom-0 h-1 rounded-t-full sm:inset-x-4" />}
               </Link>
             );

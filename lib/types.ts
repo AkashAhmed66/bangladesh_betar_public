@@ -646,3 +646,23 @@ export interface Paginated<T> {
   links?: { first?: string; last?: string; prev?: string | null; next?: string | null };
   meta?: { current_page: number; last_page?: number; total?: number; per_page?: number };
 }
+
+export interface WatchClip {
+  id: number;
+  title: string;
+  title_bn: string | null;
+  description: string | null;
+  description_bn: string | null;
+  slug: string;
+  creator_name: string | null;
+  creator_handle: string | null;
+  creator_avatar_url: string | null;
+  video_url: string | null;
+  thumbnail_url: string | null;
+  audio_track: string | null;
+  hashtags: string[];
+  likes_count: number;
+  dislikes_count: number;
+  published_at: string | null;
+}
+

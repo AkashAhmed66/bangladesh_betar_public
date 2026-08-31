@@ -1,22 +1,20 @@
-import type { Metadata } from "next";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Betar Watch",
-  description: "Original programmes, documentaries and live public video from Bangladesh Betar.",
-  openGraph: {
-    type: "website",
-    title: "Betar Watch",
-    description: "Original programmes, documentaries and live public video from Bangladesh Betar.",
-    images: [{ url: "/editorial/watch-hero.png", alt: "Bangladesh Betar Watch" }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Betar Watch",
-    description: "Original programmes, documentaries and live public video from Bangladesh Betar.",
-    images: ["/editorial/watch-hero.png"],
-  },
-};
+import { usePathname } from "next/navigation";
+import PortalFooter from "@/components/portal/PortalFooter";
 
 export default function WatchLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return children;
+  const pathname = usePathname();
+  const isClips = pathname === "/watch/clips" || pathname.startsWith("/watch/clips/");
+
+  if (isClips) {
+    return <>{children}</>;
+  }
+
+  return (
+    <div className="min-h-full bg-elev">
+      <div className="min-h-[60vh]">{children}</div>
+      <PortalFooter portal="watch" />
+    </div>
+  );
 }
