@@ -9,6 +9,7 @@ import {
   Heart,
   LoaderCircle,
   Music,
+  Pause,
   Play,
   Share2,
   ThumbsDown,
@@ -176,6 +177,11 @@ function formatCount(num: number): string {
   return num.toString();
 }
 
+// Minimum pixels to count as dragging instead of tapping
+const DRAG_THRESHOLD = 10;
+// Minimum offset to trigger slide switch
+const SWIPE_THRESHOLD = 50;
+
 export default function WatchClipsPage() {
   const { locale, t } = useTranslation();
   const router = useRouter();
@@ -193,48 +199,57 @@ export default function WatchClipsPage() {
   const [likesCountMap, setLikesCountMap] = useState<Record<number, number>>({});
   const [sharesCountMap, setSharesCountMap] = useState<Record<number, number>>({});
   const [progress, setProgress] = useState(0);
+  const [showPlayIndicator, setShowPlayIndicator] = useState(false);
+  const [isScrubbing, setIsScrubbing] = useState(false);
 
-  // Gesture dragging state
+  // Gesture state
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const touchStartYRef = useRef(0);
-  const mouseStartYRef = useRef(0);
-  const isMouseDownRef = useRef(false);
+  const dragOffsetRef = useRef(0);
+  const pointerStartYRef = useRef(0);
+  const pointerMovedRef = useRef(false);
+  const isPointerDownRef = useRef(false);
+
+  // Wheel state
   const wheelLockRef = useRef(false);
+  const wheelAccumRef = useRef(0);
 
   const videoRef = useRef<HTMLVideoElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
   const currentClip = clips[Math.min(currentIndex, clips.length - 1)] || clips[0];
 
-  // Reset showMore when slide changes
+  // 1. Video Play/Pause sync with state
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    if (isPlaying) {
+      const playPromise = vid.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          setIsPlaying(false);
+        });
+      }
+    } else {
+      vid.pause();
+    }
+  }, [isPlaying, currentIndex]);
+
+  // Sync muted state
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = isMuted;
+    }
+  }, [isMuted]);
+
+  // Reset when slide changes
   useEffect(() => {
     setShowMore(false);
-    setDragOffset(0);
-  }, [currentIndex]);
-
-  // Video progress / mock progress
-  useEffect(() => {
     setProgress(0);
-    if (!isPlaying) return;
-
-    if (currentClip?.video_url && videoRef.current) {
-      const vid = videoRef.current;
-      const onTimeUpdate = () => {
-        if (vid.duration) {
-          setProgress((vid.currentTime / vid.duration) * 100);
-        }
-      };
-      vid.addEventListener("timeupdate", onTimeUpdate);
-      return () => vid.removeEventListener("timeupdate", onTimeUpdate);
-    }
-
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) return 0;
-        return prev + 1.2;
-      });
-    }, 150);
-    return () => clearInterval(interval);
-  }, [currentIndex, isPlaying, currentClip?.video_url]);
+    dragOffsetRef.current = 0;
+    setDragOffset(0);
+    setIsDragging(false);
+    setIsPlaying(true);
+  }, [currentIndex]);
 
   const handleNext = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % clips.length);
@@ -244,99 +259,176 @@ export default function WatchClipsPage() {
     setCurrentIndex((prev) => (prev - 1 + clips.length) % clips.length);
   }, [clips.length]);
 
-  // TouchPad / Mouse Wheel Sliding (with smooth debounce threshold)
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    if (wheelLockRef.current || showMore) return;
+  // Video progress & mock progress
+  useEffect(() => {
+    if (!isPlaying || isScrubbing) return;
 
-    if (Math.abs(e.deltaY) > 28) {
-      wheelLockRef.current = true;
-      if (e.deltaY > 0) {
+    if (currentClip?.video_url && videoRef.current) {
+      const vid = videoRef.current;
+      const onTimeUpdate = () => {
+        if (vid.duration && !isScrubbing) {
+          setProgress((vid.currentTime / vid.duration) * 100);
+        }
+      };
+      vid.addEventListener("timeupdate", onTimeUpdate);
+      return () => vid.removeEventListener("timeupdate", onTimeUpdate);
+    }
+
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          handleNext();
+          return 0;
+        }
+        return prev + 1.2;
+      });
+    }, 150);
+    return () => clearInterval(interval);
+  }, [currentIndex, isPlaying, currentClip?.video_url, isScrubbing, handleNext]);
+
+  // Toggle play/pause
+  const togglePlayPause = useCallback(() => {
+    setIsPlaying((prev) => !prev);
+    setShowPlayIndicator(true);
+    setTimeout(() => setShowPlayIndicator(false), 600);
+  }, []);
+
+  // Progress Bar Scrubbing / Seeking (Click & Drag)
+  const seekToPosition = useCallback(
+    (clientX: number) => {
+      const bar = progressBarRef.current;
+      if (!bar) return;
+      const rect = bar.getBoundingClientRect();
+      const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      const targetPercent = ratio * 100;
+      setProgress(targetPercent);
+
+      if (currentClip?.video_url && videoRef.current && videoRef.current.duration) {
+        videoRef.current.currentTime = ratio * videoRef.current.duration;
+      }
+    },
+    [currentClip?.video_url]
+  );
+
+  const handleProgressBarPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    setIsScrubbing(true);
+    seekToPosition(e.clientX);
+
+    const onPointerMove = (moveEvent: PointerEvent) => {
+      seekToPosition(moveEvent.clientX);
+    };
+
+    const onPointerUp = () => {
+      setIsScrubbing(false);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+    };
+
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+  };
+
+  // Mouse wheel & touchpad handling with smooth accumulation
+  const handleWheel = useCallback(
+    (e: React.WheelEvent) => {
+      if (showMore) return;
+
+      const isDiscreteWheel = Math.abs(e.deltaY) > 50 && !e.ctrlKey;
+      if (isDiscreteWheel) {
+        if (wheelLockRef.current) return;
+        wheelLockRef.current = true;
+        if (e.deltaY > 0) {
+          handleNext();
+        } else {
+          handlePrev();
+        }
+        setTimeout(() => {
+          wheelLockRef.current = false;
+        }, 400);
+        return;
+      }
+
+      // Smooth touchpad scrolling
+      wheelAccumRef.current += e.deltaY;
+      if (Math.abs(wheelAccumRef.current) > 75 && !wheelLockRef.current) {
+        wheelLockRef.current = true;
+        if (wheelAccumRef.current > 0) {
+          handleNext();
+        } else {
+          handlePrev();
+        }
+        wheelAccumRef.current = 0;
+        setTimeout(() => {
+          wheelLockRef.current = false;
+        }, 400);
+      } else if (Math.abs(wheelAccumRef.current) > 75) {
+        wheelAccumRef.current = 0;
+      }
+    },
+    [handleNext, handlePrev, showMore]
+  );
+
+  // Unified Pointer Gestures (Touch, Mouse, Pen) for seamless swipe/drag
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (showMore) return;
+    if ((e.target as HTMLElement).closest("button, a, input, [role='progressbar']")) return;
+
+    pointerStartYRef.current = e.clientY;
+    pointerMovedRef.current = false;
+    isPointerDownRef.current = true;
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isPointerDownRef.current || showMore) return;
+    const delta = e.clientY - pointerStartYRef.current;
+
+    if (!pointerMovedRef.current && Math.abs(delta) > DRAG_THRESHOLD) {
+      pointerMovedRef.current = true;
+      setIsDragging(true);
+    }
+
+    if (pointerMovedRef.current) {
+      // Apply smooth damping curve
+      const damped = delta * 0.72;
+      dragOffsetRef.current = damped;
+      setDragOffset(damped);
+    }
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isPointerDownRef.current) return;
+    isPointerDownRef.current = false;
+
+    if (pointerMovedRef.current) {
+      setIsDragging(false);
+      const offset = dragOffsetRef.current;
+      dragOffsetRef.current = 0;
+      setDragOffset(0);
+
+      if (offset < -SWIPE_THRESHOLD) {
         handleNext();
-      } else {
+      } else if (offset > SWIPE_THRESHOLD) {
         handlePrev();
       }
-      setTimeout(() => {
-        wheelLockRef.current = false;
-      }, 450);
+    } else {
+      // Crisp Tap to toggle play/pause
+      if (!(e.target as HTMLElement).closest("button, a, input, [role='progressbar']")) {
+        togglePlayPause();
+      }
     }
-  }, [handleNext, handlePrev, showMore]);
-
-  // Touch Swipe Gestures
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (showMore) return;
-    touchStartYRef.current = e.touches[0].clientY;
-    setIsDragging(true);
+    pointerMovedRef.current = false;
   };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging || showMore) return;
-    const diff = e.touches[0].clientY - touchStartYRef.current;
-    // Apply rubber-band damping
-    setDragOffset(diff * 0.75);
-  };
-
-  const handleTouchEnd = () => {
-    if (!isDragging) return;
+  const handlePointerCancel = () => {
+    isPointerDownRef.current = false;
+    pointerMovedRef.current = false;
     setIsDragging(false);
-
-    if (dragOffset < -55) {
-      handleNext();
-    } else if (dragOffset > 55) {
-      handlePrev();
-    }
+    dragOffsetRef.current = 0;
     setDragOffset(0);
   };
 
-  // Mouse Drag Gestures (Desktop slide experience)
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (showMore) return;
-    mouseStartYRef.current = e.clientY;
-    isMouseDownRef.current = true;
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isMouseDownRef.current || showMore) return;
-    const diff = e.clientY - mouseStartYRef.current;
-    if (Math.abs(diff) > 6) {
-      setIsDragging(true);
-      setDragOffset(diff * 0.7);
-    }
-  };
-
-  const handleMouseUp = (e: React.MouseEvent) => {
-    if (!isMouseDownRef.current) return;
-    isMouseDownRef.current = false;
-
-    if (isDragging) {
-      setIsDragging(false);
-      if (dragOffset < -50) {
-        handleNext();
-      } else if (dragOffset > 50) {
-        handlePrev();
-      }
-      setDragOffset(0);
-    } else {
-      // If it was just a quick click without dragging, toggle play/pause
-      setIsPlaying((p) => !p);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    if (isMouseDownRef.current) {
-      isMouseDownRef.current = false;
-      if (isDragging) {
-        setIsDragging(false);
-        if (dragOffset < -50) {
-          handleNext();
-        } else if (dragOffset > 50) {
-          handlePrev();
-        }
-        setDragOffset(0);
-      }
-    }
-  };
-
-  // Keyboard navigation
+  // Keyboard controls
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "ArrowDown") {
@@ -347,7 +439,7 @@ export default function WatchClipsPage() {
         handlePrev();
       } else if (e.key === " ") {
         e.preventDefault();
-        setIsPlaying((p) => !p);
+        togglePlayPause();
       } else if (e.key.toLowerCase() === "m") {
         setIsMuted((m) => !m);
       } else if (e.key === "Escape") {
@@ -356,9 +448,9 @@ export default function WatchClipsPage() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleNext, handlePrev, router]);
+  }, [handleNext, handlePrev, togglePlayPause, router]);
 
-  // Dynamic reaction handlers
+  // Reactions
   const toggleLike = (clipId: number) => {
     const currentlyLiked = likedMap[clipId] ?? false;
     const currentlyDisliked = dislikedMap[clipId] ?? false;
@@ -459,28 +551,25 @@ export default function WatchClipsPage() {
 
       {/* Main Vertical Player Frame with Interactive Drag/Slide Transform */}
       <div
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseLeave}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
         style={{
           transform: `translateY(${dragOffset}px)`,
-          transition: isDragging ? "none" : "transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1)",
+          transition: isDragging ? "none" : "transform 0.35s cubic-bezier(0.22, 1, 0.36, 1)",
+          cursor: isDragging ? "grabbing" : "grab",
         }}
-        className="relative z-10 h-full w-full max-w-[440px] overflow-hidden shadow-2xl sm:my-auto sm:h-[94%] sm:max-h-[920px] sm:rounded-3xl sm:border sm:border-white/15 sm:bg-[#140608] cursor-grab active:cursor-grabbing"
+        className="relative z-10 h-full w-full max-w-[440px] overflow-hidden shadow-2xl sm:my-auto sm:h-[94%] sm:max-h-[920px] sm:rounded-3xl sm:border sm:border-white/15 sm:bg-[#140608]"
       >
-        {/* Video / Poster Media Container (Fills Entire Frame) */}
-        <div className="group absolute inset-0 overflow-hidden bg-black">
+        {/* Video / Poster Media Container */}
+        <div className="absolute inset-0 overflow-hidden bg-black pointer-events-none">
           {currentClip.video_url ? (
             <video
               ref={videoRef}
               key={currentClip.video_url}
               src={currentClip.video_url}
               poster={posterUrl}
-              autoPlay={isPlaying}
               loop
               muted={isMuted}
               playsInline
@@ -499,8 +588,23 @@ export default function WatchClipsPage() {
           {/* Gradients for text contrast */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-transparent to-black/30 pointer-events-none" />
 
-          {/* Play/Pause Overlay indicator */}
-          {!isPlaying && (
+          {/* Play/Pause Animation Flash Feedback */}
+          <div
+            className={`absolute inset-0 grid place-items-center pointer-events-none transition-all duration-300 ${
+              showPlayIndicator ? "opacity-100 scale-100" : "opacity-0 scale-75"
+            }`}
+          >
+            <span className="grid size-20 place-items-center rounded-full bg-black/60 text-white shadow-2xl backdrop-blur-md">
+              {isPlaying ? (
+                <Play className="ml-1 size-10 fill-current" />
+              ) : (
+                <Pause className="size-10 fill-current" />
+              )}
+            </span>
+          </div>
+
+          {/* Paused state persistent icon (when not flashing) */}
+          {!isPlaying && !showPlayIndicator && (
             <div className="absolute inset-0 grid place-items-center bg-black/40 pointer-events-none">
               <span className="grid size-18 place-items-center rounded-full bg-[#e50914]/80 text-white shadow-2xl backdrop-blur-md transition hover:scale-110">
                 <Play className="ml-1 size-9 fill-current" />
@@ -510,7 +614,22 @@ export default function WatchClipsPage() {
         </div>
 
         {/* Top Controls Row: absolute at top right */}
-        <div className="absolute top-0 inset-x-0 z-20 flex items-center justify-end p-4 pt-5 pointer-events-auto">
+        <div className="absolute top-0 inset-x-0 z-20 flex items-center justify-end gap-2.5 p-4 pt-5 pointer-events-auto">
+          {/* Play / Pause button */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              togglePlayPause();
+            }}
+            className="grid size-10 place-items-center rounded-full bg-black/50 text-white backdrop-blur-md transition hover:bg-black/80 hover:scale-105 cursor-pointer"
+            aria-label={isPlaying ? "Pause" : "Play"}
+            title={isPlaying ? "Pause" : "Play"}
+          >
+            {isPlaying ? <Pause className="size-4.5 text-white fill-current" /> : <Play className="ml-0.5 size-4.5 text-white fill-current" />}
+          </button>
+
+          {/* Mute / Unmute button */}
           <button
             type="button"
             onClick={(e) => {
@@ -519,6 +638,7 @@ export default function WatchClipsPage() {
             }}
             className="grid size-10 place-items-center rounded-full bg-black/50 text-white backdrop-blur-md transition hover:bg-black/80 hover:scale-105 cursor-pointer"
             aria-label={isMuted ? "Unmute" : "Mute"}
+            title={isMuted ? "Unmute" : "Mute"}
           >
             {isMuted ? <VolumeX className="size-5 text-white/80" /> : <Volume2 className="size-5 text-white" />}
           </button>
@@ -564,7 +684,7 @@ export default function WatchClipsPage() {
               ) : (
                 <div
                   onClick={(e) => e.stopPropagation()}
-                  className="space-y-2.5 rounded-2xl bg-black/90 p-3.5 backdrop-blur-xl border border-white/15 max-h-[55vh] overflow-y-auto shadow-2xl mb-1"
+                  className="space-y-2.5 rounded-2xl bg-black/90 p-3.5 backdrop-blur-xl border border-white/15 max-h-[55vh] overflow-y-auto shadow-2xl mb-1 pointer-events-auto"
                 >
                   <h2 className="font-display text-sm font-bold text-white leading-snug">
                     {title}
@@ -689,12 +809,27 @@ export default function WatchClipsPage() {
             </div>
           </div>
 
-          {/* Bottom Video Progress Line: pinned to the very bottom */}
-          <div className="h-1 w-full bg-white/20">
-            <div
-              className="h-full bg-[#e50914] transition-all duration-150"
-              style={{ width: `${progress}%` }}
-            />
+          {/* Seekable/Draggable Bottom Video Progress Bar */}
+          <div
+            ref={progressBarRef}
+            onPointerDown={handleProgressBarPointerDown}
+            role="progressbar"
+            aria-valuenow={Math.round(progress)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            className="group relative h-2.5 w-full cursor-pointer flex items-end pb-0.5 pointer-events-auto"
+          >
+            {/* Background track */}
+            <div className="h-1 w-full bg-white/25 group-hover:h-1.5 transition-all duration-150 overflow-visible relative">
+              {/* Active filled track */}
+              <div
+                className="h-full bg-[#e50914] relative transition-[width] duration-75"
+                style={{ width: `${progress}%` }}
+              >
+                {/* Drag / Scrub Handle */}
+                <span className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 size-3 rounded-full bg-white shadow-md scale-0 group-hover:scale-100 transition-transform" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
