@@ -21,7 +21,7 @@ export default function NewsInfoPage({ page }: { page: NewsInfoPageId }) {
   const Icon = config.icon;
 
   return (
-    <main className="mx-auto w-full max-w-[1180px] px-4 pb-24 pt-8 sm:px-7 sm:pt-12 lg:px-10">
+    <main className="mx-auto w-full max-w-[1540px] px-4 pb-24 pt-8 sm:px-7 sm:pt-12 lg:px-10">
       <Link href="/news" className="inline-flex items-center gap-2 text-sm font-black text-ink-soft hover:text-[var(--portal-color)]"><ArrowLeft className="size-4" /> {t("news.backToNews")}</Link>
       <header className="mt-8 grid gap-7 border-b border-edge pb-10 lg:grid-cols-[1fr_20rem] lg:items-end">
         <div><p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--portal-color)]">{t("news.info.eyebrow")}</p><h1 className="mt-3 max-w-4xl font-display text-4xl font-bold tracking-[-0.045em] sm:text-6xl">{t(`news.info.${page}.title`)}</h1><p className="mt-5 max-w-3xl text-base leading-8 text-ink-soft sm:text-lg">{t(`news.info.${page}.intro`)}</p></div>

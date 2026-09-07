@@ -106,6 +106,30 @@
   --accent-glow: color-mix(in srgb, var(--portal-color) 34%, transparent);
 }
 
+/* News uses a compact public-broadcaster type system: a highly legible sans
+   for navigation/body copy and a sturdy editorial serif for headlines. */
+[data-portal="news"] {
+  --font-sans: var(--font-news-sans), var(--font-bangla-face), sans-serif;
+  --font-display: var(--font-news-sans), var(--font-bangla-face), sans-serif;
+  font-family: var(--font-news-sans), var(--font-bangla-face), sans-serif;
+}
+
+.news-bbc-page h1,
+.news-bbc-page h2,
+.news-bbc-page h3,
+.news-bbc-page h4,
+.news-section-edition h1,
+.news-section-edition h2,
+.news-section-edition h3,
+.news-section-edition h4,
+.news-story-page h1,
+.news-story-page h2,
+.news-story-page h3,
+.news-story-page h4 {
+  font-family: var(--font-news-serif), var(--font-bangla-face), serif;
+  letter-spacing: -0.018em;
+}
+
 .portal-header-shell {
   isolation: isolate;
   min-height: 3.25rem;
@@ -285,7 +309,7 @@
   background-position-y: 1px;
 }
 .news-section-edition {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--portal-color) 4%, var(--bg-base)), var(--bg-base) 21rem);
+  background: var(--bg-base);
 }
 .news-section-banner {
   background:
@@ -304,10 +328,6 @@
 .news-selected-scroll { scroll-padding-inline: 0.25rem; }
 .news-selected-scroll { scrollbar-width: none; }
 .news-selected-scroll::-webkit-scrollbar { display: none; }
-.news-selected-scroll > article {
-  box-shadow: 0 12px 30px color-mix(in srgb, var(--shadow-color) 10%, transparent);
-}
-.news-ranking { box-shadow: 0 16px 38px color-mix(in srgb, var(--shadow-color) 16%, transparent); }
 .news-ad-slot { contain: layout paint; }
 .news-ad-leaderboard { max-width: 970px; }
 .news-ad-leaderboard > :last-child { height: 100px; }
@@ -322,6 +342,44 @@
   .news-ad-in-article > :last-child { height: 90px; }
 }
 [data-theme="light"] .news-footer { background: #f4f5f7; }
+
+.news-bbc-page,
+.news-section-edition {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+}
+.news-bbc-page {
+  background: var(--bg-elev);
+}
+.news-bbc-page h1,
+.news-bbc-page h2,
+.news-bbc-page h3,
+.news-section-edition h1,
+.news-section-edition h2,
+.news-section-edition h3 {
+  overflow-wrap: anywhere;
+}
+.news-bbc-page article,
+.news-section-edition article {
+  text-wrap: pretty;
+}
+.news-bbc-page section + section {
+  scroll-margin-top: 5rem;
+}
+.news-bbc-page img,
+.news-section-edition img {
+  filter: saturate(0.96) contrast(1.015);
+}
+@media (max-width: 1023px) {
+  .news-bbc-page section > article + article {
+    border-top-color: var(--border-subtle);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .news-bbc-page img,
+  .news-section-edition img { transition: none; }
+}
 
 .portal-header-search {
   width: 2.75rem;

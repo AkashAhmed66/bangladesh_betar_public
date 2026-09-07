@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Hind_Siliguri, Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
+import { Hind_Siliguri, IBM_Plex_Sans, Plus_Jakarta_Sans, Source_Serif_4, Space_Grotesk } from "next/font/google";
 import Script from "next/script";
 import { BRAND } from "@/config/theme";
 import AppShell from "@/components/layout/AppShell";
@@ -21,6 +21,20 @@ const bangla = Hind_Siliguri({
   variable: "--font-bangla-face",
   subsets: ["bengali", "latin"],
   weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const newsSans = IBM_Plex_Sans({
+  variable: "--font-news-sans",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const newsSerif = Source_Serif_4({
+  variable: "--font-news-serif",
+  subsets: ["latin"],
+  weight: ["400", "600", "700", "800"],
   display: "swap",
 });
 
@@ -88,7 +102,7 @@ export default function RootLayout({
       lang="en"
       data-theme="dark"
       suppressHydrationWarning
-      className={`${jakarta.variable} ${grotesk.variable} ${bangla.variable} h-full antialiased`}
+      className={`${jakarta.variable} ${grotesk.variable} ${bangla.variable} ${newsSans.variable} ${newsSerif.variable} h-full antialiased`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />

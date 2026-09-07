@@ -566,7 +566,8 @@
     "newsYouCanHearDescription": "Listen to trusted bulletins, interviews and explainers alongside the complete Bangladesh Betar audio archive.",
     "exploreNewsProgrammes": "Explore news programmes"
     ,"readTime": "{minutes} min read",
-    "recentlyPublished": "Recently published"
+    "recentlyPublished": "Recently published",
+    "mostWatched": "Most watched"
   },
   "watch": {
     "searchPlaceholder": "Search Betar Watch…",

@@ -1,7 +1,6 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element */
-import { Clock3, Eye, LoaderCircle, Newspaper } from "lucide-react";
+import { Clock3, Eye, LoaderCircle } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { useNewsArticles } from "@/lib/hooks";
@@ -10,11 +9,11 @@ import { localizedText, useTranslation } from "@/lib/i18n";
 export default function NewsRankingRail({ className = "", category }: { className?: string; category?: string }) {
   const { locale, t } = useTranslation();
   const [tab, setTab] = useState<"latest" | "popular">("latest");
-  const { data, isLoading } = useNewsArticles({ category, sort: tab, perPage: 6 });
+  const { data, isLoading } = useNewsArticles({ category, sort: tab, perPage: 5 });
   const stories = data?.data ?? [];
 
   return (
-    <section className={`news-ranking overflow-hidden border-t-4 border-[var(--portal-color)] bg-raised ${className}`} aria-labelledby="news-ranking-title">
+    <section className={`news-ranking border-t-[3px] border-ink ${className}`} aria-labelledby="news-ranking-title">
       <h2 id="news-ranking-title" className="sr-only">{t("news.newsRanking")}</h2>
       <div className="grid grid-cols-2 border-b border-edge" role="tablist" aria-label={t("news.newsRanking")}>
         {(["latest", "popular"] as const).map((item) => (
@@ -24,7 +23,7 @@ export default function NewsRankingRail({ className = "", category }: { classNam
             role="tab"
             aria-selected={tab === item}
             onClick={() => setTab(item)}
-            className={`relative min-h-12 px-3 text-sm font-black transition ${tab === item ? "text-ink" : "text-ink-mute hover:text-ink"}`}
+            className={`relative min-h-12 px-2 text-left font-display text-sm font-black uppercase tracking-[0.02em] transition ${tab === item ? "text-ink" : "text-ink-mute hover:text-ink"}`}
           >
             {t(item === "latest" ? "news.latest" : "news.mostRead")}
             {tab === item && <span className="absolute inset-x-0 bottom-0 h-0.5 bg-[var(--portal-color)]" />}
@@ -35,16 +34,13 @@ export default function NewsRankingRail({ className = "", category }: { classNam
       {isLoading ? (
         <div className="grid min-h-56 place-items-center"><LoaderCircle className="size-5 animate-spin text-[var(--portal-color)]" /></div>
       ) : (
-        <ol className="divide-y divide-edge px-4">
+        <ol className="divide-y divide-edge">
           {stories.map((story, index) => (
             <li key={story.id}>
-              <Link href={`/news/${story.slug}`} className="group grid grid-cols-[4.75rem_1fr] gap-3 py-4">
-                <span className="relative aspect-[4/3] overflow-hidden bg-sunken">
-                  {story.image_url ? <img src={story.image_url} alt="" loading="lazy" className="size-full object-cover transition duration-500 group-hover:scale-105" /> : <span className="grid size-full place-items-center text-ink-mute"><Newspaper className="size-5" /></span>}
-                  <span className="absolute bottom-0 left-0 grid size-6 place-items-center bg-[var(--portal-color)] font-display text-xs font-black text-white">{locale === "bn" ? new Intl.NumberFormat("bn-BD").format(index + 1) : index + 1}</span>
-                </span>
+              <Link href={`/news/${story.slug}`} className="group grid grid-cols-[2.25rem_1fr] gap-3 py-4">
+                <span className="font-display text-3xl font-light leading-none text-ink-mute">{locale === "bn" ? new Intl.NumberFormat("bn-BD").format(index + 1) : index + 1}</span>
                 <span className="min-w-0">
-                  <span className="clamp-3 block font-bangla text-sm font-bold leading-snug group-hover:text-[var(--portal-color)]">
+                  <span className="clamp-3 block font-bangla text-[15px] font-bold leading-[1.18] group-hover:underline">
                     {localizedText(story as unknown as Record<string, unknown>, "title", locale)}
                   </span>
                   <span className="mt-2 flex items-center gap-1.5 text-[11px] text-ink-mute">

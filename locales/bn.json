@@ -566,7 +566,8 @@
     "newsYouCanHearDescription": "বাংলাদেশ বেতারের পূর্ণ অডিও আর্কাইভের সঙ্গে বিশ্বস্ত বুলেটিন, সাক্ষাৎকার ও ব্যাখ্যা শুনুন।",
     "exploreNewsProgrammes": "সংবাদ অনুষ্ঠান শুনুন"
     ,"readTime": "পড়তে {minutes} মিনিট",
-    "recentlyPublished": "সম্প্রতি প্রকাশিত"
+    "recentlyPublished": "সম্প্রতি প্রকাশিত",
+    "mostWatched": "সবচেয়ে বেশি দেখা"
   },
   "watch": {
     "searchPlaceholder": "বেতার ওয়াচ খুঁজুন…",

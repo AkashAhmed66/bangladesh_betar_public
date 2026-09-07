@@ -345,7 +345,7 @@ export default function PortalHeader() {
     <header className="portal-header-shell relative z-50 w-full min-w-0 max-w-full shrink-0 overflow-x-clip border-b border-edge bg-elev">
       <div aria-hidden={headerHidden} inert={headerHidden} className={`portal-primary-slot relative z-20 min-w-0 ${headerHidden ? "is-hidden" : ""}`}>
         <div className="portal-global-bar min-w-0 overflow-visible border-b border-white/8">
-        <div className="mx-auto flex h-13 w-full min-w-0 max-w-[1600px] items-stretch px-3 sm:h-15 sm:px-6">
+        <div className="mx-auto flex h-13 w-full min-w-0 max-w-[1540px] items-stretch px-4 sm:h-15 sm:px-7 lg:px-10">
           <Link href="/" className="flex shrink-0 items-center gap-2 pr-3 sm:pr-6" aria-label="Bangladesh Betar home">
             <span className="portal-brand-icon relative grid size-9 place-items-center rounded-full">
               <RadioTower className="size-6 stroke-[2.25]" />
@@ -440,7 +440,7 @@ export default function PortalHeader() {
         </div>
       </div>
 
-      <div className="relative z-10 mx-auto flex h-13 w-full min-w-0 max-w-[1600px] items-stretch gap-4 px-3 sm:h-15 sm:px-6">
+      <div className="relative z-10 mx-auto flex h-13 w-full min-w-0 max-w-[1540px] items-stretch gap-4 px-4 sm:h-15 sm:px-7 lg:px-10">
         <PortalMark portal={portal} label={t(`common.${portal}`)} />
         <nav className="flex min-w-0 flex-1 items-stretch overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label={`${portal} navigation`}>
           {subNav.map(({ href, label, badge }) => {
@@ -489,7 +489,7 @@ export default function PortalHeader() {
               </button>
               {moreMenuOpen && (
                 <div id={`${portal}-category-menu`} className={`fade-up fixed inset-x-0 z-[80] border-y border-edge bg-elev/95 shadow-2xl shadow-shade/30 backdrop-blur-xl ${headerHidden ? "top-[52px] sm:top-[60px]" : "top-[104px] sm:top-[120px]"}`}>
-                  <div className="mx-auto grid w-full max-w-[1600px] gap-6 px-5 py-7 sm:px-8 lg:grid-cols-[18rem_1fr] lg:px-10">
+                  <div className="mx-auto grid w-full max-w-[1540px] gap-6 px-4 py-7 sm:px-7 lg:grid-cols-[18rem_1fr] lg:px-10">
                     <div>
                       <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--portal-color)]">{t(`${portal}.moreCategories`)}</p>
                       <p className="mt-2 text-sm leading-relaxed text-ink-soft">{t(`${portal}.moreCategoriesDescription`)}</p>

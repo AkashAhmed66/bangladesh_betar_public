@@ -71,11 +71,11 @@ export default function NewsStoryPage({ params }: { params: Promise<{ slug: stri
   });
 
   return (
-    <article className="pb-24">
+    <article className="news-story-page pb-24">
       <header className="relative overflow-hidden border-b border-edge">
         {story.image_url && <img src={story.image_url} alt="" aria-hidden className="absolute inset-0 size-full scale-110 object-cover opacity-[0.08] blur-3xl" />}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-elev" />
-        <div className="relative mx-auto w-full max-w-[1480px] px-4 pb-10 pt-7 sm:px-7 sm:pb-14 sm:pt-10 lg:px-10">
+        <div className="relative mx-auto w-full max-w-[1540px] px-4 pb-10 pt-7 sm:px-7 sm:pb-14 sm:pt-10 lg:px-10">
           <nav className="flex flex-wrap items-center gap-2 text-xs font-bold text-ink-mute" aria-label="Breadcrumb">
             <Link href="/news" className="hover:text-ink">{t("common.news")}</Link><span>/</span>
             <Link href={`/news/category/${story.category_slug || categorySlug(story.category)}`} className="text-[var(--portal-color)] hover:underline">{category}</Link>
@@ -106,7 +106,7 @@ export default function NewsStoryPage({ params }: { params: Promise<{ slug: stri
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-[1480px] px-4 sm:px-7 lg:px-10">
+      <div className="mx-auto w-full max-w-[1540px] px-4 sm:px-7 lg:px-10">
         <NewsMediaGallery
           key={story.id}
           articleTitle={title}
