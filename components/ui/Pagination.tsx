@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslation } from "@/lib/i18n";
+
 /** Simple Previous / "Page X of Y" / Next control (matches the index-page pager). */
 export default function Pagination({
   page,
@@ -12,24 +14,25 @@ export default function Pagination({
   onChange: (page: number) => void;
   className?: string;
 }) {
+  const { t } = useTranslation();
   if (totalPages <= 1) return null;
 
   return (
-    <div className={`flex items-center justify-center gap-3 ${className}`}>
+    <div className={`flex items-center justify-center gap-2 sm:gap-3 ${className}`}>
       <button
         disabled={page <= 1}
         onClick={() => onChange(page - 1)}
-        className="rounded-full bg-raised px-5 py-2 text-sm font-semibold transition enabled:hover:bg-highlight disabled:opacity-30"
+        className="min-h-11 rounded-full bg-raised px-3 py-2 text-xs font-semibold transition enabled:hover:bg-highlight disabled:opacity-30 sm:px-5 sm:text-sm"
       >
-        Previous
+        {t("common.previous")}
       </button>
-      <span className="text-sm tabular-nums text-ink-mute">Page {page} of {totalPages}</span>
+      <span className="whitespace-nowrap text-xs tabular-nums text-ink-mute sm:text-sm">{t("common.pageOf", { page, pages: totalPages })}</span>
       <button
         disabled={page >= totalPages}
         onClick={() => onChange(page + 1)}
-        className="rounded-full bg-raised px-5 py-2 text-sm font-semibold transition enabled:hover:bg-highlight disabled:opacity-30"
+        className="min-h-11 rounded-full bg-raised px-3 py-2 text-xs font-semibold transition enabled:hover:bg-highlight disabled:opacity-30 sm:px-5 sm:text-sm"
       >
-        Next
+        {t("common.next")}
       </button>
     </div>
   );

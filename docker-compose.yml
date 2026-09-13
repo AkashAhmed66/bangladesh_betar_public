@@ -13,6 +13,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_ADSENSE_CLIENT: ${NEXT_PUBLIC_ADSENSE_CLIENT:-}
+        NEXT_PUBLIC_ADSENSE_NEWS_LEADERBOARD_SLOT: ${NEXT_PUBLIC_ADSENSE_NEWS_LEADERBOARD_SLOT:-}
+        NEXT_PUBLIC_ADSENSE_NEWS_RECTANGLE_SLOT: ${NEXT_PUBLIC_ADSENSE_NEWS_RECTANGLE_SLOT:-}
+        NEXT_PUBLIC_ADSENSE_NEWS_SQUARE_SLOT: ${NEXT_PUBLIC_ADSENSE_NEWS_SQUARE_SLOT:-}
+        NEXT_PUBLIC_ADSENSE_NEWS_IN_ARTICLE_SLOT: ${NEXT_PUBLIC_ADSENSE_NEWS_IN_ARTICLE_SLOT:-}
     image: betar-public:latest
     container_name: betar_public
     restart: unless-stopped
@@ -23,3 +29,6 @@ services:
       # LAN IP with no rebuild). Set to pin a fixed host (production domain).
       NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-}
       NEXT_PUBLIC_LIVEKIT_URL: ${NEXT_PUBLIC_LIVEKIT_URL:-}
+      # Server-only addresses used to generate social preview metadata.
+      API_INTERNAL_BASE: ${API_INTERNAL_BASE:-http://host.docker.internal:15000/api/v1}
+      PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:-http://localhost:15001}

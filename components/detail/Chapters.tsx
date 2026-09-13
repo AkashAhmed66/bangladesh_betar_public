@@ -6,6 +6,7 @@ import { SectionHeading } from "@/components/ui/Misc";
 import { formatDuration } from "@/lib/format";
 import { useAsset } from "@/lib/hooks";
 import { useCurrentTrack, usePlayer, type PlayerTrack } from "@/stores/player";
+import { useTranslation } from "@/lib/i18n";
 
 type Chapter = { title: string; start_seconds: number };
 
@@ -25,6 +26,7 @@ export default function Chapters({
   track: PlayerTrack | null;
   chapters?: Chapter[] | null;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(true);
   const position = usePlayer((s) => s.position);
   const seek = usePlayer((s) => s.seek);
@@ -42,16 +44,16 @@ export default function Chapters({
   return (
     <section>
       <SectionHeading
-        title={<span className="flex items-center gap-2"><ListOrdered className="size-5 text-accent" /> Chapters</span>}
+        title={<span className="flex items-center gap-2"><ListOrdered className="size-5 text-accent" /> {t("catalogue.chapters")}</span>}
         action={
           <button
             type="button"
             onClick={() => setOpen((o) => !o)}
             aria-expanded={open}
-            aria-label={open ? "Collapse chapters" : "Expand chapters"}
+            aria-label={open ? t("player.collapseChapters") : t("player.expandChapters")}
             className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold text-ink-mute transition hover:bg-raised hover:text-ink"
           >
-            {open ? "Hide" : "Show"}
+            {open ? t("catalogue.hide") : t("catalogue.show")}
             <ChevronDown className={`size-4 transition-transform ${open ? "" : "-rotate-90"}`} />
           </button>
         }
@@ -72,7 +74,7 @@ export default function Chapters({
               >
                 <span className="w-12 text-xs tabular-nums text-accent">{formatDuration(ch.start_seconds)}</span>
                 <span className={`flex-1 text-sm ${active ? "font-semibold text-ink" : "font-medium"}`}>{ch.title}</span>
-                {active && <span className="text-[10px] font-bold uppercase tracking-wider text-accent">Playing</span>}
+                {active && <span className="text-[10px] font-bold uppercase tracking-wider text-accent">{t("catalogue.playing")}</span>}
               </button>
             );
           })}

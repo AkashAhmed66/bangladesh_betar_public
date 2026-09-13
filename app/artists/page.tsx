@@ -3,41 +3,43 @@
 import { useState } from "react";
 import GridPage from "@/components/cards/GridPage";
 import { useArtists } from "@/lib/hooks";
+import { useTranslation } from "@/lib/i18n";
 
 const TYPES = [
-  { value: "", label: "All" },
-  { value: "singer", label: "Singers" },
-  { value: "composer", label: "Composers" },
-  { value: "lyricist", label: "Lyricists" },
-  { value: "instrumentalist", label: "Instrumentalists" },
-  { value: "narrator", label: "Narrators" },
+  { value: "", labelKey: "listen.all" },
+  { value: "singer", labelKey: "listen.singers" },
+  { value: "composer", labelKey: "listen.composers" },
+  { value: "lyricist", labelKey: "listen.lyricists" },
+  { value: "instrumentalist", labelKey: "listen.instrumentalists" },
+  { value: "narrator", labelKey: "listen.narrators" },
 ];
 
 export default function ArtistsPage() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [type, setType] = useState("");
   const { data, isLoading } = useArtists(`?page=${page}&per_page=30${type ? `&type=${type}` : ""}`);
 
   return (
     <GridPage
-      title="Artists"
-      subtitle="The voices and composers behind the archive."
+      title={t("listenNav.artists")}
+      subtitle={t("listen.artistsSubtitle")}
       data={data}
       isLoading={isLoading}
       page={page}
       onPage={setPage}
-      emptyTitle="No artists found"
+      emptyTitle={t("listen.noArtists")}
       filters={
         <div className="flex flex-wrap gap-2">
-          {TYPES.map((t) => (
+          {TYPES.map((artistType) => (
             <button
-              key={t.value}
-              onClick={() => { setType(t.value); setPage(1); }}
+              key={artistType.value}
+              onClick={() => { setType(artistType.value); setPage(1); }}
               className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
-                type === t.value ? "bg-ink text-page" : "bg-raised text-ink-soft hover:bg-highlight"
+                type === artistType.value ? "bg-ink text-page" : "bg-raised text-ink-soft hover:bg-highlight"
               }`}
             >
-              {t.label}
+              {t(artistType.labelKey)}
             </button>
           ))}
         </div>

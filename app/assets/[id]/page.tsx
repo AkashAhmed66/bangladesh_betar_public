@@ -5,6 +5,7 @@ import { use, useMemo, useState } from "react";
 import TrackTable from "@/components/cards/TrackTable";
 import DetailHero from "@/components/detail/DetailHero";
 import Comments from "@/components/engagement/Comments";
+import ContentActions from "@/components/engagement/ContentActions";
 import Waveform from "@/components/player/Waveform";
 import ArtistLinks from "@/components/ui/ArtistLinks";
 import FavoriteButton from "@/components/ui/FavoriteButton";
@@ -12,12 +13,14 @@ import { PlayCircle, PremiumBadge, SectionHeading, Skeleton } from "@/components
 import TrackMenu from "@/components/ui/TrackMenu";
 import { displayTitle, altTitle, formatCount, formatDuration, typeLabel } from "@/lib/format";
 import { useAsset, useSimilar } from "@/lib/hooks";
+import { localizedText, useTranslation } from "@/lib/i18n";
 import { toTrack, toTracks } from "@/lib/tracks";
 import { useCurrentTrack, usePlayer } from "@/stores/player";
 import { useUi } from "@/stores/ui";
 
 /** Generic archive-recording page — the canonical "track page". */
 export default function AssetPage({ params }: { params: Promise<{ id: string }> }) {
+  const { t } = useTranslation();
   const { id } = use(params);
   const { data, isLoading } = useAsset(id);
   const asset = data?.data;
@@ -37,6 +40,7 @@ export default function AssetPage({ params }: { params: Promise<{ id: string }> 
 
   const isCurrent = current?.assetId === asset.id;
   const effectiveDuration = isCurrent ? duration || asset.duration_seconds || 1 : asset.duration_seconds || 1;
+  const description = localizedText(asset as unknown as Record<string, unknown>, "description", locale);
 
   return (
     <div className="flex flex-col gap-10">
@@ -44,7 +48,7 @@ export default function AssetPage({ params }: { params: Promise<{ id: string }> 
         type="audio_asset"
         id={asset.id}
         artworkUrl={asset.artwork_url}
-        kicker={typeLabel(asset.content_type) !== "Item" ? typeLabel(asset.content_type) : "Archive recording"}
+        kicker={typeLabel(asset.content_type) !== "Item" ? typeLabel(asset.content_type) : t("detail.archiveRecording")}
         title={displayTitle(asset, locale)}
         titleAlt={altTitle(asset, locale)}
         subtitle={
@@ -61,9 +65,9 @@ export default function AssetPage({ params }: { params: Promise<{ id: string }> 
           <>
             {asset.category && <span>{asset.category}</span>}
             {asset.language && <span>· {asset.language}</span>}
-            {asset.first_broadcast_on && <span>· First broadcast {asset.first_broadcast_on}</span>}
+            {asset.first_broadcast_on && <span>· {t("detail.firstBroadcast", { date: asset.first_broadcast_on })}</span>}
             <span>· {formatDuration(asset.duration_seconds)}</span>
-            <span>· {formatCount(asset.play_count)} plays</span>
+            <span>· {t("detail.plays", { count: formatCount(asset.play_count) })}</span>
             <span>· {asset.archive_no}</span>
           </>
         }
@@ -72,13 +76,14 @@ export default function AssetPage({ params }: { params: Promise<{ id: string }> 
             {track && <PlayCircle size="size-14" icon="size-6" onClick={() => playTrack(track)} />}
             <FavoriteButton type="audio_asset" id={asset.id} initial={asset.is_favorited} size="size-7" />
             {track && <TrackMenu track={track} />}
+            <ContentActions type="audio_asset" id={asset.id} title={displayTitle(asset, locale)} text={description || undefined} />
           </>
         }
       />
 
       {asset.content_warning && (
         <p className="rounded-card border border-premium/30 bg-premium/8 px-4 py-3 text-sm text-premium">
-          Content advisory: {asset.content_warning}
+          {t("detail.contentAdvisory", { warning: asset.content_warning })}
         </p>
       )}
 
@@ -91,23 +96,23 @@ export default function AssetPage({ params }: { params: Promise<{ id: string }> 
         />
       </section>
 
-      {asset.description && (
-        <p className="max-w-3xl text-sm leading-relaxed text-ink-soft">{asset.description}</p>
+      {description && (
+        <p className="max-w-3xl text-sm leading-relaxed text-ink-soft">{description}</p>
       )}
 
       {asset.chapters && asset.chapters.length > 0 && (
         <section>
           <SectionHeading
-            title={<span className="flex items-center gap-2"><ListOrdered className="size-5 text-accent" /> Chapters</span>}
+            title={<span className="flex items-center gap-2"><ListOrdered className="size-5 text-accent" /> {t("catalogue.chapters")}</span>}
             action={
               <button
                 type="button"
                 onClick={() => setChaptersOpen((o) => !o)}
                 aria-expanded={chaptersOpen}
-                aria-label={chaptersOpen ? "Collapse chapters" : "Expand chapters"}
+                aria-label={chaptersOpen ? t("player.collapseChapters") : t("player.expandChapters")}
                 className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold text-ink-mute transition hover:bg-raised hover:text-ink"
               >
-                {chaptersOpen ? "Hide" : "Show"}
+                {chaptersOpen ? t("catalogue.hide") : t("catalogue.show")}
                 <ChevronDown className={`size-4 transition-transform ${chaptersOpen ? "" : "-rotate-90"}`} />
               </button>
             }

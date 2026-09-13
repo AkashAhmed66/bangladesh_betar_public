@@ -23,6 +23,8 @@ const TYPE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = 
   podcast_channel: Podcast,
   podcast_episode: Podcast,
   playlist: ListMusic,
+  live_channel: RadioTower,
+  audio_book: BookOpen,
 };
 
 interface ArtworkProps {
@@ -66,11 +68,11 @@ export default function Artwork({
   return (
     <div
       aria-hidden
-      className={`${className} ${rounded} relative flex items-center justify-center overflow-hidden`}
+      className={`${className} ${rounded} artwork-themed artwork-surface relative flex items-center justify-center overflow-hidden`}
       style={artworkCss(art)}
     >
-      <Icon className={`${iconClassName} text-white/25`} />
-      <div className="absolute inset-0 bg-[radial-gradient(80%_60%_at_50%_120%,rgba(0,0,0,0.45),transparent)]" />
+      <Icon className={`${iconClassName} text-artwork-ink/30`} />
+      <div className="artwork-vignette absolute inset-0" />
     </div>
   );
 }

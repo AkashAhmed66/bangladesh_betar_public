@@ -92,8 +92,8 @@ export default function ReportAssetPage({ params }: { params: Promise<{ id: stri
       )}
 
       {done ? (
-        <div className="rounded-panel border border-edge bg-raised/50 p-8 text-center">
-          <CheckCircle2 className="mx-auto size-10 text-emerald-500" />
+        <div className="rounded-panel border border-edge bg-raised/50 p-5 text-center sm:p-8">
+          <CheckCircle2 className="mx-auto size-10 text-success" />
           <p className="mt-3 text-lg font-bold">Report submitted</p>
           <p className="mt-1 text-sm text-ink-soft">
             Thank you — our team will review it. You can follow its status in Help &amp; feedback.
@@ -110,7 +110,7 @@ export default function ReportAssetPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
       ) : !token ? (
-        <div className="flex flex-col items-start gap-3 rounded-panel border border-edge bg-raised/50 p-6">
+        <div className="flex flex-col items-start gap-3 rounded-panel border border-edge bg-raised/50 p-4 sm:p-6">
           <p className="flex items-center gap-2 text-sm text-ink-soft">
             <Lock className="size-4" /> Please sign in to submit a report.
           </p>
@@ -119,7 +119,7 @@ export default function ReportAssetPage({ params }: { params: Promise<{ id: stri
           </Link>
         </div>
       ) : (
-        <form onSubmit={submit} className="flex flex-col gap-4 rounded-panel border border-edge bg-raised/50 p-6">
+        <form onSubmit={submit} className="flex flex-col gap-4 rounded-panel border border-edge bg-raised/50 p-4 sm:p-6">
           <div>
             <p className="mb-2 text-sm font-semibold">Reason</p>
             <div className="flex flex-wrap gap-2">
@@ -153,7 +153,7 @@ export default function ReportAssetPage({ params }: { params: Promise<{ id: stri
           <button
             type="submit"
             disabled={busy}
-            className="flex items-center gap-2 self-end rounded-full bg-danger px-6 py-2 text-sm font-bold text-white transition enabled:hover:opacity-90 disabled:opacity-40"
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-danger px-6 py-2 text-sm font-bold text-white transition enabled:hover:opacity-90 disabled:opacity-40 sm:w-auto sm:self-end"
           >
             {busy ? <Loader2 className="size-4 animate-spin" /> : <Flag className="size-4" />} Submit report
           </button>

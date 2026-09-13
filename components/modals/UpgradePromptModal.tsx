@@ -4,24 +4,13 @@ import { Check, Crown } from "lucide-react";
 import Link from "next/link";
 import Modal from "@/components/ui/Modal";
 import { useUi } from "@/stores/ui";
-
-const PERKS = [
-  "Full-length premium recordings",
-  "Unlimited daily picks & a queue you control",
-  "Seek to any moment in a track",
-  "Ad-free listening",
-  "Higher audio quality (320 kbps)",
-  "Unlimited skips",
-];
-
-const DEFAULT_REASON = {
-  title: "That was a preview",
-  body: "This recording is part of the Premium collection. Upgrade to keep listening without limits.",
-};
+import { useTranslation } from "@/lib/i18n";
 
 export default function UpgradePromptModal() {
+  const { t } = useTranslation();
   const { upgradePromptOpen, upgradeReason, closeUpgradePrompt } = useUi();
-  const reason = upgradeReason ?? DEFAULT_REASON;
+  const reason = upgradeReason ?? { title: t("prompts.previewTitle"), body: t("prompts.previewBody") };
+  const perks = ["premiumFullRecordings", "premiumQueue", "premiumSeek", "premiumAdFree", "premiumQuality", "premiumSkips"];
 
   return (
     <Modal open={upgradePromptOpen} onClose={closeUpgradePrompt}>
@@ -36,9 +25,9 @@ export default function UpgradePromptModal() {
           </p>
         </div>
         <ul className="w-full space-y-2 rounded-card bg-raised p-4 text-left">
-          {PERKS.map((perk) => (
+          {perks.map((perk) => (
             <li key={perk} className="flex items-center gap-2.5 text-sm text-ink-soft">
-              <Check className="size-4 shrink-0 text-premium" /> {perk}
+              <Check className="size-4 shrink-0 text-premium" /> {t(`prompts.${perk}`)}
             </li>
           ))}
         </ul>
@@ -47,10 +36,10 @@ export default function UpgradePromptModal() {
           onClick={closeUpgradePrompt}
           className="w-full rounded-full bg-premium py-2.5 text-sm font-bold text-premium-fg transition hover:scale-[1.02]"
         >
-          Explore Premium plans
+          {t("prompts.explorePremium")}
         </Link>
         <button onClick={closeUpgradePrompt} className="text-xs font-semibold text-ink-mute transition hover:text-ink">
-          Maybe later
+          {t("prompts.maybeLater")}
         </button>
       </div>
     </Modal>

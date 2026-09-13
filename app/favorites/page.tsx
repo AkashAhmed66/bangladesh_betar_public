@@ -7,11 +7,13 @@ import TrackTable from "@/components/cards/TrackTable";
 import DetailHero from "@/components/detail/DetailHero";
 import { EmptyState, PlayCircle, Skeleton } from "@/components/ui/Misc";
 import { useFavorites } from "@/lib/hooks";
+import { useTranslation } from "@/lib/i18n";
 import { toTracks } from "@/lib/tracks";
 import { useAuth } from "@/stores/auth";
 import { usePlayer } from "@/stores/player";
 
 export default function FavoritesPage() {
+  const { t } = useTranslation();
   const token = useAuth((s) => s.token);
   const hydrated = useAuth((s) => s.hydrated);
   const { data, isLoading } = useFavorites();
@@ -24,11 +26,11 @@ export default function FavoritesPage() {
     return (
       <EmptyState
         icon={<Heart className="size-10" />}
-        title="Your liked recordings"
-        subtitle="Sign in to see everything you have favourited."
+        title={t("libraryPages.liked")}
+        subtitle={t("libraryPages.likedSignIn")}
         action={
           <Link href="/login" className="rounded-full bg-accent px-6 py-2 text-sm font-bold text-accent-fg transition hover:bg-accent-hover">
-            Sign in
+            {t("libraryPages.signIn")}
           </Link>
         }
       />
@@ -40,12 +42,12 @@ export default function FavoritesPage() {
       <DetailHero
         type="playlist"
         id={9999}
-        kicker="Collection"
-        title="Liked recordings"
-        meta={<span>{data?.meta.total ?? 0} favourites</span>}
+        kicker={t("libraryPages.collection")}
+        title={t("libraryPages.liked")}
+        meta={<span>{t("libraryPages.favourites", { count: data?.meta.total ?? 0 })}</span>}
         actions={
           tracks.length > 0 && (
-            <PlayCircle size="size-14" icon="size-6" onClick={() => playContext(tracks, 0, "Liked recordings")} label="Play liked recordings" />
+            <PlayCircle size="size-14" icon="size-6" onClick={() => playContext(tracks, 0, t("libraryPages.liked"))} label={t("libraryPages.playLiked")} />
           )
         }
       />
@@ -55,14 +57,14 @@ export default function FavoritesPage() {
       {!isLoading && tracks.length === 0 && (
         <EmptyState
           icon={<Heart className="size-10" />}
-          title="Nothing liked yet"
-          subtitle="Tap the heart on any recording to build your collection."
+          title={t("libraryPages.nothingLiked")}
+          subtitle={t("libraryPages.tapHeart")}
         />
       )}
 
       <TrackTable
         tracks={tracks}
-        contextLabel="Liked recordings"
+        contextLabel={t("libraryPages.liked")}
         showPlays
         playCounts={assets.map((a) => a.play_count)}
         favorited={assets.map(() => true)}

@@ -8,12 +8,14 @@ import type {
   Artist,
   AudioAsset,
   AudioBook,
+  BroadcastRecording,
   Comment,
   CommunitySubmission,
   Episode,
   HistoryEntry,
   HomeResponse,
   LiveChannel,
+  NewsArticle,
   Paginated,
   Plan,
   PaymentRecord,
@@ -21,11 +23,14 @@ import type {
   PodcastChannel,
   PodcastEpisode,
   Programme,
+  PortalCategories,
   SearchResults,
   Song,
   SubscriptionStatus,
   Suggestion,
   Taxonomy,
+  WatchShow,
+  WatchLiveChannel,
 } from "./types";
 
 const fetcher = <T,>(path: string) => get<T>(path);
@@ -54,6 +59,41 @@ export function usePollingApi<T>(path: string | null, refreshInterval: number) {
 
 // ---- Discovery ----
 export const useHome = () => useApi<HomeResponse>("/home");
+type PortalListParams = {
+  category?: string;
+  page?: number;
+  perPage?: number;
+  search?: string;
+  sort?: "latest" | "popular";
+  featured?: boolean;
+  excludeFeatured?: boolean;
+};
+
+function portalListPath(path: "/news" | "/watch", params: PortalListParams): string {
+  const query = new URLSearchParams({
+    per_page: String(params.perPage ?? 24),
+    page: String(params.page ?? 1),
+  });
+  if (params.category) query.set("category", params.category);
+  if (params.search?.trim()) query.set("q", params.search.trim());
+  if (params.sort) query.set("sort", params.sort);
+  if (params.featured) query.set("featured", "1");
+  if (params.excludeFeatured) query.set("exclude_featured", "1");
+
+  return `${path}?${query.toString()}`;
+}
+
+export const usePortalCategories = () => useApi<{ data: PortalCategories }>("/portal-categories");
+export const useNewsArticles = (params: PortalListParams = {}) => useApi<Paginated<NewsArticle>>(portalListPath("/news", params));
+export const useNewsArticle = (slug: string) => useApi<{ data: NewsArticle }>(slug ? `/news/${encodeURIComponent(slug)}` : null);
+export const useWatchShows = (params: PortalListParams = {}) => useApi<Paginated<WatchShow>>(portalListPath("/watch", params));
+export const useWatchShow = (slug: string) => useApi<{ data: WatchShow }>(slug ? `/watch/${encodeURIComponent(slug)}` : null);
+export const usePortalContentSearch = (portal: "news" | "watch" | null, query: string) =>
+  useApi<Paginated<NewsArticle | WatchShow>>(
+    portal && query.trim().length >= 2
+      ? portalListPath(`/${portal}` as "/news" | "/watch", { search: query, perPage: 6 })
+      : null,
+  );
 export const useCategories = () => useApi<{ data: Taxonomy[] }>("/categories");
 export const useGenres = () => useApi<{ data: Taxonomy[] }>("/genres");
 export const useTrending = () => useApi<{ data: AudioAsset[] }>("/trending");
@@ -94,6 +134,12 @@ export const useLiveChannels = () =>
   usePollingApi<{ data: LiveChannel[] }>("/live-channels", 10_000);
 export const useLiveChannel = (id: number | string) =>
   usePollingApi<{ data: LiveChannel }>(`/live-channels/${id}`, 10_000);
+export const useWatchLiveChannels = () =>
+  usePollingApi<{ data: WatchLiveChannel[] }>("/watch-live-channels", 5_000);
+export const useWatchLiveChannel = (id: number | string) =>
+  usePollingApi<{ data: WatchLiveChannel }>(id ? `/watch-live-channels/${id}` : null, 5_000);
+export const useBroadcastRecordings = (page = 1) =>
+  useApi<Paginated<BroadcastRecording>>(`/broadcast-recordings?page=${page}`);
 
 // ---- Recommendations ----
 export const useForYou = () =>

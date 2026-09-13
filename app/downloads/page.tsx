@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import TrackTable from "@/components/cards/TrackTable";
 import { EmptyState } from "@/components/ui/Misc";
 import { useAuth } from "@/stores/auth";
+import { useTranslation } from "@/lib/i18n";
 import { offlineToTrack, useDownloads } from "@/stores/downloads";
 import { usePlayer } from "@/stores/player";
 
@@ -22,6 +23,7 @@ function humanSize(bytes: number): string {
 }
 
 export default function DownloadsPage() {
+  const { t } = useTranslation();
   const records = useDownloads((s) => s.records);
   const removeDownload = useDownloads((s) => s.remove);
   const hydrated = useDownloads((s) => s.hydrated);
@@ -44,24 +46,22 @@ export default function DownloadsPage() {
           <HardDriveDownload className="size-16 text-accent" />
         </div>
         <div className="flex min-w-0 flex-col gap-3">
-          <span className="text-xs font-bold uppercase tracking-wider text-ink-mute">Available offline</span>
-          <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Downloads</h1>
+          <span className="text-xs font-bold uppercase tracking-wider text-ink-mute">{t("libraryPages.availableOffline")}</span>
+          <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">{t("libraryPages.downloads")}</h1>
           <p className="text-sm text-ink-soft">
             {metas.length > 0
-              ? `${metas.length} recording${metas.length === 1 ? "" : "s"} · ${humanSize(totalBytes)} stored on this device`
-              : "Downloaded recordings play here without using data."}
+              ? t("libraryPages.downloadsSummary", { count: metas.length, size: humanSize(totalBytes) })
+              : t("libraryPages.downloadsEmptySummary")}
           </p>
           <p className="text-xs text-ink-mute">
-            Saved recordings are stored encrypted on this device — they play here without a
-            connection but can never be extracted as audio files. Saves renew automatically
-            while your Premium plan is active.
+            {t("libraryPages.downloadsSecurity")}
           </p>
           {tracks.length > 0 && (
             <button
               onClick={() => playContext(tracks, 0, "Downloads")}
               className="mt-1 inline-flex w-fit items-center gap-2.5 rounded-full bg-accent px-7 py-3 text-sm font-bold text-accent-fg transition hover:scale-105 hover:bg-accent-hover"
             >
-              <Play className="size-5 fill-current" /> Play all
+              <Play className="size-5 fill-current" /> {t("libraryPages.playAll")}
             </button>
           )}
         </div>
@@ -71,28 +71,28 @@ export default function DownloadsPage() {
       {tracks.length > 0 ? (
         <TrackTable
           tracks={tracks}
-          contextLabel="Downloads"
+          contextLabel={t("libraryPages.downloads")}
           onRemove={(index) => removeDownload(metas[index].assetId)}
         />
       ) : !hydrated ? null : !token || !isPremium ? (
         <EmptyState
           icon={<Crown className="size-10 text-premium" />}
-          title="Offline listening is a Premium feature"
-          subtitle="Go Premium to download recordings and play them offline — no data, no buffering."
+          title={t("libraryPages.offlinePremium")}
+          subtitle={t("libraryPages.offlinePremiumDescription")}
           action={
             <Link
               href="/premium"
               className="mt-2 inline-block rounded-full bg-premium px-6 py-2.5 text-sm font-bold text-premium-fg transition hover:scale-105"
             >
-              Explore Premium
+              {t("libraryPages.explorePremium")}
             </Link>
           }
         />
       ) : (
         <EmptyState
           icon={<HardDriveDownload className="size-10" />}
-          title="No downloads yet"
-          subtitle="Open the ⋯ menu on any song or recording and choose “Download for offline”. It’ll appear here, ready to play without a connection."
+          title={t("libraryPages.noDownloads")}
+          subtitle={t("libraryPages.noDownloadsDescription")}
         />
       )}
     </div>

@@ -18,14 +18,16 @@ import Artwork from "@/components/ui/Artwork";
 import FavoriteButton from "@/components/ui/FavoriteButton";
 import { PremiumBadge } from "@/components/ui/Misc";
 import Waveform from "./Waveform";
-import { artworkFor } from "@/lib/artwork";
+import { artworkCss, artworkFor } from "@/lib/artwork";
 import { formatCount, formatDuration } from "@/lib/format";
 import { useAsset } from "@/lib/hooks";
 import { useCurrentTrack, usePlayer } from "@/stores/player";
 import { useUi } from "@/stores/ui";
+import { useTranslation } from "@/lib/i18n";
 
 /** Immersive full-screen player with waveform seeking and asset context. */
 export default function NowPlaying() {
+  const { t } = useTranslation();
   const open = useUi((s) => s.nowPlayingOpen);
   const setOpen = useUi((s) => s.setNowPlayingOpen);
   const locale = useUi((s) => s.locale);
@@ -35,7 +37,7 @@ export default function NowPlaying() {
     toggle, next, prev, seek, cycleRepeat, toggleShuffle,
   } = usePlayer();
 
-  const { data: assetRes } = useAsset(open && track ? track.assetId : null);
+  const { data: assetRes } = useAsset(open && track && !track.streamEndpoint ? track.assetId : null);
   const asset = assetRes?.data;
   const [chaptersOpen, setChaptersOpen] = useState(true);
 
@@ -51,29 +53,29 @@ export default function NowPlaying() {
       {/* ambient backdrop from the artwork's palette */}
       <div
         aria-hidden
-        className="ambient-drift pointer-events-none absolute -top-1/4 left-1/2 h-[80vh] w-[80vw] -translate-x-1/2 rounded-full opacity-25 blur-3xl"
-        style={{ background: `radial-gradient(closest-side, ${art.accent}, transparent 70%)` }}
+        className="artwork-themed artwork-ambient ambient-drift pointer-events-none absolute -top-1/4 left-1/2 h-[80vh] w-[80vw] -translate-x-1/2 rounded-full opacity-25 blur-3xl"
+        style={artworkCss(art)}
       />
 
-      <div className="relative z-10 flex items-center justify-between px-6 py-5">
+      <div className="relative z-10 flex items-center justify-between px-4 py-3 sm:px-6 sm:py-5">
         <button
           onClick={() => setOpen(false)}
-          aria-label="Minimise player"
+          aria-label={t("player.minimise")}
           className="rounded-full bg-raised/70 p-2 text-ink-soft transition hover:text-ink"
         >
           <ChevronDown className="size-5" />
         </button>
-        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-ink-mute">Now playing</p>
+        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-ink-mute">{t("player.nowPlaying")}</p>
         <span className="w-9" />
       </div>
 
-      <div className="relative z-10 mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center gap-8 px-6 pb-12">
+      <div className="relative z-10 mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center gap-4 px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:gap-8 sm:px-6 sm:pb-12">
         <Artwork
           type={track.type}
           id={track.id}
           url={track.artworkUrl}
           title={title}
-          className="aspect-square w-64 shadow-2xl shadow-black/60 sm:w-80"
+          className="aspect-square w-[min(62vw,16rem)] shadow-2xl shadow-shade/35 sm:w-80"
           iconClassName="size-1/4"
         />
 
@@ -86,14 +88,14 @@ export default function NowPlaying() {
               </span>
             )}
           </div>
-          <Link href={track.href} onClick={() => setOpen(false)} className="font-display text-2xl font-bold tracking-tight hover:underline sm:text-3xl">
+          <Link href={track.href} onClick={() => setOpen(false)} className="clamp-2 font-display text-xl font-bold tracking-tight hover:underline sm:text-3xl">
             {title}
           </Link>
           <p className="mt-1 text-sm text-ink-soft">{track.subtitle}</p>
           {asset && (
             <p className="mt-2 text-xs text-ink-mute">
-              {formatCount(asset.play_count)} plays
-              {asset.first_broadcast_on ? ` · first broadcast ${asset.first_broadcast_on.slice(0, 4)}` : ""}
+              {t("player.plays", { count: formatCount(asset.play_count) })}
+              {asset.first_broadcast_on ? ` · ${t("player.firstBroadcast", { year: asset.first_broadcast_on.slice(0, 4) })}` : ""}
               {asset.station ? ` · ${asset.station}` : ""}
             </p>
           )}
@@ -113,22 +115,22 @@ export default function NowPlaying() {
         </div>
 
         {/* Transport */}
-        <div className="flex items-center gap-7">
+        <div className="flex items-center gap-4 sm:gap-7">
           <button
             onClick={toggleShuffle}
             aria-pressed={shuffle}
-            aria-label="Shuffle"
+            aria-label={t("player.shuffle")}
             className={shuffle ? "text-accent" : "text-ink-mute hover:text-ink"}
           >
             <Shuffle className="size-5" />
           </button>
-          <button onClick={prev} aria-label="Previous" className="text-ink-soft transition hover:text-ink">
+          <button onClick={prev} aria-label={t("player.previous")} className="text-ink-soft transition hover:text-ink">
             <SkipBack className="size-7 fill-current" />
           </button>
           <button
             onClick={toggle}
-            aria-label={isPlaying ? "Pause" : "Play"}
-            className="flex size-16 items-center justify-center rounded-full bg-ink text-page shadow-xl transition hover:scale-105"
+            aria-label={isPlaying ? t("player.pause") : t("player.play")}
+            className="flex size-14 items-center justify-center rounded-full bg-ink text-page shadow-xl transition hover:scale-105 sm:size-16"
           >
             {status === "loading" ? (
               <Loader2 className="size-6 animate-spin" />
@@ -138,24 +140,26 @@ export default function NowPlaying() {
               <Play className="size-6 translate-x-[2px] fill-current" />
             )}
           </button>
-          <button onClick={() => next(true)} aria-label="Next" className="text-ink-soft transition hover:text-ink">
+          <button onClick={() => next(true)} aria-label={t("player.next")} className="text-ink-soft transition hover:text-ink">
             <SkipForward className="size-7 fill-current" />
           </button>
           <button
             onClick={cycleRepeat}
-            aria-label={`Repeat: ${repeat}`}
+            aria-label={t("player.repeat", { mode: repeat })}
             className={repeat !== "off" ? "text-accent" : "text-ink-mute hover:text-ink"}
           >
             {repeat === "one" ? <Repeat1 className="size-5" /> : <Repeat className="size-5" />}
           </button>
         </div>
 
-        <FavoriteButton
-          type="audio_asset"
-          id={track.assetId}
-          initial={asset?.is_favorited}
-          size="size-6"
-        />
+        {!track.streamEndpoint && (
+          <FavoriteButton
+            type="audio_asset"
+            id={track.assetId}
+            initial={asset?.is_favorited}
+            size="size-6"
+          />
+        )}
 
         {/* Chapters — highlights the one currently playing */}
         {asset?.chapters && asset.chapters.length > 0 && (
@@ -164,10 +168,10 @@ export default function NowPlaying() {
               type="button"
               onClick={() => setChaptersOpen((o) => !o)}
               aria-expanded={chaptersOpen}
-              aria-label={chaptersOpen ? "Collapse chapters" : "Expand chapters"}
+              aria-label={chaptersOpen ? t("player.collapseChapters") : t("player.expandChapters")}
               className="mb-2 flex w-full items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink-mute transition hover:text-ink"
             >
-              <ListOrdered className="size-4" /> Chapters
+              <ListOrdered className="size-4" /> {t("player.chapters")}
               <ChevronDown className={`ml-auto size-4 transition-transform ${chaptersOpen ? "" : "-rotate-90"}`} />
             </button>
             {chaptersOpen && (
@@ -189,7 +193,7 @@ export default function NowPlaying() {
                     <span className={`flex-1 text-sm ${active ? "font-semibold text-ink" : "font-medium text-ink-soft"}`}>
                       {ch.title}
                     </span>
-                    {active && <span className="text-[10px] font-bold uppercase tracking-wider text-accent">Playing</span>}
+                    {active && <span className="text-[10px] font-bold uppercase tracking-wider text-accent">{t("player.playing")}</span>}
                   </button>
                 );
               })}

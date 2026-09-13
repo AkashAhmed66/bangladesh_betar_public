@@ -5,8 +5,10 @@ import Artwork from "@/components/ui/Artwork";
 import { formatDuration } from "@/lib/format";
 import { usePlayer } from "@/stores/player";
 import { useUi } from "@/stores/ui";
+import { useTranslation } from "@/lib/i18n";
 
 export default function QueuePanel() {
+  const { t } = useTranslation();
   const { queue, index, contextLabel, jumpTo, removeAt, clearQueue, moveInQueue } = usePlayer();
   const { toggleQueuePanel, locale } = useUi();
 
@@ -14,22 +16,25 @@ export default function QueuePanel() {
   const current = queue[index];
 
   return (
-    <aside className="hidden w-80 shrink-0 flex-col p-2 pl-0 md:flex">
-      <div className="flex min-h-0 flex-1 flex-col rounded-panel bg-elev">
+    <aside
+      aria-label={t("player.listeningQueue")}
+      className="queue-panel-drawer absolute inset-y-0 right-0 z-40 hidden w-80 flex-col border-l border-edge bg-page/92 p-2 shadow-2xl shadow-shade/40 backdrop-blur-xl md:flex"
+    >
+      <div className="flex min-h-0 flex-1 flex-col rounded-panel border border-edge bg-elev">
         <div className="flex items-center justify-between border-b border-edge px-4 py-3">
-          <h2 className="font-display text-sm font-bold">Queue</h2>
+          <h2 className="font-display text-sm font-bold">{t("player.queue")}</h2>
           <div className="flex items-center gap-2">
             <button
               onClick={clearQueue}
-              aria-label="Clear queue"
-              title="Clear queue"
+              aria-label={t("player.clearQueue")}
+              title={t("player.clearQueue")}
               className="rounded-full p-1.5 text-ink-mute transition hover:bg-highlight hover:text-ink"
             >
               <ListX className="size-4" />
             </button>
             <button
               onClick={toggleQueuePanel}
-              aria-label="Close queue"
+              aria-label={t("player.closeQueue")}
               className="rounded-full p-1.5 text-ink-mute transition hover:bg-highlight hover:text-ink"
             >
               <X className="size-4" />
@@ -41,7 +46,7 @@ export default function QueuePanel() {
           {current && (
             <>
               <p className="px-2 pb-1 pt-2 text-[11px] font-bold uppercase tracking-[0.14em] text-ink-mute">
-                Now playing
+                {t("player.nowPlaying")}
               </p>
               <QueueRow
                 title={locale === "bn" && current.titleBn ? current.titleBn : current.title}
@@ -56,9 +61,9 @@ export default function QueuePanel() {
           )}
 
           <p className="px-2 pb-1 pt-4 text-[11px] font-bold uppercase tracking-[0.14em] text-ink-mute">
-            Up next {contextLabel ? `· from ${contextLabel}` : ""}
+            {t("player.upNext")} {contextLabel ? `· ${t("player.fromContext", { context: contextLabel })}` : ""}
           </p>
-          {upNext.length === 0 && <p className="px-2 py-3 text-xs text-ink-mute">Queue is empty.</p>}
+          {upNext.length === 0 && <p className="px-2 py-3 text-xs text-ink-mute">{t("player.queueEmpty")}</p>}
           {upNext.map((t, i) => {
             const pos = index + 1 + i;
             return (
@@ -98,6 +103,7 @@ function QueueRow({
   onMoveUp?: () => void;
   onMoveDown?: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div
       className={`group flex items-center gap-3 rounded-card px-2 py-2 transition ${
@@ -109,8 +115,8 @@ function QueueRow({
         {onPlay && (
           <button
             onClick={onPlay}
-            aria-label={`Play ${title}`}
-            className="absolute inset-0 hidden items-center justify-center rounded-card bg-black/55 group-hover:flex"
+            aria-label={`${t("player.play")} ${title}`}
+            className="absolute inset-0 hidden items-center justify-center rounded-card bg-artwork-panel text-artwork-ink group-hover:flex"
           >
             <Play className="size-4 fill-current" />
           </button>
@@ -125,7 +131,7 @@ function QueueRow({
           <button
             onClick={onMoveUp}
             disabled={!onMoveUp}
-            aria-label="Move up in queue"
+            aria-label={t("player.moveUp")}
             className="rounded p-0.5 text-ink-mute transition hover:text-ink disabled:opacity-25"
           >
             <ChevronUp className="size-4" />
@@ -133,7 +139,7 @@ function QueueRow({
           <button
             onClick={onMoveDown}
             disabled={!onMoveDown}
-            aria-label="Move down in queue"
+            aria-label={t("player.moveDown")}
             className="rounded p-0.5 text-ink-mute transition hover:text-ink disabled:opacity-25"
           >
             <ChevronDown className="size-4" />
@@ -146,7 +152,7 @@ function QueueRow({
       {onRemove && (
         <button
           onClick={onRemove}
-          aria-label="Remove from queue"
+          aria-label={t("player.removeFromQueue")}
           className="hidden text-ink-mute transition hover:text-danger group-hover:block"
         >
           <X className="size-4" />

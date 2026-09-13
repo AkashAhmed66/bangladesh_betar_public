@@ -1,12 +1,14 @@
 "use client";
 
-import { Hand, Headphones, Loader2, Mic, MicOff, Radio, RadioTower, Square } from "lucide-react";
+import { Hand, Headphones, Loader2, Mic, MicOff, Radio, Square } from "lucide-react";
 import Link from "next/link";
 import { use } from "react";
 import { Skeleton } from "@/components/ui/Misc";
-import { artworkCss, artworkFor } from "@/lib/artwork";
+import ContentActions from "@/components/engagement/ContentActions";
+import Artwork from "@/components/ui/Artwork";
 import { altTitle, displayTitle, formatCount, timeAgo } from "@/lib/format";
 import { useLiveChannel } from "@/lib/hooks";
+import { localizedText } from "@/lib/i18n";
 import { useLive } from "@/stores/live";
 import { useUi } from "@/stores/ui";
 
@@ -45,6 +47,7 @@ export default function LiveChannelPage({ params }: { params: Promise<{ id: stri
 
   const title = displayTitle(channel, locale);
   const alt = altTitle(channel, locale);
+  const description = localizedText(channel as unknown as Record<string, unknown>, "description", locale);
   const isThisPlaying = activeId === channel.id && (status === "live" || status === "connecting");
   const connecting = activeId === channel.id && status === "connecting";
 
@@ -57,12 +60,14 @@ export default function LiveChannelPage({ params }: { params: Promise<{ id: stri
     <div className="flex flex-col gap-8">
       {/* Hero */}
       <div className="flex flex-col gap-6 sm:flex-row sm:items-end">
-        <div
-          className="relative flex size-48 shrink-0 items-center justify-center overflow-hidden rounded-panel shadow-xl sm:size-56"
-          style={artworkCss(artworkFor("live_channel", channel.id))}
-        >
-          <RadioTower className="size-20 text-white/85" />
-        </div>
+        <Artwork
+          type="live_channel"
+          id={channel.id}
+          url={channel.artwork_url}
+          title={title}
+          className="size-48 shrink-0 shadow-xl sm:size-56"
+          rounded="rounded-panel"
+        />
 
         <div className="flex min-w-0 flex-col gap-3">
           <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink-mute">
@@ -90,8 +95,9 @@ export default function LiveChannelPage({ params }: { params: Promise<{ id: stri
                 · <Headphones className="size-3.5" /> {formatCount(channel.listener_count)} listening
               </span>
             )}
-            {channel.started_at && channel.is_live && <span>· on air {timeAgo(channel.started_at)}</span>}
+            {channel.started_at && channel.is_live && <span>· {timeAgo(channel.started_at, locale)}</span>}
           </div>
+          <ContentActions type="broadcast_channel" id={channel.id} title={title} text={description || undefined} />
         </div>
       </div>
 
@@ -168,8 +174,8 @@ export default function LiveChannelPage({ params }: { params: Promise<{ id: stri
         )}
       </div>
 
-      {channel.description && (
-        <p className="max-w-3xl text-sm leading-relaxed text-ink-soft">{channel.description}</p>
+      {description && (
+        <p className="max-w-3xl text-sm leading-relaxed text-ink-soft">{description}</p>
       )}
     </div>
   );

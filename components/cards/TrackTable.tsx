@@ -10,6 +10,7 @@ import { formatCount, formatDuration } from "@/lib/format";
 import type { PlayerTrack } from "@/stores/player";
 import { usePlayer } from "@/stores/player";
 import { useUi } from "@/stores/ui";
+import { useTranslation } from "@/lib/i18n";
 
 interface TrackTableProps {
   tracks: PlayerTrack[];
@@ -34,6 +35,7 @@ export default function TrackTable({
   startIndexAt = 0,
   onRemove,
 }: TrackTableProps) {
+  const { t } = useTranslation();
   const playContext = usePlayer((s) => s.playContext);
   const toggle = usePlayer((s) => s.toggle);
   const status = usePlayer((s) => s.status);
@@ -54,13 +56,13 @@ export default function TrackTable({
             key={track.key}
             role="listitem"
             onDoubleClick={() => playContext(tracks, i, contextLabel)}
-            className={`group grid grid-cols-[2rem_1fr_auto] items-center gap-3 rounded-card px-3 py-2 transition-colors sm:grid-cols-[2rem_4fr_2fr_minmax(0,6rem)_auto] ${
+            className={`group grid grid-cols-[1.75rem_minmax(0,1fr)_auto] items-center gap-2 rounded-card px-1 py-2 transition-colors min-[380px]:gap-3 min-[380px]:px-2 sm:grid-cols-[2rem_4fr_2fr_minmax(0,6rem)_auto] sm:px-3 ${
               isCurrent ? "bg-highlight/60" : "hover:bg-raised"
             }`}
           >
             {/* Index / play control */}
             <button
-              aria-label={isPlaying ? `Pause ${title}` : `Play ${title}`}
+              aria-label={isPlaying ? t("trackMenu.pauseTitle", { title }) : t("trackMenu.playTitle", { title })}
               onClick={() => (isCurrent ? toggle() : playContext(tracks, i, contextLabel))}
               className="flex size-8 items-center justify-center text-sm tabular-nums text-ink-mute"
             >
@@ -106,8 +108,8 @@ export default function TrackTable({
             </p>
 
             {/* Actions */}
-            <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:transition sm:group-hover:opacity-100">
-              <FavoriteButton type="audio_asset" id={track.assetId} initial={favorited?.[i]} />
+            <div className="flex items-center opacity-100 sm:gap-1 sm:transition sm:group-hover:opacity-100">
+              <FavoriteButton type="audio_asset" id={track.assetId} initial={favorited?.[i]} className="hidden min-[390px]:inline-flex" />
               <TrackMenu track={track} />
               {onRemove && (
                 <button
@@ -116,7 +118,7 @@ export default function TrackTable({
                     e.stopPropagation();
                     onRemove(i);
                   }}
-                  aria-label={`Remove ${title}`}
+                  aria-label={t("trackMenu.removeTitle", { title })}
                   className="rounded-full p-1 text-ink-mute transition hover:text-danger"
                 >
                   <X className="size-4" />

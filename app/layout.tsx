@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Hind_Siliguri, Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
+import { Hind_Siliguri, IBM_Plex_Sans, Plus_Jakarta_Sans, Source_Serif_4, Space_Grotesk } from "next/font/google";
+import Script from "next/script";
 import { BRAND } from "@/config/theme";
 import AppShell from "@/components/layout/AppShell";
 import "./globals.css";
@@ -23,41 +24,91 @@ const bangla = Hind_Siliguri({
   display: "swap",
 });
 
+const newsSans = IBM_Plex_Sans({
+  variable: "--font-news-sans",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const newsSerif = Source_Serif_4({
+  variable: "--font-news-serif",
+  subsets: ["latin"],
+  weight: ["400", "600", "700", "800"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.PUBLIC_SITE_URL || "http://localhost:15001"),
   title: {
     default: `${BRAND.name} — ${BRAND.tagline}`,
     template: `%s · ${BRAND.name}`,
   },
   description:
-    "Stream the national sound archive of Bangladesh Betar — songs, programmes, podcasts and stories from a century of radio.",
-  applicationName: "Betar Archive",
+    "Bangladesh Betar's digital public service for trusted news, original video and the national sound archive.",
+  applicationName: "Bangladesh Betar",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Betar Archive",
+    title: "Bangladesh Betar",
   },
   icons: {
     icon: [{ url: "/icons/icon.svg", type: "image/svg+xml" }],
     apple: [{ url: "/icons/icon.svg" }],
   },
+  openGraph: {
+    type: "website",
+    title: `${BRAND.name} — ${BRAND.tagline}`,
+    description: "Bangladesh Betar's digital public service for trusted news, original video and the national sound archive.",
+    siteName: BRAND.name,
+    locale: "en_BD",
+    alternateLocale: ["bn_BD"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${BRAND.name} — ${BRAND.tagline}`,
+    description: "Bangladesh Betar's digital public service for trusted news, original video and the national sound archive.",
+  },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#070708",
+  themeColor: "#18211d",
 };
+
+const themeBootScript = `
+  (function () {
+    var theme = "dark";
+    try {
+      var stored = window.localStorage.getItem("betar.ui");
+      var parsed = stored ? JSON.parse(stored) : null;
+      var saved = parsed && parsed.state && parsed.state.theme;
+      if (saved === "light" || saved === "dark") theme = saved;
+    } catch (_) {}
+    document.documentElement.setAttribute("data-theme", theme);
+    document.documentElement.style.colorScheme = theme;
+  })();
+`;
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const adsenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
+
   return (
     <html
       lang="en"
-      className={`${jakarta.variable} ${grotesk.variable} ${bangla.variable} h-full antialiased`}
+      data-theme="dark"
+      suppressHydrationWarning
+      className={`${jakarta.variable} ${grotesk.variable} ${bangla.variable} ${newsSans.variable} ${newsSerif.variable} h-full antialiased`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+      </head>
       <body className="grain h-full">
+        {adsenseClient && <Script async strategy="afterInteractive" crossOrigin="anonymous" src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`} />}
         <AppShell>{children}</AppShell>
       </body>
     </html>

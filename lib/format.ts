@@ -13,33 +13,35 @@ export function formatDuration(seconds: number | null | undefined): string {
 }
 
 /** 1234567 -> "1.2M" */
-export function formatCount(n: number | null | undefined): string {
+export function formatCount(n: number | null | undefined, locale: "en" | "bn" = "en"): string {
   if (n == null) return "0";
+  if (locale === "bn") return new Intl.NumberFormat("bn-BD", { notation: "compact", maximumFractionDigits: 1 }).format(n);
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
   return String(n);
 }
 
-export function formatDate(iso: string | null | undefined): string {
+export function formatDate(iso: string | null | undefined, locale: "en" | "bn" = "en"): string {
   if (!iso) return "";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  return d.toLocaleDateString(locale === "bn" ? "bn-BD" : "en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
-export function timeAgo(iso: string | null | undefined): string {
+export function timeAgo(iso: string | null | undefined, locale: "en" | "bn" = "en"): string {
   if (!iso) return "";
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60_000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
+  const relative = new Intl.RelativeTimeFormat(locale === "bn" ? "bn-BD" : "en", { numeric: "auto", style: "short" });
+  if (mins < 1) return relative.format(0, "minute");
+  if (mins < 60) return relative.format(-mins, "minute");
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return relative.format(-hours, "hour");
   const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
+  if (days < 30) return relative.format(-days, "day");
   const months = Math.floor(days / 30);
-  if (months < 12) return `${months}mo ago`;
-  return `${Math.floor(months / 12)}y ago`;
+  if (months < 12) return relative.format(-months, "month");
+  return relative.format(-Math.floor(months / 12), "year");
 }
 
 /** Primary display title honouring the locale preference. */
@@ -93,7 +95,7 @@ export function itemHref(item: { type: string; id: number }): string {
   }
 }
 
-export function formatMoney(amount: number, currency: string): string {
+export function formatMoney(amount: number, currency: string, locale: "en" | "bn" = "en"): string {
   const symbol = currency === "BDT" ? "৳" : currency + " ";
-  return `${symbol}${amount.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+  return `${symbol}${amount.toLocaleString(locale === "bn" ? "bn-BD" : "en-IN", { maximumFractionDigits: 0 })}`;
 }

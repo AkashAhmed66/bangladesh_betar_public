@@ -6,17 +6,20 @@ import TrackTable from "@/components/cards/TrackTable";
 import Chapters from "@/components/detail/Chapters";
 import DetailHero from "@/components/detail/DetailHero";
 import Comments from "@/components/engagement/Comments";
+import ContentActions from "@/components/engagement/ContentActions";
 import ArtistLinks from "@/components/ui/ArtistLinks";
 import FavoriteButton from "@/components/ui/FavoriteButton";
 import { PlayCircle, PremiumBadge, SectionHeading, Skeleton } from "@/components/ui/Misc";
 import TrackMenu from "@/components/ui/TrackMenu";
 import { displayTitle, altTitle, formatCount, formatDuration } from "@/lib/format";
 import { useAsset, useSimilar, useSong } from "@/lib/hooks";
+import { useTranslation } from "@/lib/i18n";
 import { toTrack, toTracks } from "@/lib/tracks";
 import { usePlayer } from "@/stores/player";
 import { useUi } from "@/stores/ui";
 
 export default function SongPage({ params }: { params: Promise<{ id: string }> }) {
+  const { t } = useTranslation();
   const { id } = use(params);
   const { data, isLoading } = useSong(id);
   const song = data?.data;
@@ -81,6 +84,7 @@ export default function SongPage({ params }: { params: Promise<{ id: string }> }
             {track && <PlayCircle size="size-14" icon="size-6" onClick={() => playTrack(track)} />}
             <FavoriteButton type="audio_asset" id={song.audio_asset_id} initial={song.is_favorited} size="size-7" />
             {track && <TrackMenu track={track} />}
+            <ContentActions type="song" id={song.id} title={displayTitle(song, locale)} />
           </>
         }
       />
@@ -90,7 +94,7 @@ export default function SongPage({ params }: { params: Promise<{ id: string }> }
       {lyrics && (
         <section>
           <SectionHeading
-            title="Lyrics"
+          title={t("listen.lyrics")}
             action={
               <div className="flex gap-1 rounded-full bg-raised p-1">
                 {(["bn", "en"] as const).map((l) => (
@@ -115,7 +119,7 @@ export default function SongPage({ params }: { params: Promise<{ id: string }> }
 
       {similarTracks.length > 0 && (
         <section>
-          <SectionHeading title="Similar recordings" />
+        <SectionHeading title={t("listen.similarRecordings")} />
           <TrackTable tracks={similarTracks.slice(0, 8)} contextLabel="Similar" />
         </section>
       )}

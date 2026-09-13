@@ -2,12 +2,30 @@ import type { PlayerTrack } from "@/stores/player";
 import { itemHref } from "./format";
 import type {
   AudioAsset,
+  BroadcastRecording,
   CatalogueItem,
   Episode,
   PlaylistItem,
   PodcastEpisode,
   Song,
 } from "./types";
+
+export function broadcastRecordingTrack(recording: BroadcastRecording): PlayerTrack {
+  return {
+    key: `broadcast_recording:${recording.id}`,
+    type: "broadcast_recording",
+    id: recording.id,
+    assetId: recording.id,
+    title: recording.title,
+    titleBn: null,
+    subtitle: [recording.channel.title, recording.channel.station].filter(Boolean).join(" · "),
+    artworkUrl: recording.channel.artwork_url,
+    duration: recording.duration_seconds,
+    isPremium: true,
+    href: "/live#previous-broadcasts",
+    streamEndpoint: `/broadcast-recordings/${recording.id}/stream`,
+  };
+}
 
 /**
  * Convert catalogue objects into queue-ready PlayerTracks.

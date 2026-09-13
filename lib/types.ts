@@ -20,6 +20,7 @@ export interface AudioAsset {
   title_bn: string | null;
   slug: string;
   description: string | null;
+  description_bn: string | null;
   duration_seconds: number | null;
   artwork_url: string | null;
   category?: string | null;
@@ -76,6 +77,7 @@ export interface Album {
   year: number | null;
   artwork_url: string | null;
   description: string | null;
+  description_bn: string | null;
   artists?: Artist[];
   tracks_count?: number;
   tracks?: Song[];
@@ -110,6 +112,7 @@ export interface Programme {
   slug: string;
   programme_type: string | null;
   description: string | null;
+  description_bn: string | null;
   artwork_url: string | null;
   station?: string | null;
   category?: string | null;
@@ -126,6 +129,7 @@ export interface Episode {
   slug: string;
   number: number | null;
   description: string | null;
+  description_bn: string | null;
   programme?: string | null;
   programme_id: number;
   audio_asset_id: number | null;
@@ -142,6 +146,7 @@ export interface PodcastChannel {
   title_bn: string | null;
   slug: string;
   description: string | null;
+  description_bn: string | null;
   artwork_url: string | null;
   category?: string | null;
   followers_count: number;
@@ -158,6 +163,7 @@ export interface PodcastEpisode {
   title_bn: string | null;
   slug: string;
   description: string | null;
+  description_bn: string | null;
   channel?: PodcastChannel | null;
   channel_id: number;
   audio_asset_id: number | null;
@@ -188,6 +194,7 @@ export interface Playlist {
   title_bn: string | null;
   slug: string;
   description: string | null;
+  description_bn: string | null;
   artwork_url: string | null;
   is_editorial: boolean;
   is_owner?: boolean;
@@ -208,6 +215,7 @@ export interface LiveChannel {
   title_bn: string | null;
   slug: string;
   description: string | null;
+  description_bn: string | null;
   artwork_url: string | null;
   station?: string | null;
   is_live: boolean;
@@ -221,6 +229,23 @@ export interface LiveTokenResponse {
   ws_url: string;
   token: string;
   room: string;
+}
+
+export interface WatchLiveChannel {
+  id: number;
+  type: "watch_live_channel";
+  title: string;
+  title_bn: string | null;
+  slug: string;
+  description: string | null;
+  description_bn: string | null;
+  artwork_url: string | null;
+  station?: string | null;
+  is_live: boolean;
+  started_at: string | null;
+  viewer_count: number;
+  broadcaster: string | null;
+  session_title: string | null;
 }
 
 /** Anything that can appear in a home-section row or search results. */
@@ -242,6 +267,7 @@ export interface Banner {
   title: string;
   title_bn: string | null;
   subtitle: string | null;
+  subtitle_bn: string | null;
   image_url: string | null;
   target_type: string | null;
   target_value: string | null;
@@ -259,6 +285,97 @@ export interface HomeSection {
 export interface HomeResponse {
   banners: Banner[];
   sections: HomeSection[];
+}
+
+// ---- News + Watch portals ----
+
+export interface PortalCategory {
+  id: number;
+  parent_id?: number | null;
+  value: string;
+  label: string;
+  label_bn: string | null;
+  slug: string;
+  description: string | null;
+  description_bn: string | null;
+  show_in_header: boolean;
+  subcategories?: PortalCategory[];
+}
+
+export interface PortalCategories {
+  news: PortalCategory[];
+  watch: PortalCategory[];
+}
+
+export interface NewsArticle {
+  id: number;
+  type: "news_article";
+  slug: string;
+  title: string;
+  title_bn: string | null;
+  summary: string;
+  summary_bn: string | null;
+  category: string;
+  category_bn: string | null;
+  category_slug: string;
+  body: string[];
+  body_bn: string[] | null;
+  image_url: string | null;
+  media?: NewsArticleMedia[];
+  read_time_minutes: number;
+  read_time: string;
+  views_count: number;
+  is_featured: boolean;
+  published_at: string | null;
+  published: string;
+}
+
+export type NewsMediaType = "image" | "video" | "youtube" | "audio" | "document";
+
+export interface NewsArticleMedia {
+  id: number | string;
+  type: NewsMediaType;
+  url: string;
+  embed_url?: string | null;
+  name: string;
+  mime_type: string | null;
+  size_bytes: number | null;
+  position: number;
+}
+
+export interface WatchEpisode {
+  id: number;
+  title: string;
+  title_bn: string | null;
+  description: string | null;
+  description_bn: string | null;
+  duration_minutes: number;
+    duration: string;
+    position: number;
+    has_video: boolean;
+    video_url: string | null;
+}
+
+export interface WatchShow {
+  id: number;
+  type: "watch_show";
+  slug: string;
+  title: string;
+  title_bn: string | null;
+  eyebrow: string | null;
+  eyebrow_bn: string | null;
+  description: string;
+  description_bn: string | null;
+  category: string;
+  category_bn: string | null;
+  category_slug: string;
+  image_url: string | null;
+  year: number | null;
+  rating: string | null;
+  is_featured: boolean;
+  published_at: string | null;
+  episodes_count?: number;
+  episodes: WatchEpisode[];
 }
 
 // ---- Auth / user ----
@@ -355,12 +472,44 @@ export interface SearchResults {
     podcast_episodes?: { data: PodcastEpisode[] };
     podcasts?: { data: PodcastChannel[] };
     live_radios?: { data: LiveChannel[] };
+    audiobooks?: { data: AudioBook[] };
+    broadcast_recordings?: { data: BroadcastRecording[] };
   };
 }
 
 export interface Suggestion {
   text: string;
-  type: "song" | "artist" | "programme" | "podcast" | "live_radio";
+  type:
+    | "song"
+    | "artist"
+    | "programme"
+    | "episode"
+    | "podcast"
+    | "podcast_episode"
+    | "live_radio"
+    | "audio_book"
+    | "broadcast_recording";
+}
+
+export interface BroadcastRecording {
+  id: number;
+  type: "broadcast_recording";
+  title: string;
+  channel: {
+    id: number;
+    title: string;
+    title_bn: string | null;
+    artwork_url: string | null;
+    station: string | null;
+  };
+  broadcaster: string | null;
+  started_at: string | null;
+  ended_at: string | null;
+  published_at: string | null;
+  duration_seconds: number;
+  peak_listeners: number;
+  is_premium: true;
+  can_play: boolean;
 }
 
 // ---- Library ----
@@ -429,6 +578,7 @@ export interface AudioBook {
   id: number;
   type: "audio_book";
   title: string;
+  artwork_url: string | null;
   language: "en" | "bn";
   author?: string | null;
   is_premium: boolean;
@@ -450,6 +600,7 @@ export interface Plan {
   name: string;
   name_bn: string | null;
   description: string | null;
+  description_bn: string | null;
   price_monthly: number;
   price_annual: number;
   currency: string;
@@ -495,3 +646,23 @@ export interface Paginated<T> {
   links?: { first?: string; last?: string; prev?: string | null; next?: string | null };
   meta?: { current_page: number; last_page?: number; total?: number; per_page?: number };
 }
+
+export interface WatchClip {
+  id: number;
+  title: string;
+  title_bn: string | null;
+  description: string | null;
+  description_bn: string | null;
+  slug: string;
+  creator_name: string | null;
+  creator_handle: string | null;
+  creator_avatar_url: string | null;
+  video_url: string | null;
+  thumbnail_url: string | null;
+  audio_track: string | null;
+  hashtags: string[];
+  likes_count: number;
+  dislikes_count: number;
+  published_at: string | null;
+}
+

@@ -35,7 +35,7 @@ export default function Toaster() {
         return (
           <div
             key={t.id}
-            className={`fade-up pointer-events-auto flex w-full items-center gap-3 rounded-panel border ${STYLES[t.kind]} bg-raised/95 px-4 py-3 text-sm shadow-xl shadow-black/50 backdrop-blur`}
+            className={`fade-up pointer-events-auto flex w-full items-center gap-3 rounded-panel border ${STYLES[t.kind]} bg-raised/95 px-4 py-3 text-sm shadow-xl shadow-shade/30 backdrop-blur`}
           >
             <Icon className={`size-4 shrink-0 ${ICON_STYLES[t.kind]}`} />
             <p className="flex-1">{t.message}</p>

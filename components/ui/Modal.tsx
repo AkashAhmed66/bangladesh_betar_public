@@ -23,13 +23,13 @@ export default function Modal({ open, onClose, title, children, maxWidth = "max-
 
   return (
     <div
-      className="fixed inset-0 z-120 flex items-center justify-center p-4"
+      className="fixed inset-0 z-120 flex items-end justify-center p-0 sm:items-center sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-label={title}
     >
       <div className="absolute inset-0 bg-overlay backdrop-blur-sm" onClick={onClose} />
-      <div className={`fade-up relative w-full ${maxWidth} rounded-panel border border-edge bg-elev p-6 shadow-2xl shadow-black/60`}>
+      <div className={`fade-up relative max-h-[calc(100dvh-1rem)] w-full overflow-y-auto ${maxWidth} rounded-t-panel border border-edge bg-elev p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl shadow-shade/35 sm:rounded-panel sm:p-6`}>
         <div className="mb-4 flex items-center justify-between gap-4">
           {title ? <h2 className="font-display text-lg font-semibold">{title}</h2> : <span />}
           <button

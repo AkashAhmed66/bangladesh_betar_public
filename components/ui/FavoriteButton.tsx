@@ -5,6 +5,7 @@ import { useState } from "react";
 import { post } from "@/lib/api";
 import { useAuth } from "@/stores/auth";
 import { useUi } from "@/stores/ui";
+import { useTranslation } from "@/lib/i18n";
 
 interface FavoriteButtonProps {
   type: string;       // favoritable_type (usually audio_asset)
@@ -15,6 +16,7 @@ interface FavoriteButtonProps {
 }
 
 export default function FavoriteButton({ type, id, initial = false, className = "", size = "size-4.5" }: FavoriteButtonProps) {
+  const { t } = useTranslation();
   const token = useAuth((s) => s.token);
   const openLogin = useUi((s) => s.openLoginPrompt);
   const toast = useUi((s) => s.toast);
@@ -25,7 +27,7 @@ export default function FavoriteButton({ type, id, initial = false, className = 
     e.stopPropagation();
     e.preventDefault();
     if (!token) {
-      openLogin("Sign in to save favourites to your library.");
+      openLogin(t("actions.signInFavourite"));
       return;
     }
     if (busy) return;
@@ -39,7 +41,7 @@ export default function FavoriteButton({ type, id, initial = false, className = 
       setFav(res.favorited);
     } catch {
       setFav((f) => !f);
-      toast("Could not update favourites.", "error");
+      toast(t("actions.favouriteFailed"), "error");
     } finally {
       setBusy(false);
     }
@@ -48,7 +50,7 @@ export default function FavoriteButton({ type, id, initial = false, className = 
   return (
     <button
       onClick={toggle}
-      aria-label={fav ? "Remove from favourites" : "Add to favourites"}
+      aria-label={fav ? t("actions.removeFavourite") : t("actions.addFavourite")}
       aria-pressed={fav}
       className={`transition-colors ${fav ? "text-accent" : "text-ink-mute hover:text-ink"} ${className}`}
     >

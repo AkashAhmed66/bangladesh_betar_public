@@ -23,6 +23,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BRAND } from "@/config/theme";
+import { useTranslation } from "@/lib/i18n";
 import { useAuth } from "@/stores/auth";
 import { useUi } from "@/stores/ui";
 
@@ -53,6 +54,7 @@ function NavLink({
 }
 
 export default function Sidebar() {
+  const { t } = useTranslation();
   const token = useAuth((s) => s.token);
   const entitlements = useAuth((s) => s.entitlements);
   const { openLoginPrompt, toggleQueuePanel } = useUi();
@@ -78,36 +80,36 @@ export default function Sidebar() {
       <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
         {/* Primary nav */}
         <nav className="shrink-0 rounded-panel bg-elev p-2">
-          <NavLink href="/" icon={Home} label="Home" exact />
-          <NavLink href="/search" icon={Search} label="Search" />
-          <NavLink href="/browse" icon={Compass} label="Browse" exact />
-          <NavLink href="/live" icon={Radio} label="Live Radio" />
+          <NavLink href="/" icon={Home} label={t("shell.home")} exact />
+          <NavLink href="/search" icon={Search} label={t("common.search")} />
+          <NavLink href="/browse" icon={Compass} label={t("shell.browse")} exact />
+          <NavLink href="/live" icon={Radio} label={t("shell.liveRadio")} />
         </nav>
 
         {/* Catalogue */}
         <nav className="shrink-0 rounded-panel bg-elev p-2">
-          <p className="px-3 pb-1 pt-2 text-[11px] font-bold uppercase tracking-[0.14em] text-ink-mute">Catalogue</p>
-          <NavLink href="/songs" icon={Music2} label="Songs" />
-          <NavLink href="/albums" icon={Disc3} label="Albums" />
-          <NavLink href="/artists" icon={MicVocal} label="Artists" />
-          <NavLink href="/programmes" icon={RadioTower} label="Programmes" />
-          <NavLink href="/podcasts" icon={Podcast} label="Podcasts" />
-          <NavLink href="/audiobooks" icon={BookOpen} label="Audio Books" />
+          <p className="px-3 pb-1 pt-2 text-[11px] font-bold uppercase tracking-[0.14em] text-ink-mute">{t("shell.catalogue")}</p>
+          <NavLink href="/songs" icon={Music2} label={t("listenNav.songs")} />
+          <NavLink href="/albums" icon={Disc3} label={t("listenNav.albums")} />
+          <NavLink href="/artists" icon={MicVocal} label={t("listenNav.artists")} />
+          <NavLink href="/programmes" icon={RadioTower} label={t("listenNav.programmes")} />
+          <NavLink href="/podcasts" icon={Podcast} label={t("listenNav.podcasts")} />
+          <NavLink href="/audiobooks" icon={BookOpen} label={t("listenNav.audioBooks")} />
         </nav>
 
         {/* Library */}
         <div className="flex shrink-0 flex-col rounded-panel bg-elev p-2">
           <div className="flex items-center justify-between px-3 py-2">
             <Link href="/library" className="flex items-center gap-3 text-sm font-semibold text-ink-soft transition hover:text-ink">
-              <Library className="size-5" /> Your Library
+              <Library className="size-5" /> {t("shell.yourLibrary")}
             </Link>
             <button
-              aria-label="Create playlist"
-              onClick={() => !token && openLoginPrompt("Sign in to create playlists.")}
+              aria-label={t("shell.createPlaylist")}
+              onClick={() => !token && openLoginPrompt(t("actions.signInFollow"))}
               className="rounded-full p-1.5 text-ink-mute transition hover:bg-highlight hover:text-ink"
             >
               {token ? (
-                <Link href="/library?create=1" aria-label="Create playlist">
+                <Link href="/library?create=1" aria-label={t("shell.createPlaylist")}>
                   <Plus className="size-4.5" />
                 </Link>
               ) : (
@@ -119,11 +121,11 @@ export default function Sidebar() {
           <div className="px-1">
             {token && (
               <>
-                <NavLink href="/favorites" icon={Heart} label="Liked recordings" />
-                <NavLink href="/history" icon={History} label="History" />
-                <NavLink href="/playlists" icon={ListMusic} label="Playlists" />
+                <NavLink href="/favorites" icon={Heart} label={t("shell.likedRecordings")} />
+                <NavLink href="/history" icon={History} label={t("shell.history")} />
+                <NavLink href="/playlists" icon={ListMusic} label={t("shell.playlists")} />
                 {/* Offline saves (encrypted HLS) are a Premium feature — hide the entry for free users. */}
-                {entitlements?.is_premium && <NavLink href="/downloads" icon={Download} label="Saved offline" />}
+                {entitlements?.is_premium && <NavLink href="/downloads" icon={Download} label={t("shell.savedOffline")} />}
               </>
             )}
             {/* Queue works for everyone (local queue) — toggles the queue panel. */}
@@ -134,21 +136,21 @@ export default function Sidebar() {
                 queuePanelOpen ? "bg-highlight text-ink" : "text-ink-soft hover:text-ink"
               }`}
             >
-              <ListOrdered className={`size-5 ${queuePanelOpen ? "text-accent" : ""}`} /> Queue
+              <ListOrdered className={`size-5 ${queuePanelOpen ? "text-accent" : ""}`} /> {t("shell.queue")}
             </button>
           </div>
 
           {!token && (
             <div className="mx-2 mt-2 rounded-card bg-raised p-4">
-              <p className="text-sm font-bold">Build your library</p>
+              <p className="text-sm font-bold">{t("shell.buildLibrary")}</p>
               <p className="mt-1 text-xs leading-relaxed text-ink-soft">
-                Sign in to save favourites, follow artists and create playlists.
+                {t("shell.buildLibraryDescription")}
               </p>
               <Link
                 href="/login"
                 className="mt-3 inline-block rounded-full bg-ink px-4 py-1.5 text-xs font-bold text-page transition hover:scale-105"
               >
-                Sign in
+                {t("shell.signIn")}
               </Link>
             </div>
           )}
@@ -160,7 +162,7 @@ export default function Sidebar() {
               className="group mx-2 mb-1 mt-2 flex items-center gap-3 rounded-card border border-premium/25 bg-premium/8 px-3 py-2.5 transition hover:border-premium/50"
             >
               <Crown className="size-4.5 text-premium" />
-              <span className="text-xs font-bold text-premium">Go Premium — ad-free listening</span>
+              <span className="text-xs font-bold text-premium">{t("shell.goPremium")}</span>
             </Link>
           )}
         </div>

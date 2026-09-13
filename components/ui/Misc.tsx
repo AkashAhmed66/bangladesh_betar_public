@@ -1,6 +1,7 @@
 "use client";
 
 import { Crown, Play } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 /** Spotify-style circular accent play button that lifts on hover. */
 export function PlayCircle({
@@ -24,7 +25,7 @@ export function PlayCircle({
         e.stopPropagation();
         onClick(e);
       }}
-      className={`flex ${size} items-center justify-center rounded-full bg-accent text-accent-fg shadow-lg shadow-black/40 transition-all hover:scale-105 hover:bg-accent-hover active:scale-95 ${className}`}
+      className={`flex ${size} items-center justify-center rounded-full bg-accent text-accent-fg shadow-lg shadow-shade/25 transition-all hover:scale-105 hover:bg-accent-hover active:scale-95 ${className}`}
     >
       <Play className={`${icon} translate-x-[1px] fill-current`} />
     </button>
@@ -32,11 +33,12 @@ export function PlayCircle({
 }
 
 export function PremiumBadge({ className = "" }: { className?: string }) {
+  const { t } = useTranslation();
   return (
     <span
       className={`inline-flex items-center gap-1 rounded-full bg-premium/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-premium ${className}`}
     >
-      <Crown className="size-3" /> Premium
+      <Crown className="size-3" /> {t("trackMenu.premium")}
     </span>
   );
 }
@@ -53,8 +55,8 @@ export function SectionHeading({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="mb-4 flex items-end justify-between gap-4">
-      <h2 className="font-display text-xl font-bold tracking-tight sm:text-2xl">{title}</h2>
+    <div className="mb-5 flex flex-wrap items-end justify-between gap-3 sm:mb-6 sm:gap-4">
+      <h2 className="font-display text-2xl font-bold tracking-[-0.035em] sm:text-3xl">{title}</h2>
       {action}
     </div>
   );
@@ -72,7 +74,7 @@ export function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-panel border border-dashed border-edge py-16 text-center">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-panel border border-dashed border-edge px-4 py-12 text-center sm:py-16">
       {icon && <div className="text-ink-mute">{icon}</div>}
       <p className="font-display text-lg font-semibold">{title}</p>
       {subtitle && <p className="max-w-sm text-sm text-ink-soft">{subtitle}</p>}
