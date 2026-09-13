@@ -574,6 +574,7 @@ export default function PortalHeader() {
                 {searchLoading ? (
                   <p className="px-3 py-5 text-sm text-ink-mute">{t("common.searching")}</p>
                 ) : searchResults?.data.length ? (
+                  <>
                   <div className="grid gap-1">
                     {searchResults.data.map((item) => {
                       const title = localizedText(item as unknown as Record<string, unknown>, "title", locale);
@@ -606,6 +607,19 @@ export default function PortalHeader() {
                       );
                     })}
                   </div>
+                  {portal === "news" && (
+                    <Link
+                      href="/news/search"
+                      onClick={() => {
+                        setSearchPath(null);
+                        setSearchQuery("");
+                      }}
+                      className="mt-2 flex items-center justify-center border-t border-edge px-3 pt-3 text-xs font-black text-[var(--portal-color)] hover:underline"
+                    >
+                      {t("news.viewAll")}
+                    </Link>
+                  )}
+                  </>
                 ) : (
                   <p className="px-3 py-5 text-sm text-ink-mute">{t(`${portal}.noSearchResults`)}</p>
                 )}

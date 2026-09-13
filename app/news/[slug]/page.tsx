@@ -72,22 +72,20 @@ export default function NewsStoryPage({ params }: { params: Promise<{ slug: stri
 
   return (
     <article className="news-story-page pb-24">
-      <header className="relative overflow-hidden border-b border-edge">
-        {story.image_url && <img src={story.image_url} alt="" aria-hidden className="absolute inset-0 size-full scale-110 object-cover opacity-[0.08] blur-3xl" />}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-elev" />
-        <div className="relative mx-auto w-full max-w-[1540px] px-4 pb-10 pt-7 sm:px-7 sm:pb-14 sm:pt-10 lg:px-10">
+      <header className="border-b border-edge bg-elev">
+        <div className="mx-auto w-full max-w-[1540px] px-4 pb-10 pt-7 sm:px-7 sm:pb-14 sm:pt-10 lg:px-10">
           <nav className="flex flex-wrap items-center gap-2 text-xs font-bold text-ink-mute" aria-label="Breadcrumb">
             <Link href="/news" className="hover:text-ink">{t("common.news")}</Link><span>/</span>
             <Link href={`/news/category/${story.category_slug || categorySlug(story.category)}`} className="text-[var(--portal-color)] hover:underline">{category}</Link>
           </nav>
 
-          <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-14">
-            <div className="max-w-5xl">
+          <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-14">
+            <div className="max-w-4xl">
               <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-[var(--portal-color)]"><Sparkles className="size-3.5" /> {t("news.publicInterest")}</p>
-              <h1 className="mt-4 max-w-5xl text-balance font-display text-4xl font-bold leading-[1.02] tracking-[-0.055em] sm:text-6xl lg:text-7xl">{title}</h1>
-              <p className="mt-6 max-w-4xl text-lg leading-relaxed text-ink-soft sm:text-xl lg:text-2xl">{summary}</p>
+              <h1 className="mt-4 max-w-4xl text-balance font-display text-4xl font-bold leading-[1.06] tracking-[-0.035em] sm:text-5xl lg:text-6xl">{title}</h1>
+              <p className="mt-5 max-w-3xl text-lg leading-relaxed text-ink-soft sm:text-xl">{summary}</p>
             </div>
-            <aside className="mx-auto w-full max-w-[20rem] space-y-6 lg:mx-0 lg:justify-self-end" aria-label={t("news.articleSidebar")}>
+            <aside className="mx-auto w-full max-w-[18rem] space-y-6 lg:mx-0 lg:justify-self-end" aria-label={t("news.articleSidebar")}>
               <NewsAdSlot format="square" />
               <div className="border-l-4 border-[var(--portal-color)] pl-5">
                 <p className="text-xs font-black uppercase tracking-[0.15em] text-ink-mute">{t("news.filedBy")}</p>
@@ -129,19 +127,19 @@ export default function NewsStoryPage({ params }: { params: Promise<{ slug: stri
 
             <div className="mt-12 flex flex-wrap items-center gap-2 border-y border-edge py-5">
               <span className="mr-2 text-xs font-black uppercase tracking-[0.14em] text-ink-mute">{t("news.filedUnder")}</span>
-              {[category, t("news.bangladesh"), t("news.publicService")].filter((value, index, all) => all.indexOf(value) === index).map((tag) => <span key={tag} className="rounded-full bg-raised px-3 py-1.5 text-xs font-bold text-ink-soft">{tag}</span>)}
+              {[category, t("news.bangladesh"), t("news.publicService")].filter((value, index, all) => all.indexOf(value) === index).map((tag) => <span key={tag} className="border border-edge bg-raised px-3 py-1.5 text-xs font-bold text-ink-soft">{tag}</span>)}
             </div>
           </div>
 
           <aside className="space-y-8 lg:sticky lg:top-5">
-            <section className="rounded-panel border border-edge bg-raised p-6">
+            <section className="border-t-[3px] border-ink pt-4">
               <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--portal-color)]">{t("news.atAGlance")}</p>
               <ul className="mt-5 space-y-4">
                 {highlights.map((highlight, index) => <li key={index} className="flex gap-3 text-sm leading-relaxed text-ink-soft"><span className="mt-1 grid size-5 shrink-0 place-items-center rounded-full bg-[var(--portal-color)] text-[10px] font-black text-white">{index + 1}</span><span>{highlight}</span></li>)}
               </ul>
             </section>
 
-            <section className="border-t-4 border-[var(--portal-color)] bg-sunken p-6">
+            <section className="border-t-[3px] border-[var(--portal-color)] pt-4">
               <Newspaper className="size-7 text-[var(--portal-color)]" />
               <h2 className="mt-4 font-display text-2xl font-bold">{t("news.independentReporting")}</h2>
               <p className="mt-2 text-sm leading-relaxed text-ink-soft">{t("news.independentReportingDescription")}</p>
