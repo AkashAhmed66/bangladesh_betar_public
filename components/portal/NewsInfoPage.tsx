@@ -23,12 +23,14 @@ export default function NewsInfoPage({ page }: { page: NewsInfoPageId }) {
   return (
     <main className="mx-auto w-full max-w-[1540px] px-4 pb-24 pt-8 sm:px-7 sm:pt-12 lg:px-10">
       <Link href="/news" className="inline-flex items-center gap-2 text-sm font-black text-ink-soft hover:text-[var(--portal-color)]"><ArrowLeft className="size-4" /> {t("news.backToNews")}</Link>
-      <header className="mt-8 grid gap-7 border-b border-edge pb-10 lg:grid-cols-[1fr_20rem] lg:items-end">
-        <div><p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--portal-color)]">{t("news.info.eyebrow")}</p><h1 className="mt-3 max-w-4xl font-display text-4xl font-bold tracking-[-0.045em] sm:text-6xl">{t(`news.info.${page}.title`)}</h1><p className="mt-5 max-w-3xl text-base leading-8 text-ink-soft sm:text-lg">{t(`news.info.${page}.intro`)}</p></div>
-        <div className="portal-tint-panel grid aspect-[4/2.5] place-items-center rounded-panel"><Icon className="size-16 text-[var(--portal-color)]" /></div>
+      <header className="mt-7 border-y border-edge py-7 sm:mt-9 sm:py-9">
+        <div className="flex items-start gap-4">
+          <span className="mt-1 grid size-10 shrink-0 place-items-center border border-[var(--portal-color)] text-[var(--portal-color)]"><Icon className="size-5" /></span>
+          <div><p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--portal-color)]">{t("news.info.eyebrow")}</p><h1 className="mt-2 max-w-4xl font-display text-4xl font-bold tracking-[-0.04em] sm:text-5xl">{t(`news.info.${page}.title`)}</h1><p className="mt-4 max-w-3xl text-base leading-8 text-ink-soft sm:text-lg">{t(`news.info.${page}.intro`)}</p></div>
+        </div>
       </header>
 
-      <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,46rem)_1fr] lg:gap-16">
+      <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,48rem)_minmax(17rem,1fr)] lg:gap-20">
         <div className="space-y-9">
           {Array.from({ length: config.sectionCount }, (_, index) => index + 1).map((section) => (
             <section key={section} className="border-t border-edge pt-6">
@@ -38,7 +40,7 @@ export default function NewsInfoPage({ page }: { page: NewsInfoPageId }) {
           ))}
         </div>
         <aside className="lg:sticky lg:top-6 lg:self-start">
-          <div className="rounded-panel border border-edge bg-raised p-6">
+          <div className="border-t-[3px] border-ink pt-4">
             <Mail className="size-6 text-[var(--portal-color)]" />
             <h2 className="mt-4 font-display text-xl font-bold">{t("news.info.helpTitle")}</h2>
             <p className="mt-2 text-sm leading-6 text-ink-soft">{t("news.info.helpBody")}</p>

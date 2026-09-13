@@ -70,7 +70,7 @@ export default function SectionRow({ title, items, href, loading }: SectionRowPr
       <div
         ref={scroller}
         onScroll={onScroll}
-        className="-mx-4 flex scroll-px-4 gap-4 overflow-x-auto px-4 pb-5 [scrollbar-width:none] sm:-mx-7 sm:gap-5 sm:px-7 [&>a]:w-52 [&>a]:shrink-0 sm:[&>a]:w-60 lg:[&>a]:w-64 [&::-webkit-scrollbar]:hidden"
+        className="media-shelf-scroll -mx-4 flex scroll-px-4 gap-4 overflow-x-auto px-4 pb-5 sm:-mx-7 sm:gap-5 sm:px-7 [&>a]:w-52 [&>a]:shrink-0 sm:[&>a]:w-60 lg:[&>a]:w-64"
       >
         {loading
           ? Array.from({ length: 6 }).map((_, i) => (

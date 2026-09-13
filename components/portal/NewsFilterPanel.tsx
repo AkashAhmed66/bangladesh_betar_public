@@ -10,7 +10,7 @@ import { localizedText, useTranslation } from "@/lib/i18n";
 type FilterState = { query: string; category: string; sort: "latest" | "popular" };
 const EMPTY_FILTER: FilterState = { query: "", category: "", sort: "latest" };
 
-export default function NewsFilterPanel() {
+export default function NewsFilterPanel({ showHeader = true }: { showHeader?: boolean }) {
   const { locale, t } = useTranslation();
   const [fields, setFields] = useState<FilterState>(EMPTY_FILTER);
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTER);
@@ -37,7 +37,7 @@ export default function NewsFilterPanel() {
   return (
     <section className="news-discovery border-y border-edge bg-page" aria-labelledby="news-discovery-title">
       <div className="mx-auto w-full max-w-[1540px] px-4 py-12 sm:px-7 sm:py-14 lg:px-10 lg:py-16">
-        <header className="border-t-[3px] border-ink pt-3">
+        {showHeader && <header className="border-t-[3px] border-ink pt-3">
           <p className="font-display text-sm font-black uppercase tracking-[0.04em] text-[var(--portal-color)]">
             {t("news.findNewsEyebrow")}
           </p>
@@ -49,9 +49,9 @@ export default function NewsFilterPanel() {
               {t("news.findNewsDescription")}
             </p>
           </div>
-        </header>
+        </header>}
 
-        <form onSubmit={apply} className="mt-8 grid items-end gap-4 border-y border-edge py-6 md:grid-cols-2 xl:grid-cols-[minmax(17rem,2fr)_minmax(12rem,1fr)_minmax(11rem,0.8fr)_auto_auto]">
+        <form onSubmit={apply} className={`${showHeader ? "mt-8" : ""} grid items-end gap-4 border-y border-edge py-6 md:grid-cols-2 xl:grid-cols-[minmax(17rem,2fr)_minmax(12rem,1fr)_minmax(11rem,0.8fr)_auto_auto]`}>
           <label className="block min-w-0">
             <span className="mb-2 block text-[11px] font-black uppercase tracking-[0.12em] text-ink-mute">
               {t("news.searchPlaceholder")}

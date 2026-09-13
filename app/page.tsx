@@ -73,7 +73,7 @@ export default function HomePage() {
   );
 
   return (
-    <div className="flex flex-col gap-12 sm:gap-16">
+    <div className="flex min-w-0 flex-col gap-12 sm:gap-16">
       {isLoading ? (
         <Skeleton className="portal-full-bleed -mt-5 h-[32rem] rounded-none sm:-mt-7" />
       ) : (
@@ -108,7 +108,7 @@ export default function HomePage() {
 
           <div className="relative mx-auto flex max-w-[1540px] items-center gap-3 px-5 pb-8 sm:px-10">
             <button type="button" onClick={() => setSlide((value) => (value - 1 + slideCount) % Math.max(1, slideCount))} className="grid size-11 shrink-0 place-items-center rounded-full border border-edge bg-elev/70 text-ink-soft backdrop-blur" aria-label={t("listen.previousFeature")}><ChevronLeft className="size-5" /></button>
-            <div className="flex min-w-0 flex-1 gap-3 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="media-shelf-scroll flex min-w-0 flex-1 gap-3 overflow-x-auto">
               {(featuredItems.length ? featuredItems : [heroItem]).filter(Boolean).slice(0, 6).map((item, index) => {
                 const value = item as CatalogueItem;
                 return (
@@ -127,7 +127,7 @@ export default function HomePage() {
       {(live?.data.length ?? 0) > 0 && (
         <section>
           <SectionHeading title={<span className="editorial-rule">{t("listen.liveStreaming")}</span>} action={<Link href="/live" className="flex items-center gap-1 text-xs font-black uppercase tracking-wider text-ink-mute hover:text-ink">{t("listen.allStations")} <ArrowRight className="size-3.5" /></Link>} />
-          <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:-mx-7 sm:px-7 [&::-webkit-scrollbar]:hidden">
+          <div className="media-shelf-scroll -mx-4 flex gap-4 overflow-x-auto px-4 pb-2 sm:-mx-7 sm:px-7">
             {live!.data.map((channel) => (
               <Link href={`/live/${channel.id}`} key={channel.id} className="group flex w-72 shrink-0 items-center gap-4 rounded-panel border border-edge bg-raised p-4 transition hover:-translate-y-0.5 hover:border-edge-strong">
                 <div className="relative">

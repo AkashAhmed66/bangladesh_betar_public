@@ -14,6 +14,7 @@ function ShowCard({ show, rank }: { show: WatchShow; rank?: number }) {
   const description = localizedText(show as unknown as Record<string, unknown>, "description", locale);
   const category = localizedText(show as unknown as Record<string, unknown>, "category", locale);
   const eyebrow = localizedText(show as unknown as Record<string, unknown>, "eyebrow", locale) || category;
+  const hasVideo = show.episodes.some((episode) => episode.has_video);
 
   return (
     <Link href={`/watch/${show.slug}`} className="group block min-w-0">
@@ -26,6 +27,11 @@ function ShowCard({ show, rank }: { show: WatchShow; rank?: number }) {
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+        {hasVideo && (
+          <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-black/65 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-white backdrop-blur-sm">
+            <CirclePlay className="size-3" /> {t("newsMedia.video")}
+          </span>
+        )}
         {rank && (
           <span className="absolute -bottom-3 -left-1 font-display text-7xl font-black leading-none text-white drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)]">
             {rank}

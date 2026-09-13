@@ -407,6 +407,8 @@
     "newsAudioHeadline": "Hear the stories behind the headlines on Bangladesh Betar",
     "findNewsEyebrow": "News finder",
     "findNews": "Find the news you need",
+    "searchPageTitle": "Search the newsroom",
+    "searchPageDescription": "Find published Betar News stories by title, category or keyword.",
     "findNewsDescription": "Search published reporting, narrow it by an admin-managed category and sort it by recency or readership.",
     "filterCategory": "Filter by category",
     "filterSort": "Sort news",
