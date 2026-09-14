@@ -841,6 +841,23 @@ input[type="range"].advanced-video-volume:focus-visible {
   background: var(--watch-live-page);
   transition: color 240ms ease, background-color 240ms ease;
 }
+
+.live-channel-filters {
+  color: var(--text-primary);
+  border-color: color-mix(in srgb, var(--portal-color) 20%, var(--border-strong));
+  background: color-mix(in srgb, var(--bg-raised) 84%, var(--portal-soft));
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--shadow-color) 8%, transparent);
+}
+.live-channel-filter-control {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+  background: var(--bg-elev);
+}
+.live-channel-filter-control:focus-within { border-color: var(--portal-color); box-shadow: 0 0 0 2px color-mix(in srgb, var(--portal-color) 18%, transparent); }
+.live-channel-filter-accent { color: var(--portal-color); }
+.live-channel-filter-muted { color: var(--text-muted); }
+.live-channel-filter-reset { color: var(--text-secondary); border-color: var(--border-strong); background: var(--bg-elev); }
+.live-channel-filter-reset:not(:disabled):hover { color: var(--text-primary); border-color: var(--portal-color); background: var(--bg-highlight); }
 .watch-live-accent { color: var(--watch-live-accent); }
 .watch-live-muted { color: var(--watch-live-muted); }
 .watch-live-idle-dot { background: color-mix(in srgb, var(--watch-live-text) 35%, transparent); }

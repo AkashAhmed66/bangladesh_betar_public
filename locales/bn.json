@@ -354,6 +354,19 @@
     "watchHome": "ওয়াচ হোম",
     "channelFallback": "বাংলাদেশ বেতারের সরাসরি ভিডিও চ্যানেল"
   },
+  "liveFilters": {
+    "label": "সরাসরি চ্যানেল ফিল্টার করুন",
+    "search": "চ্যানেল খুঁজুন",
+    "searchPlaceholder": "চ্যানেল, অনুষ্ঠান বা স্টেশন দিয়ে খুঁজুন",
+    "station": "স্টেশন",
+    "allStations": "সব স্টেশন",
+    "unavailableStation": "নির্বাচিত স্টেশন",
+    "reset": "ফিল্টার রিসেট করুন",
+    "loading": "চ্যানেল হালনাগাদ হচ্ছে…",
+    "resultCount": "মোট {total}টির মধ্যে {count}টি চ্যানেল দেখানো হচ্ছে",
+    "noResults": "কোনো চ্যানেল পাওয়া যায়নি",
+    "noResultsDescription": "অন্য কোনো শব্দ দিয়ে খুঁজুন অথবা অন্য স্টেশন বেছে নিন।"
+  },
   "videoPlayer": {
     "region": "{title} ভিডিও প্লেয়ার",
     "buffering": "ভিডিও লোড হচ্ছে",

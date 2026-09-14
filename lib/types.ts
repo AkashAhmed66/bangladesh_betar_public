@@ -218,6 +218,8 @@ export interface LiveChannel {
   description_bn: string | null;
   artwork_url: string | null;
   station?: string | null;
+  station_id?: number | null;
+  station_bn?: string | null;
   is_live: boolean;
   started_at: string | null;
   listener_count: number;
@@ -241,6 +243,8 @@ export interface WatchLiveChannel {
   description_bn: string | null;
   artwork_url: string | null;
   station?: string | null;
+  station_id?: number | null;
+  station_bn?: string | null;
   is_live: boolean;
   started_at: string | null;
   viewer_count: number;

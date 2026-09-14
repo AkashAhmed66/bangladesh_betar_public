@@ -354,6 +354,19 @@
     "watchHome": "Watch home",
     "channelFallback": "Bangladesh Betar live video channel"
   },
+  "liveFilters": {
+    "label": "Filter live channels",
+    "search": "Search channels",
+    "searchPlaceholder": "Search by channel, programme or station",
+    "station": "Station",
+    "allStations": "All stations",
+    "unavailableStation": "Selected station",
+    "reset": "Reset filters",
+    "loading": "Updating channels…",
+    "resultCount": "Showing {count} of {total} channels",
+    "noResults": "No channels found",
+    "noResultsDescription": "Try a different search or choose another station."
+  },
   "videoPlayer": {
     "region": "{title} video player",
     "buffering": "Video is buffering",

@@ -4,19 +4,20 @@ import { Headphones, Radio, RadioTower } from "lucide-react";
 import Link from "next/link";
 import ListenPageHero from "@/components/cards/ListenPageHero";
 import RecordedBroadcasts from "@/components/live/RecordedBroadcasts";
+import LiveChannelFilters, { LiveChannelNoResults } from "@/components/live/LiveChannelFilters";
 import Artwork from "@/components/ui/Artwork";
 import { EmptyState, SectionHeading, Skeleton } from "@/components/ui/Misc";
 import { displayTitle, formatCount } from "@/lib/format";
 import { useLiveChannels } from "@/lib/hooks";
 import type { LiveChannel } from "@/lib/types";
-import { useUi } from "@/stores/ui";
 import { useTranslation } from "@/lib/i18n";
+import { channelStationLabel, useLiveChannelFilters } from "@/lib/useLiveChannelFilters";
 
 export default function LivePage() {
-  const { t } = useTranslation();
+  const { locale, t } = useTranslation();
   const { data, isLoading } = useLiveChannels();
-  const locale = useUi((s) => s.locale);
   const channels = data?.data ?? [];
+  const filters = useLiveChannelFilters(channels, locale);
 
   return (
     <div className="flex flex-col gap-8 sm:gap-10">
@@ -43,6 +44,20 @@ export default function LivePage() {
         }
       />
 
+      {channels.length > 0 && (
+        <LiveChannelFilters
+          query={filters.query}
+          onQueryChange={filters.setQuery}
+          stationId={filters.stationId}
+          onStationChange={filters.setStationId}
+          stations={filters.stations}
+          resultCount={filters.filteredChannels.length}
+          totalCount={channels.length}
+          onReset={filters.reset}
+          loading={isLoading}
+        />
+      )}
+
       {isLoading && !data ? (
         <div className="grid grid-cols-1 gap-5 min-[440px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -55,9 +70,9 @@ export default function LivePage() {
           title={t("listen.noLive")}
           subtitle={t("listen.noLiveDescription")}
         />
-      ) : (
+      ) : filters.filteredChannels.length === 0 ? <LiveChannelNoResults onReset={filters.reset} /> : (
         <div className="grid grid-cols-1 gap-5 min-[440px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {channels.map((c) => (
+          {filters.filteredChannels.map((c) => (
             <LiveCard key={c.id} channel={c} title={displayTitle(c, locale)} />
           ))}
         </div>
@@ -69,7 +84,7 @@ export default function LivePage() {
 }
 
 function LiveCard({ channel, title }: { channel: LiveChannel; title: string }) {
-  const { t } = useTranslation();
+  const { locale, t } = useTranslation();
   return (
     <Link
       href={`/live/${channel.id}`}
@@ -97,7 +112,7 @@ function LiveCard({ channel, title }: { channel: LiveChannel; title: string }) {
       <div className="min-w-0">
         <p className="clamp-1 font-display text-lg font-bold tracking-tight">{title}</p>
         <p className="clamp-1 text-xs text-ink-soft">
-          {channel.station ?? channel.broadcaster ?? t("brand.name")}
+          {channelStationLabel(channel, locale) || channel.broadcaster || t("brand.name")}
         </p>
       </div>
     </Link>

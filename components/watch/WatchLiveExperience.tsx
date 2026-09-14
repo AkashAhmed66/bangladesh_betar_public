@@ -15,14 +15,15 @@ import {
   Square,
   Volume2,
   VolumeX,
-  Search,
 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ContentActions from "@/components/engagement/ContentActions";
+import LiveChannelFilters, { LiveChannelNoResults } from "@/components/live/LiveChannelFilters";
 import { post } from "@/lib/api";
 import { useWatchLiveChannels } from "@/lib/hooks";
 import { localizedText, useTranslation } from "@/lib/i18n";
+import { channelStationLabel, useLiveChannelFilters } from "@/lib/useLiveChannelFilters";
 import type { LiveTokenResponse, WatchLiveChannel } from "@/lib/types";
 import { useAuth } from "@/stores/auth";
 import { useUi } from "@/stores/ui";
@@ -193,8 +194,14 @@ export default function WatchLiveExperience({ preferredChannelId }: { preferredC
   const { data, error, isLoading } = useWatchLiveChannels();
   const channels = useMemo(() => data?.data ?? [], [data]);
   const [selectedId, setSelectedId] = useState<number | null>(preferredChannelId ?? null);
-  const [query, setQuery] = useState("");
-  const filteredChannels = channels.filter((channel) => `${channel.station ?? ""} ${localizedText(channel as unknown as Record<string, unknown>, "title", locale)} ${channel.description ?? ""}`.toLowerCase().includes(query.trim().toLowerCase()));
+  const filters = useLiveChannelFilters(channels, locale);
+  const selectStation = (id: string) => {
+    filters.setStationId(id);
+    if (id) {
+      const firstChannel = channels.find((channel) => String(channel.station_id) === id);
+      if (firstChannel) setSelectedId(firstChannel.id);
+    }
+  };
   const selected = channels.find((channel) => channel.id === selectedId)
     ?? channels.find((channel) => channel.id === preferredChannelId)
     ?? channels.find((channel) => channel.is_live)
@@ -232,7 +239,7 @@ export default function WatchLiveExperience({ preferredChannelId }: { preferredC
           <div className="watch-live-player-shell overflow-hidden rounded-[1.1rem] border bg-black">
             <Viewer key={selected.id} channel={selected} />
             <div className="watch-live-channel-meta grid gap-5 border-t p-5 sm:p-7 lg:grid-cols-[1fr_auto] lg:items-center">
-              <div><div className="flex flex-wrap items-center gap-2"><span className="watch-live-accent text-[10px] font-black uppercase tracking-[0.18em]">{selected.station ?? t("brand.name")}</span>{selected.is_live && <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-600/15 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-rose-500"><span className="size-1.5 rounded-full bg-rose-500" /> {t("watchLive.onAir")}</span>}</div><h2 className="mt-2 font-display text-2xl font-bold sm:text-3xl">{selected.session_title ?? localizedText(selected as unknown as Record<string, unknown>, "title", locale)}</h2><p className="watch-live-muted mt-2 max-w-3xl text-sm leading-relaxed">{localizedText(selected as unknown as Record<string, unknown>, "description", locale) || t("watchLive.programmeFallback")}</p></div>
+              <div><div className="flex flex-wrap items-center gap-2"><span className="watch-live-accent text-[10px] font-black uppercase tracking-[0.18em]">{channelStationLabel(selected, locale) || t("brand.name")}</span>{selected.is_live && <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-600/15 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-rose-500"><span className="size-1.5 rounded-full bg-rose-500" /> {t("watchLive.onAir")}</span>}</div><h2 className="mt-2 font-display text-2xl font-bold sm:text-3xl">{selected.session_title ?? localizedText(selected as unknown as Record<string, unknown>, "title", locale)}</h2><p className="watch-live-muted mt-2 max-w-3xl text-sm leading-relaxed">{localizedText(selected as unknown as Record<string, unknown>, "description", locale) || t("watchLive.programmeFallback")}</p></div>
               <div className="flex flex-col items-start gap-3 lg:items-end"><div className="watch-live-muted flex items-center gap-5 text-xs font-bold"><span className="inline-flex items-center gap-2"><Eye className="watch-live-accent size-4" /> {t("watchLive.watching", { count: selected.viewer_count.toLocaleString() })}</span>{selected.broadcaster && <span className="hidden sm:inline">{t("watchLive.presentedBy", { name: selected.broadcaster })}</span>}</div><ContentActions type="broadcast_channel" id={selected.id} title={selected.session_title ?? localizedText(selected as unknown as Record<string, unknown>, "title", locale)} text={localizedText(selected as unknown as Record<string, unknown>, "description", locale) || undefined} /></div>
             </div>
           </div>
@@ -241,15 +248,15 @@ export default function WatchLiveExperience({ preferredChannelId }: { preferredC
 
       <section className="mx-auto max-w-[1540px] px-4 pt-12 sm:px-7 lg:px-10">
         <div className="flex items-end justify-between gap-5"><div><p className="watch-live-accent text-xs font-black uppercase tracking-[0.18em]">{t("watchLive.allFeeds")}</p><h2 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">{t("watchLive.chooseChannel")}</h2></div><Link href="/watch" className="watch-live-muted hidden items-center gap-2 text-sm font-black transition hover:opacity-100 sm:flex"><ArrowLeft className="size-4" /> {t("watchLive.watchHome")}</Link></div>
-        <div className="relative mt-5 max-w-md"><Search className="absolute left-4 top-1/2 size-4 -translate-y-1/2 opacity-60" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search channels" className="w-full rounded-full border bg-transparent py-3 pl-11 pr-4 text-sm outline-none" /></div>
-        <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {filteredChannels.map((channel) => (
+        <div className="mt-5"><LiveChannelFilters query={filters.query} onQueryChange={filters.setQuery} stationId={filters.stationId} onStationChange={selectStation} stations={filters.stations} resultCount={filters.filteredChannels.length} totalCount={channels.length} onReset={filters.reset} loading={isLoading} /></div>
+        <div className="mt-7">{filters.filteredChannels.length === 0 ? <LiveChannelNoResults onReset={filters.reset} /> : <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {filters.filteredChannels.map((channel) => (
             <button key={channel.id} type="button" onClick={() => setSelectedId(channel.id)} className={`watch-live-channel-card group overflow-hidden rounded-panel border text-left transition ${channel.id === selected.id ? "is-selected" : "hover:-translate-y-0.5"}`}>
               <div className="relative aspect-[16/7] overflow-hidden bg-[#0b1619]">{channel.artwork_url ? <img src={channel.artwork_url} alt="" loading="lazy" className="size-full object-cover opacity-75 transition duration-500 group-hover:scale-[1.03]" /> : <div className="watch-live-card-fallback grid size-full place-items-center"><Radio className="watch-live-accent size-8" /></div>}<div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" /><span className={`absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-wider ${channel.is_live ? "bg-rose-600 text-white" : "border border-white/15 bg-black/40 text-white/65 backdrop-blur"}`}><span className={`size-1.5 rounded-full ${channel.is_live ? "animate-pulse bg-white" : "bg-white/40"}`} /> {channel.is_live ? t("watch.liveNow") : t("watchLive.offline")}</span></div>
-              <div className="p-4"><p className="watch-live-accent text-[10px] font-black uppercase tracking-[0.15em]">{channel.station ?? t("watch.portalName")}</p><h3 className="mt-1 font-display text-xl font-bold">{localizedText(channel as unknown as Record<string, unknown>, "title", locale)}</h3><p className="watch-live-muted mt-1 clamp-2 text-xs leading-relaxed">{channel.session_title ?? channel.description ?? t("watchLive.channelFallback")}</p></div>
+              <div className="p-4"><p className="watch-live-accent text-[10px] font-black uppercase tracking-[0.15em]">{channelStationLabel(channel, locale) || t("watch.portalName")}</p><h3 className="mt-1 font-display text-xl font-bold">{localizedText(channel as unknown as Record<string, unknown>, "title", locale)}</h3><p className="watch-live-muted mt-1 clamp-2 text-xs leading-relaxed">{channel.session_title ?? channel.description ?? t("watchLive.channelFallback")}</p></div>
             </button>
           ))}
-        </div>
+        </div>}</div>
       </section>
     </div>
   );
