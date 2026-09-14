@@ -6,17 +6,15 @@ import {
   Headphones,
   Mail,
   MapPin,
-  Newspaper,
-  Phone,
   Radio,
   RadioTower,
   Smartphone,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { usePortalCategories } from "@/lib/hooks";
-import { localizedText, useTranslation } from "@/lib/i18n";
+import { useTranslation } from "@/lib/i18n";
 import { portalForPath, type Portal } from "@/lib/portal";
+import SocialLogo, { type SocialPlatform } from "@/components/ui/SocialLogo";
 
 interface PortalFooterProps {
   portal?: Portal;
@@ -29,6 +27,12 @@ const INFO_LINKS = [
   { key: "terms", href: "/news/terms" },
   { key: "contact", href: "/news/contact" },
   { key: "advertise", href: "/news/advertise" },
+] as const;
+const SOCIAL_LINKS = [
+  { name: "Facebook", href: "https://www.facebook.com/bangladeshbetar", network: "Facebook" },
+  { name: "Instagram", href: "https://www.instagram.com/bangladeshbetar", network: "Instagram" },
+  { name: "YouTube", href: "https://www.youtube.com/@BangladeshBetar", network: "YouTube" },
+  { name: "X / Twitter", href: "https://x.com/bangladeshbetar", network: "X / Twitter" },
 ] as const;
 
 function GooglePlayIcon({ className = "size-6" }: { className?: string }) {
@@ -66,11 +70,6 @@ export default function PortalFooter({ portal: forcedPortal }: PortalFooterProps
   const { locale, t } = useTranslation();
   const pathname = usePathname();
   const portal = forcedPortal ?? portalForPath(pathname);
-  const { data } = usePortalCategories();
-
-  const newsCategories = data?.data.news ?? [];
-  const watchCategories = data?.data.watch ?? [];
-
   const portalBrand =
     portal === "watch"
       ? {
@@ -184,6 +183,9 @@ export default function PortalFooter({ portal: forcedPortal }: PortalFooterProps
             >
               {t("news.officialWebsite")} <ExternalLink className="size-3.5" />
             </a>
+            <div className="mt-6 flex items-center gap-2" aria-label="Bangladesh Betar social links">
+              {SOCIAL_LINKS.map(({ name, href, network }) => <a key={name} href={href} target="_blank" rel="noreferrer" aria-label={name} title={name} className="grid size-9 place-items-center rounded-full border border-edge text-ink-soft transition hover:border-[var(--portal-color)] hover:bg-highlight hover:text-[var(--portal-color)]"><SocialLogo platform={network as SocialPlatform} className="size-4.5" /></a>)}
+            </div>
           </div>
 
           {/* Watch Portal Links */}

@@ -17,11 +17,13 @@ import {
   Search,
   User,
   X,
+  Share2,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import ThemeToggle from "@/components/theme/ThemeToggle";
+import SocialLogo, { type SocialPlatform } from "@/components/ui/SocialLogo";
 import { usePortalCategories, usePortalContentSearch } from "@/lib/hooks";
 import { localizedText, useTranslation } from "@/lib/i18n";
 import { portalForPath, type Portal } from "@/lib/portal";
@@ -134,10 +136,12 @@ export default function PortalHeader() {
   const [moreMenuPath, setMoreMenuPath] = useState<string | null>(null);
   const [searchPath, setSearchPath] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [socialOpen, setSocialOpen] = useState(false);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const menuRef = useRef<HTMLDivElement>(null);
   const moreMenuRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
+  const socialRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const menuOpen = menuPath === pathname;
   const moreMenuOpen = moreMenuPath === pathname;
@@ -211,6 +215,22 @@ export default function PortalHeader() {
       document.removeEventListener("keydown", closeOnEscape);
     };
   }, [moreMenuOpen]);
+
+  useEffect(() => {
+    if (!socialOpen) return;
+    const close = (event: MouseEvent) => {
+      if (!socialRef.current?.contains(event.target as Node)) setSocialOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSocialOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [socialOpen]);
 
   useEffect(() => {
     if (!searchOpen) return;
@@ -288,6 +308,7 @@ export default function PortalHeader() {
       accumulatedDistance = 0;
       direction = 0;
       transitionLockedUntil = performance.now() + 420;
+      if (hidden) setSocialOpen(false);
       setHiddenPath(hidden ? pathname : null);
     };
 
@@ -377,6 +398,10 @@ export default function PortalHeader() {
 
           <div className="hidden flex-1 sm:block" />
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <div ref={socialRef} className="relative">
+              <button type="button" onClick={() => setSocialOpen((open) => !open)} aria-expanded={socialOpen} aria-label="Social links" className="grid size-10 place-items-center rounded-full bg-raised text-ink-soft transition hover:bg-highlight hover:text-ink"><Share2 className="size-4" /></button>
+              {socialOpen && <div className="absolute right-0 top-full z-[90] mt-2 w-52 rounded-panel border border-edge bg-raised p-2 shadow-2xl"><p className="px-3 py-2 text-xs font-black uppercase tracking-wider text-ink-mute">Bangladesh Betar</p>{[["Facebook","https://www.facebook.com/bangladeshbetar","Facebook"],["Instagram","https://www.instagram.com/bangladeshbetar","Instagram"],["YouTube","https://www.youtube.com/@BangladeshBetar","YouTube"],["X / Twitter","https://x.com/bangladeshbetar","X / Twitter"]].map(([name,href,platform]) => <a key={name} href={href} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-ink-soft hover:bg-highlight hover:text-ink"><SocialLogo platform={platform as SocialPlatform} className="size-4" />{name}</a>)}</div>}
+            </div>
             <ThemeToggle compact />
             <button
               type="button"

@@ -1,13 +1,21 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Crown, Languages, LogOut, MessageSquareHeart, Search, User } from "lucide-react";
+import { ChevronLeft, ChevronRight, Crown, Languages, LogOut, MessageSquareHeart, Search, User, Share2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/stores/auth";
 import { useUi } from "@/stores/ui";
 import ThemeToggle from "@/components/theme/ThemeToggle";
+import SocialLogo, { type SocialPlatform } from "@/components/ui/SocialLogo";
 import { useTranslation } from "@/lib/i18n";
+
+const SOCIAL_LINKS: Array<{ name: SocialPlatform; href: string; color: string }> = [
+  { name: "Facebook", href: "https://www.facebook.com/bangladeshbetar", color: "text-[#1877f2]" },
+  { name: "Instagram", href: "https://www.instagram.com/bangladeshbetar", color: "text-[#e4405f]" },
+  { name: "YouTube", href: "https://www.youtube.com/@BangladeshBetar", color: "text-[#ff0000]" },
+  { name: "X / Twitter", href: "https://x.com/bangladeshbetar", color: "text-ink" },
+];
 
 export default function TopBar() {
   const { t } = useTranslation();
@@ -18,6 +26,7 @@ export default function TopBar() {
   const setLocale = useUi((s) => s.setLocale);
   const toast = useUi((s) => s.toast);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [socialOpen, setSocialOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -63,6 +72,11 @@ export default function TopBar() {
       <div className="flex-1" />
 
       <ThemeToggle compact />
+
+      <div className="relative">
+        <button onClick={() => setSocialOpen((open) => !open)} aria-expanded={socialOpen} aria-label="Bangladesh Betar social links" className="grid size-10 place-items-center rounded-full bg-raised text-ink-soft transition hover:bg-highlight hover:text-ink"><Share2 className="size-4" /></button>
+        {socialOpen && <div className="absolute right-0 z-50 mt-2 w-52 rounded-panel border border-edge bg-raised p-2 shadow-2xl"><p className="px-3 py-2 text-xs font-black uppercase tracking-wider text-ink-mute">Bangladesh Betar</p>{SOCIAL_LINKS.map(({ name, href, color }) => <a key={name} href={href} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-ink-soft hover:bg-highlight hover:text-ink"><SocialLogo platform={name} className={`size-5 shrink-0 ${color}`} />{name}</a>)}</div>}
+      </div>
 
       {/* language toggle */}
       <button

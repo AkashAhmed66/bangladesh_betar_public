@@ -15,6 +15,7 @@ import {
   Square,
   Volume2,
   VolumeX,
+  Search,
 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -192,6 +193,8 @@ export default function WatchLiveExperience({ preferredChannelId }: { preferredC
   const { data, error, isLoading } = useWatchLiveChannels();
   const channels = useMemo(() => data?.data ?? [], [data]);
   const [selectedId, setSelectedId] = useState<number | null>(preferredChannelId ?? null);
+  const [query, setQuery] = useState("");
+  const filteredChannels = channels.filter((channel) => `${channel.station ?? ""} ${localizedText(channel as unknown as Record<string, unknown>, "title", locale)} ${channel.description ?? ""}`.toLowerCase().includes(query.trim().toLowerCase()));
   const selected = channels.find((channel) => channel.id === selectedId)
     ?? channels.find((channel) => channel.id === preferredChannelId)
     ?? channels.find((channel) => channel.is_live)
@@ -238,8 +241,9 @@ export default function WatchLiveExperience({ preferredChannelId }: { preferredC
 
       <section className="mx-auto max-w-[1540px] px-4 pt-12 sm:px-7 lg:px-10">
         <div className="flex items-end justify-between gap-5"><div><p className="watch-live-accent text-xs font-black uppercase tracking-[0.18em]">{t("watchLive.allFeeds")}</p><h2 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">{t("watchLive.chooseChannel")}</h2></div><Link href="/watch" className="watch-live-muted hidden items-center gap-2 text-sm font-black transition hover:opacity-100 sm:flex"><ArrowLeft className="size-4" /> {t("watchLive.watchHome")}</Link></div>
+        <div className="relative mt-5 max-w-md"><Search className="absolute left-4 top-1/2 size-4 -translate-y-1/2 opacity-60" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search channels" className="w-full rounded-full border bg-transparent py-3 pl-11 pr-4 text-sm outline-none" /></div>
         <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {channels.map((channel) => (
+          {filteredChannels.map((channel) => (
             <button key={channel.id} type="button" onClick={() => setSelectedId(channel.id)} className={`watch-live-channel-card group overflow-hidden rounded-panel border text-left transition ${channel.id === selected.id ? "is-selected" : "hover:-translate-y-0.5"}`}>
               <div className="relative aspect-[16/7] overflow-hidden bg-[#0b1619]">{channel.artwork_url ? <img src={channel.artwork_url} alt="" loading="lazy" className="size-full object-cover opacity-75 transition duration-500 group-hover:scale-[1.03]" /> : <div className="watch-live-card-fallback grid size-full place-items-center"><Radio className="watch-live-accent size-8" /></div>}<div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" /><span className={`absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-wider ${channel.is_live ? "bg-rose-600 text-white" : "border border-white/15 bg-black/40 text-white/65 backdrop-blur"}`}><span className={`size-1.5 rounded-full ${channel.is_live ? "animate-pulse bg-white" : "bg-white/40"}`} /> {channel.is_live ? t("watch.liveNow") : t("watchLive.offline")}</span></div>
               <div className="p-4"><p className="watch-live-accent text-[10px] font-black uppercase tracking-[0.15em]">{channel.station ?? t("watch.portalName")}</p><h3 className="mt-1 font-display text-xl font-bold">{localizedText(channel as unknown as Record<string, unknown>, "title", locale)}</h3><p className="watch-live-muted mt-1 clamp-2 text-xs leading-relaxed">{channel.session_title ?? channel.description ?? t("watchLive.channelFallback")}</p></div>
