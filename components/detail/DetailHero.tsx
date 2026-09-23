@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Artwork from "@/components/ui/Artwork";
 import { artworkCss, artworkFor } from "@/lib/artwork";
 
@@ -16,27 +17,46 @@ interface DetailHeroProps {
   round?: boolean;
 }
 
-/** Shared page header: big artwork over an ambient glow, Spotify-style. */
+/** Shared page header with a shaded backdrop from the item's own cover. */
 export default function DetailHero({
   type, id, artworkUrl, kicker, title, titleAlt, subtitle, meta, actions, round,
 }: DetailHeroProps) {
   const art = artworkFor(type, id);
+  const [failedArtworkUrl, setFailedArtworkUrl] = useState<string | null>(null);
+  const coverUrl = artworkUrl && artworkUrl !== failedArtworkUrl ? artworkUrl : null;
 
   return (
-    <header className="portal-full-bleed relative -mt-5 mb-10 min-h-[27rem] overflow-hidden border-b border-edge sm:-mt-7 sm:min-h-[31rem]">
+    <header className="portal-full-bleed relative -mt-5 mb-10 min-h-[27rem] overflow-hidden border-b border-edge bg-elev sm:-mt-7 sm:min-h-[31rem]">
       <div
         aria-hidden
-        className="artwork-themed artwork-backdrop pointer-events-none absolute inset-0 scale-110 opacity-75 blur-2xl"
+        className="artwork-themed artwork-surface pointer-events-none absolute inset-0 scale-105 opacity-75"
         style={artworkCss(art)}
       />
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,var(--bg-elev)_4%,color-mix(in_srgb,var(--bg-elev)_82%,transparent)_55%,color-mix(in_srgb,var(--bg-elev)_55%,transparent)),linear-gradient(0deg,var(--bg-elev),transparent_70%)]" />
+      {coverUrl && (
+        // Use the same browser-accessible upload URL as the foreground artwork.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          key={coverUrl}
+          src={coverUrl}
+          alt=""
+          aria-hidden="true"
+          decoding="async"
+          draggable={false}
+          onError={() => setFailedArtworkUrl(coverUrl)}
+          className="pointer-events-none absolute inset-0 size-full scale-105 object-cover object-center opacity-75 blur-sm"
+        />
+      )}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,color-mix(in_srgb,var(--bg-elev)_94%,transparent)_0%,color-mix(in_srgb,var(--bg-elev)_84%,transparent)_48%,color-mix(in_srgb,var(--bg-elev)_35%,transparent)_100%),linear-gradient(0deg,var(--bg-elev),transparent_85%)]"
+      />
       <div className="relative mx-auto flex min-h-[27rem] max-w-[1540px] flex-col items-start justify-end gap-7 px-5 py-10 sm:min-h-[31rem] sm:flex-row sm:items-end sm:px-10 sm:py-14 lg:gap-12">
         <Artwork
           type={type}
           id={id}
-          url={artworkUrl}
+          url={coverUrl}
           title={title}
-          className="aspect-square w-52 shadow-2xl shadow-shade/40 ring-1 ring-white/10 sm:w-64 lg:w-72"
+          className="aspect-square w-52 max-w-full shrink-0 shadow-2xl shadow-shade/40 ring-1 ring-white/10 sm:w-64 lg:w-72"
           iconClassName="size-1/4"
           rounded={round ? "rounded-full" : "rounded-card"}
         />

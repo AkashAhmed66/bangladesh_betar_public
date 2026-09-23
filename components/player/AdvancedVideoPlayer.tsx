@@ -265,7 +265,7 @@ export default function AdvancedVideoPlayer({ src, title, poster, autoPlay = fal
             <button type="button" onClick={toggleMute} className={controlClass} aria-label={muted || volume === 0 ? t("videoPlayer.unmute") : t("videoPlayer.mute")} title={t("videoPlayer.muteShortcut")}>
               {muted || volume === 0 ? <VolumeX className="size-4.5" /> : <Volume2 className="size-4.5" />}
             </button>
-            <input type="range" min={0} max={1} step={0.05} value={muted ? 0 : volume} onChange={(event) => changeVolume(Number(event.target.value))} className="advanced-video-volume hidden w-0 transition-all group-hover/volume:w-20 group-focus-within/volume:w-20 sm:block" aria-label={t("videoPlayer.volume")} />
+            <input type="range" min={0} max={1} step={0.05} value={muted ? 0 : volume} onChange={(event) => changeVolume(Number(event.target.value))} className="advanced-video-volume pointer-events-none hidden w-0 opacity-0 transition-all group-hover/volume:pointer-events-auto group-hover/volume:w-20 group-hover/volume:opacity-100 group-focus-within/volume:pointer-events-auto group-focus-within/volume:w-20 group-focus-within/volume:opacity-100 sm:block" aria-label={t("videoPlayer.volume")} />
           </div>
           <span className="ml-1 whitespace-nowrap text-[10px] font-bold tabular-nums text-white/75 sm:text-xs">{formatTime(currentTime)} <span className="hidden text-white/40 sm:inline">/ {formatTime(duration)}</span></span>
 

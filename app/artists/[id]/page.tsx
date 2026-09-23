@@ -3,6 +3,7 @@
 import { BadgeCheck, ExternalLink, Music2 } from "lucide-react";
 import { use, useMemo, useRef, useState } from "react";
 import MediaCard from "@/components/cards/MediaCard";
+import MediaGrid from "@/components/cards/MediaGrid";
 import TrackTable from "@/components/cards/TrackTable";
 import ContentActions from "@/components/engagement/ContentActions";
 import Artwork from "@/components/ui/Artwork";
@@ -107,7 +108,7 @@ export default function ArtistPage({ params }: { params: Promise<{ id: string }>
 
   const name = locale === "bn" && artist.name_bn ? artist.name_bn : artist.name;
   const altName = locale === "bn" ? artist.name : artist.name_bn;
-  const bio = locale === "bn" && artist.bio_bn ? artist.bio_bn : artist.bio;
+  const bio = (locale === "bn" ? artist.bio_bn?.trim() : "") || artist.bio?.trim();
   const art = artworkFor("artist", artist.id);
   const socials = Object.entries(artist.social_links ?? {}).filter(([, url]) => !!url);
   const hasBody = songs.length > 0 || albums.length > 0;
@@ -150,6 +151,11 @@ export default function ArtistPage({ params }: { params: Promise<{ id: string }>
               {name}
             </h1>
             {altName && <p className="font-bangla mt-1 text-lg text-ink-soft">{altName}</p>}
+            {bio && (
+              <p aria-label={t("listen.biography")} className={`mt-3 max-w-3xl whitespace-pre-line break-words text-sm leading-relaxed text-ink-soft ${locale === "bn" ? "font-bangla sm:text-base" : ""}`}>
+                {bio}
+              </p>
+            )}
             <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-ink-soft">
               {artist.artist_type && <span className="capitalize">{artist.artist_type}</span>}
               {artist.monthly_listeners != null && (
@@ -187,9 +193,9 @@ export default function ArtistPage({ params }: { params: Promise<{ id: string }>
       {albums.length > 0 && (
         <section>
           <SectionHeading title={t("listen.discography")} />
-          <div className="-mx-3 flex flex-wrap">
+          <MediaGrid>
             {albums.map((a) => <MediaCard key={a.id} item={a} />)}
-          </div>
+          </MediaGrid>
         </section>
       )}
 
@@ -240,21 +246,16 @@ export default function ArtistPage({ params }: { params: Promise<{ id: string }>
       {similar.length > 0 && (
         <section>
           <SectionHeading title={t("listen.relatedArtists")} />
-          <div className="-mx-3 flex flex-wrap">
+          <MediaGrid>
             {similar.map((a) => <MediaCard key={a.id} item={a} />)}
-          </div>
+          </MediaGrid>
         </section>
       )}
 
       {/* ---- About ---- */}
-      {(bio || socials.length > 0) && (
+      {socials.length > 0 && (
         <section>
           <SectionHeading title={t("listen.about")} />
-          {bio && (
-            <p className={`max-w-3xl whitespace-pre-line text-sm leading-relaxed text-ink-soft ${locale === "bn" ? "font-bangla text-base" : ""}`}>
-              {bio}
-            </p>
-          )}
           {socials.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-2">
               {socials.map(([key, url]) => (

@@ -1,6 +1,7 @@
 "use client";
 
 import MediaCard from "./MediaCard";
+import MediaGrid from "./MediaGrid";
 import ListenPageHero from "./ListenPageHero";
 import { EmptyState, Skeleton } from "@/components/ui/Misc";
 import type { CatalogueItem, Paginated } from "@/lib/types";
@@ -40,7 +41,7 @@ export default function GridPage<T extends CatalogueItem>({
       )}
 
       {isLoading ? (
-        <div className="grid grid-cols-2 gap-4 min-[520px]:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+        <MediaGrid>
           {Array.from({ length: 10 }).map((_, i) => (
             <div key={i} className="min-w-0">
               <Skeleton className="aspect-square w-full" />
@@ -48,15 +49,15 @@ export default function GridPage<T extends CatalogueItem>({
               <Skeleton className="mt-2 h-3 w-1/2" />
             </div>
           ))}
-        </div>
+        </MediaGrid>
       ) : items.length === 0 ? (
         <EmptyState title={emptyTitle ?? t("catalogue.nothingHere")} />
       ) : (
-        <div className="grid grid-cols-2 gap-4 min-[520px]:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 sm:gap-5">
+        <MediaGrid>
           {items.map((item) => (
             <MediaCard key={`${item.type}:${item.id}`} item={item} />
           ))}
-        </div>
+        </MediaGrid>
       )}
 
       {lastPage > 1 && (

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ListenPageHero from "@/components/cards/ListenPageHero";
 import MediaCard from "@/components/cards/MediaCard";
+import MediaGrid from "@/components/cards/MediaGrid";
 import TrackTable from "@/components/cards/TrackTable";
 import RecordedBroadcastTable from "@/components/live/RecordedBroadcastTable";
 import VoiceSearchButton from "@/components/search/VoiceSearchButton";
@@ -207,20 +208,20 @@ export default function SearchPage() {
           {(tab === "All" || tab === "Artists") && artists.length > 0 && (
             <section>
               <SectionHeading title={t("searchPage.artists")} />
-              <div className="-mx-3 flex flex-wrap">
+              <MediaGrid>
                 {(tab === "All" ? artists.slice(0, 6) : artists).map((a) => (
                   <MediaCard key={`artist-${a.id}`} item={a} />
                 ))}
-              </div>
+              </MediaGrid>
             </section>
           )}
 
           {(tab === "All" || tab === "Programmes") && programmes.length > 0 && (
             <section>
               <SectionHeading title={t("searchPage.programmes")} />
-              <div className="-mx-3 flex flex-wrap">
+              <MediaGrid>
                 {programmes.map((p) => <MediaCard key={`programme-${p.id}`} item={p} />)}
-              </div>
+              </MediaGrid>
             </section>
           )}
 
@@ -234,9 +235,9 @@ export default function SearchPage() {
           {(tab === "All" || tab === "Podcasts") && podcasts.length > 0 && (
             <section>
               <SectionHeading title={t("searchPage.podcasts")} />
-              <div className="-mx-3 flex flex-wrap">
+              <MediaGrid>
                 {podcasts.map((p) => <MediaCard key={`podcast-${p.id}`} item={p as CatalogueItem} />)}
-              </div>
+              </MediaGrid>
             </section>
           )}
 

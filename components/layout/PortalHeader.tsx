@@ -397,7 +397,7 @@ export default function PortalHeader() {
           </nav>
 
           <div className="hidden flex-1 sm:block" />
-          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+          <div className="portal-global-controls flex shrink-0 items-center gap-1.5 sm:gap-2">
             <div ref={socialRef} className="relative">
               <button type="button" onClick={() => setSocialOpen((open) => !open)} aria-expanded={socialOpen} aria-label="Social links" className="grid size-10 place-items-center rounded-full bg-raised text-ink-soft transition hover:bg-highlight hover:text-ink"><Share2 className="size-4" /></button>
               {socialOpen && <div className="absolute right-0 top-full z-[90] mt-2 w-52 rounded-panel border border-edge bg-raised p-2 shadow-2xl"><p className="px-3 py-2 text-xs font-black uppercase tracking-wider text-ink-mute">Bangladesh Betar</p>{[["Facebook","https://www.facebook.com/bangladeshbetar","Facebook"],["Instagram","https://www.instagram.com/bangladeshbetar","Instagram"],["YouTube","https://www.youtube.com/@BangladeshBetar","YouTube"],["X / Twitter","https://x.com/bangladeshbetar","X / Twitter"]].map(([name,href,platform]) => <a key={name} href={href} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-ink-soft hover:bg-highlight hover:text-ink"><SocialLogo platform={platform as SocialPlatform} className="size-4" />{name}</a>)}</div>}

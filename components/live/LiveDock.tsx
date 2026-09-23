@@ -2,6 +2,7 @@
 
 import { Hand, Loader2, Mic, MicOff, RadioTower, Volume2, VolumeX, X } from "lucide-react";
 import Link from "next/link";
+import { useTranslation } from "@/lib/i18n";
 import { useLive } from "@/stores/live";
 
 /**
@@ -10,6 +11,7 @@ import { useLive } from "@/stores/live";
  * fully independent of it (a separate audio engine — stores/live.ts).
  */
 export default function LiveDock() {
+  const { t } = useTranslation();
   const status = useLive((s) => s.status);
   const channelId = useLive((s) => s.channelId);
   const title = useLive((s) => s.channelTitle);
@@ -17,6 +19,8 @@ export default function LiveDock() {
   const muted = useLive((s) => s.muted);
   const setVolume = useLive((s) => s.setVolume);
   const toggleMute = useLive((s) => s.toggleMute);
+  const audioBlocked = useLive((s) => s.audioBlocked);
+  const resumeAudio = useLive((s) => s.resumeAudio);
   const disconnect = useLive((s) => s.disconnect);
   const canSpeak = useLive((s) => s.canSpeak);
   const micOn = useLive((s) => s.micOn);
@@ -40,7 +44,7 @@ export default function LiveDock() {
           <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-flag">
             {status === "connecting" ? (
               <>
-                <Loader2 className="size-3 animate-spin" /> Connecting
+                <Loader2 className="size-3 animate-spin" /> {t("liveRadio.connecting")}
               </>
             ) : (
               <>
@@ -48,19 +52,29 @@ export default function LiveDock() {
                   <span className="absolute inline-flex size-full animate-ping rounded-full bg-flag opacity-75" />
                   <span className="relative inline-flex size-1.5 rounded-full bg-flag" />
                 </span>
-                Live
+                {t("liveRadio.live")}
               </>
             )}
           </span>
-          <span className="clamp-1 text-sm font-semibold text-ink">{title ?? "Live radio"}</span>
+          <span className="clamp-1 text-sm font-semibold text-ink">{title ?? t("liveRadio.title")}</span>
         </span>
       </Link>
+
+      {audioBlocked && status === "live" && (
+        <button
+          type="button"
+          onClick={() => void resumeAudio()}
+          className="inline-flex shrink-0 items-center rounded-full bg-flag px-3 py-1.5 text-xs font-bold text-white transition hover:opacity-90"
+        >
+          {t("liveRadio.enableAudio")}
+        </button>
+      )}
 
       {/* Volume (hidden on the smallest screens) */}
       <div className="hidden items-center gap-2 sm:flex">
         <button
           onClick={toggleMute}
-          aria-label={muted ? "Unmute" : "Mute"}
+          aria-label={muted ? t("liveRadio.unmute") : t("liveRadio.mute")}
           className="text-ink-soft transition hover:text-ink"
         >
           {muted || volume === 0 ? <VolumeX className="size-4.5" /> : <Volume2 className="size-4.5" />}
@@ -72,7 +86,7 @@ export default function LiveDock() {
           step={0.02}
           value={muted ? 0 : volume}
           onChange={(e) => setVolume(Number(e.target.value))}
-          aria-label="Live volume"
+          aria-label={t("liveRadio.volume")}
           className="h-1 w-24 cursor-pointer accent-flag"
         />
       </div>
@@ -82,26 +96,26 @@ export default function LiveDock() {
         (canSpeak ? (
           <button
             onClick={() => setMic(!micOn)}
-            aria-label={micOn ? "Turn off your microphone" : "Turn on your microphone"}
-            title={micOn ? "You're on air — tap to mute" : "Tap to speak"}
+            aria-label={micOn ? t("liveRadio.micMute") : t("liveRadio.micUnmute")}
+            title={micOn ? t("liveRadio.micLive") : t("liveRadio.tapToSpeak")}
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition ${
               micOn ? "bg-danger text-white hover:opacity-90" : "bg-flag/20 text-flag hover:bg-flag/30"
             }`}
           >
             {micOn ? <Mic className="size-4" /> : <MicOff className="size-4" />}
-            <span className="hidden sm:inline">{micOn ? "On air" : "Speak"}</span>
+            <span className="hidden sm:inline">{micOn ? t("liveRadio.micLiveShort") : t("liveRadio.speak")}</span>
           </button>
         ) : (
           <button
             onClick={() => (handRaised ? lowerHand() : raiseHand())}
-            aria-label={handRaised ? "Lower your hand" : "Raise your hand to speak"}
-            title={handRaised ? "Waiting for the host — tap to lower" : "Request to speak"}
+            aria-label={handRaised ? t("liveRadio.lowerHand") : t("liveRadio.raiseHand")}
+            title={handRaised ? t("liveRadio.handRaised") : t("liveRadio.raiseHand")}
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition ${
               handRaised ? "bg-premium text-premium-fg hover:opacity-90" : "text-ink-soft hover:text-ink"
             }`}
           >
             <Hand className="size-4" />
-            <span className="hidden sm:inline">{handRaised ? "Hand raised" : "Raise hand"}</span>
+            <span className="hidden sm:inline">{handRaised ? t("liveRadio.handRaisedShort") : t("liveRadio.raiseHandShort")}</span>
           </button>
         ))}
 
@@ -109,7 +123,7 @@ export default function LiveDock() {
         onClick={disconnect}
         className="inline-flex items-center gap-1.5 rounded-full bg-flag px-3.5 py-1.5 text-xs font-bold text-white transition hover:opacity-90"
       >
-        <X className="size-4" /> Stop
+        <X className="size-4" /> {t("liveRadio.stop")}
       </button>
     </div>
   );

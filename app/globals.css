@@ -237,6 +237,48 @@
   letter-spacing: -0.025em;
   text-shadow: 0 2px 18px color-mix(in srgb, var(--tab-color) 36%, transparent);
 }
+/* The service switcher shares a narrow row on phones. Keep the current
+   service labelled while the other tabs remain compact icon buttons. */
+@media (max-width: 639px) {
+  .portal-global-bar .portal-tab {
+    flex: 0 0 2.125rem;
+    gap: 0;
+    padding-inline: 0.5rem;
+  }
+
+  .portal-global-bar .portal-tab.is-active {
+    flex-basis: 3.5rem;
+    gap: 0.35rem;
+  }
+
+  .portal-global-bar .portal-tab-label { display: none; }
+  .portal-global-bar .portal-tab.is-active .portal-tab-label {
+    display: inline;
+    font-size: 0.875rem;
+  }
+
+  .portal-global-bar > .mx-auto {
+    gap: 0.25rem;
+    padding-inline: 0.5rem;
+  }
+
+  .portal-global-controls { gap: 0.25rem; }
+  .portal-global-controls > div > button,
+  .portal-global-controls > button {
+    width: 2.25rem;
+    height: 2.25rem;
+    min-height: 2.25rem;
+  }
+  .portal-global-controls .portal-control {
+    min-height: 2.25rem;
+    padding-inline: 0.45rem;
+  }
+}
+@media (max-width: 359px) {
+  /* At very narrow widths keep the active portal visible; the full service
+     switcher remains available as the viewport widens. */
+  .portal-global-bar .portal-tab:not(.is-active) { display: none; }
+}
 @media (min-width: 640px) {
   .portal-tab-label { font-size: 1.25rem; }
 }

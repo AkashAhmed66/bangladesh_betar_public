@@ -1,11 +1,15 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element */
-import { AlertCircle, ArrowLeft, ArrowRight, CalendarDays, CirclePlay, Clock3, Film, Layers3, LoaderCircle, Play, Radio, Sparkles, Star } from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowRight, CirclePlay, Clock3, Film, Layers3, LoaderCircle, Play, Radio, Sparkles, Star, Video, X } from "lucide-react";
 import Link from "next/link";
 import { use, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import AdvancedVideoPlayer from "@/components/player/AdvancedVideoPlayer";
 import ContentActions from "@/components/engagement/ContentActions";
+import WatchEpisodeReviews from "@/components/watch/WatchEpisodeReviews";
+import WatchlistButton from "@/components/watch/WatchlistButton";
+import WatchHeroDetails from "@/components/watch/WatchHeroDetails";
 import { useApi, useWatchShow } from "@/lib/hooks";
 import { localizedText, useTranslation } from "@/lib/i18n";
 import type { Paginated, WatchEpisode, WatchShow } from "@/lib/types";
@@ -81,14 +85,19 @@ function RelatedShowCard({ show }: { show: WatchShow }) {
 export default function WatchShowPage({ params }: { params: Promise<{ slug: string }> }) {
   const { locale, t } = useTranslation();
   const { slug } = use(params);
+  const searchParams = useSearchParams();
   const { data, error, isLoading, mutate } = useWatchShow(slug);
   const token = useAuth((state) => state.token);
   const isPremium = useAuth((state) => state.entitlements?.is_premium ?? false);
   const openLoginPrompt = useUi((state) => state.openLoginPrompt);
   const openUpgradePrompt = useUi((state) => state.openUpgradePrompt);
   const toast = useUi((state) => state.toast);
-  const [selectedEpisodeId, setSelectedEpisodeId] = useState<number | null>(null);
+  const [selectedEpisodeId, setSelectedEpisodeId] = useState<number | null>(() => {
+    const episode = Number(searchParams.get("episode"));
+    return Number.isInteger(episode) && episode > 0 ? episode : null;
+  });
   const [autoPlay, setAutoPlay] = useState(false);
+  const [trailerOpen, setTrailerOpen] = useState(false);
   const show = data?.data;
 
   // Fetch same-category shows plus all shows for a broad pool
@@ -112,10 +121,11 @@ export default function WatchShowPage({ params }: { params: Promise<{ slug: stri
   const description = localizedText(show as unknown as Record<string, unknown>, "description", locale);
   const category = localizedText(show as unknown as Record<string, unknown>, "category", locale);
   const eyebrow = localizedText(show as unknown as Record<string, unknown>, "eyebrow", locale) || category;
+  const showRecord = show as WatchShow & { trailer_path?: string | null; age_restriction?: string | null; genre?: string | null };
+  const trailerUrl = show.trailer_url ?? showRecord.trailer_path ?? null;
 
   const firstPlayable = show.episodes.find((episode) => episode.has_video);
   const currentEpisode = show.episodes.find((episode) => episode.id === selectedEpisodeId) ?? firstPlayable ?? show.episodes[0];
-  const totalMinutes = show.episodes.reduce((total, episode) => total + episode.duration_minutes, 0);
 
   const openEpisode = async (episode: WatchEpisode, shouldPlay: boolean) => {
     setSelectedEpisodeId(episode.id);
@@ -148,44 +158,35 @@ export default function WatchShowPage({ params }: { params: Promise<{ slug: stri
 
   return (
     <div className="pb-24">
-      <section className="relative min-h-[34rem] overflow-hidden bg-black text-white sm:min-h-[42rem] lg:min-h-[46rem]">
+      <section data-watch-hero className="relative min-h-[34rem] overflow-hidden bg-black text-white sm:min-h-[42rem] lg:min-h-[46rem]">
         {show.image_url ? <img src={show.image_url} alt="" className="absolute inset-0 size-full object-cover object-center" /> : null}
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-black/10" />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/25" />
         <div className="absolute -bottom-32 right-[8%] size-96 rounded-full bg-[var(--portal-color)] opacity-15 blur-3xl" />
         <div className="relative mx-auto flex min-h-[34rem] max-w-[1540px] flex-col justify-between px-4 py-8 sm:min-h-[42rem] sm:px-8 sm:py-10 lg:min-h-[46rem] lg:px-12">
           <nav className="flex items-center gap-2 text-xs font-bold text-white/60" aria-label="Breadcrumb"><Link href="/watch" className="hover:text-white">{t("common.watch")}</Link><span>/</span><Link href={`/watch/category/${show.category_slug || categorySlug(show.category)}`} className="text-[#75e3df] hover:underline">{category}</Link></nav>
-          <div className="max-w-3xl pb-6">
+          <div className="max-w-3xl pt-10">
             <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-[#75e3df]"><Sparkles className="size-4" /> {eyebrow}</p>
             <h1 className="mt-4 text-balance font-display text-5xl font-bold leading-[0.95] tracking-[-0.06em] sm:text-7xl lg:text-8xl">{title}</h1>
             <p className="mt-6 max-w-2xl text-base leading-relaxed text-white/75 sm:text-xl">{description}</p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
+              {trailerUrl && <button type="button" onClick={() => setTrailerOpen(true)} className="inline-flex min-h-12 items-center gap-2 rounded-full border border-white/30 px-5 text-sm font-black text-white transition hover:border-white hover:bg-white/10"><Video className="size-4.5" /> {t("watch.watchTrailer")}</button>}
               {firstPlayable ? (
                 <button type="button" onClick={() => void openEpisode(firstPlayable, true)} className="inline-flex min-h-12 items-center gap-2 rounded-full bg-white px-6 text-sm font-black text-black shadow-xl transition hover:scale-[1.02]"><Play className="size-5 fill-current" /> {t("watch.watchEpisode", { number: firstPlayable.position })}</button>
               ) : (
                 <a href="#episodes" className="inline-flex min-h-12 items-center gap-2 rounded-full bg-white px-6 text-sm font-black text-black"><Layers3 className="size-5" /> {t("watch.browseEpisodes")}</a>
               )}
+              <WatchlistButton showId={show.id} initial={show.is_in_watchlist} tone="dark" />
               <ContentActions type="watch_show" id={show.id} title={title} text={description} tone="on-dark" />
             </div>
-            <div className="mt-6 flex flex-wrap items-center gap-2 text-xs font-bold text-white/60">
-              <span className="rounded-full border border-white/20 px-3 py-1.5 text-white">{show.rating ?? t("common.notRated")}</span><span>{show.year ?? t("watch.newRelease")}</span><span>·</span><span>{category}</span><span>·</span><span>{t("common.episodes", { count: show.episodes.length })}</span>
-            </div>
+            <WatchHeroDetails show={show} />
           </div>
         </div>
       </section>
 
       <div className="mx-auto w-full max-w-[1540px] px-4 pt-10 sm:px-7 sm:pt-14 lg:px-10">
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Programme facts">
-          {[
-            { icon: Layers3, label: t("watch.episodesLabel"), value: String(show.episodes.length) },
-            { icon: Clock3, label: t("watch.totalRuntime"), value: totalMinutes > 0 ? `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m` : t("watch.toBeAnnounced") },
-            { icon: CalendarDays, label: t("watch.release"), value: show.year ? String(show.year) : t("common.new") },
-            { icon: Film, label: t("watch.category"), value: category },
-          ].map(({ icon: Icon, label, value }) => <div key={label} className="flex items-center gap-4 rounded-card border border-edge bg-raised p-4"><span className="grid size-10 shrink-0 place-items-center rounded-full bg-[color-mix(in_srgb,var(--portal-color)_14%,transparent)] text-[var(--portal-color)]"><Icon className="size-4.5" /></span><div><p className="text-[10px] font-black uppercase tracking-[0.14em] text-ink-mute">{label}</p><p className="mt-0.5 font-display text-base font-bold">{value}</p></div></div>)}
-        </section>
-
         {currentEpisode && (
-          <section id="watch-player" className="mt-12 scroll-mt-24 overflow-hidden rounded-panel border border-edge bg-sunken shadow-2xl shadow-shade/25">
+          <section id="watch-player" className="scroll-mt-24 overflow-hidden rounded-panel border border-edge bg-sunken shadow-2xl shadow-shade/25">
             <div className="grid lg:grid-cols-[minmax(0,1fr)_22rem]">
               <div className="relative aspect-video bg-black">
                 {currentEpisode.video_url ? (
@@ -207,8 +208,10 @@ export default function WatchShowPage({ params }: { params: Promise<{ slug: stri
               <div className="flex flex-col justify-center p-6 sm:p-8">
                 <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--portal-color)]">Episode {currentEpisode.position}</p>
                 <h2 className="mt-2 font-display text-3xl font-bold leading-tight">{localizedText(currentEpisode as unknown as Record<string, unknown>, "title", locale)}</h2>
-                <p className="mt-3 text-sm leading-relaxed text-ink-soft">{localizedText(currentEpisode as unknown as Record<string, unknown>, "description", locale) || t("watch.episodeFallback")}</p>
+                <p className="mt-3 text-sm leading-relaxed text-ink-soft">{localizedText(currentEpisode as unknown as Record<string, unknown>, "summary", locale) || localizedText(currentEpisode as unknown as Record<string, unknown>, "description", locale) || t("watch.episodeFallback")}</p>
                 <p className="mt-5 flex items-center gap-2 text-xs font-bold text-ink-mute"><Clock3 className="size-4" /> {currentEpisode.duration}</p>
+                {(currentEpisode.audio_languages?.length || currentEpisode.subtitle_languages?.length) ? <div className="mt-4 space-y-1 text-xs text-ink-mute">{currentEpisode.audio_languages?.length ? <p><span className="font-bold">{t("watch.audioLanguages")}:</span> {currentEpisode.audio_languages.join(" · ")}</p> : null}{currentEpisode.subtitle_languages?.length ? <p><span className="font-bold">{t("watch.subtitleLanguages")}:</span> {currentEpisode.subtitle_languages.join(" · ")}</p> : null}</div> : null}
+                <div className="mt-4"><WatchlistButton episodeId={currentEpisode.id} initial={currentEpisode.is_in_watchlist} compact /></div>
                 {currentEpisode.has_video && !autoPlay && <button type="button" onClick={() => void openEpisode(currentEpisode, true)} className="mt-6 inline-flex min-h-11 w-fit items-center gap-2 rounded-full bg-[var(--portal-color)] px-5 text-sm font-black text-[var(--portal-on-color)]"><CirclePlay className="size-5" /> {t("watch.startWatching")}</button>}
               </div>
             </div>
@@ -216,6 +219,7 @@ export default function WatchShowPage({ params }: { params: Promise<{ slug: stri
         )}
 
         <div className="mt-16 grid items-start gap-12 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-16">
+          <div className="min-w-0">
           <section id="episodes" className="scroll-mt-24">
             <div className="flex items-end justify-between gap-4 border-b border-edge pb-5">
               <div><p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--portal-color)]">{t("watch.season")}</p><h2 className="mt-1 font-display text-3xl font-bold sm:text-4xl">{t("watch.episodeGuide")}</h2></div>
@@ -225,7 +229,7 @@ export default function WatchShowPage({ params }: { params: Promise<{ slug: stri
               <div className="mt-6 rounded-panel border border-dashed border-edge bg-raised p-8 text-center"><Layers3 className="mx-auto size-9 text-ink-mute" /><h3 className="mt-3 font-display text-xl font-bold">{t("watch.episodesComingSoon")}</h3><p className="mt-2 text-sm text-ink-soft">{t("watch.episodesComingSoonDescription")}</p></div>
             ) : (
               <ol className="mt-2">
-                {show.episodes.map((episode, index) => {
+              {show.episodes.map((episode, index) => {
                   const active = currentEpisode?.id === episode.id;
                   return (
                     <li key={episode.id} className="border-b border-edge">
@@ -235,7 +239,7 @@ export default function WatchShowPage({ params }: { params: Promise<{ slug: stri
                           {show.image_url ? <img src={show.image_url} alt="" className="size-full object-cover transition duration-500 group-hover:scale-105" /> : null}
                           <span className={`absolute inset-0 grid place-items-center transition ${active ? "bg-black/20" : "bg-black/40 group-hover:bg-black/25"}`}><span className="grid size-10 place-items-center rounded-full bg-white text-black shadow-lg"><Play className="size-4 fill-current" /></span></span>
                         </div>
-                        <div className="min-w-0"><div className="flex items-center gap-2"><span className="text-[10px] font-black uppercase tracking-[0.14em] text-[var(--portal-color)]">{t("watch.episode", { number: episode.position })}</span>{episode.has_video && <span className="rounded-full bg-success/12 px-2 py-0.5 text-[9px] font-black uppercase text-success">{t("watch.watchNow")}</span>}</div><h3 className="mt-1 font-display text-xl font-bold">{localizedText(episode as unknown as Record<string, unknown>, "title", locale)}</h3><p className="mt-1 clamp-2 text-sm leading-relaxed text-ink-mute">{localizedText(episode as unknown as Record<string, unknown>, "description", locale)}</p></div>
+                        <div className="min-w-0"><div className="flex items-center gap-2"><span className="text-[10px] font-black uppercase tracking-[0.14em] text-[var(--portal-color)]">{t("watch.episode", { number: episode.position })}</span>{episode.has_video && <span className="rounded-full bg-success/12 px-2 py-0.5 text-[9px] font-black uppercase text-success">{t("watch.watchNow")}</span>}</div><h3 className="mt-1 font-display text-xl font-bold">{localizedText(episode as unknown as Record<string, unknown>, "title", locale)}</h3><p className="mt-1 clamp-2 text-sm leading-relaxed text-ink-mute">{localizedText(episode as unknown as Record<string, unknown>, "summary", locale) || localizedText(episode as unknown as Record<string, unknown>, "description", locale)}</p></div>
                         <span className="flex items-center gap-1.5 text-xs font-bold text-ink-mute"><Clock3 className="size-3.5" /> {episode.duration}</span>
                       </button>
                     </li>
@@ -245,15 +249,17 @@ export default function WatchShowPage({ params }: { params: Promise<{ slug: stri
             )}
           </section>
 
+          {currentEpisode && <WatchEpisodeReviews key={currentEpisode.id} episodeId={currentEpisode.id} episodeTitle={localizedText(currentEpisode as unknown as Record<string, unknown>, "title", locale)} />}
+          </div>
+
           <aside className="space-y-7 lg:sticky lg:top-5">
             <section className="rounded-panel border border-edge bg-raised p-6">
               <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--portal-color)]">{t("watch.aboutProgramme")}</p>
               <h2 className="mt-3 font-display text-2xl font-bold">{title}</h2>
               <p className="mt-3 text-sm leading-relaxed text-ink-soft">{description}</p>
               <dl className="mt-6 divide-y divide-edge border-y border-edge text-sm">
-                <div className="flex justify-between gap-4 py-3"><dt className="text-ink-mute">{t("watch.classification")}</dt><dd className="font-bold">{show.rating ?? t("common.notRated")}</dd></div>
-                <div className="flex justify-between gap-4 py-3"><dt className="text-ink-mute">{t("watch.releaseYear")}</dt><dd className="font-bold">{show.year ?? t("common.new")}</dd></div>
-                <div className="flex justify-between gap-4 py-3"><dt className="text-ink-mute">{t("watch.category")}</dt><dd className="font-bold">{category}</dd></div>
+                {!!show.audio_languages?.length && <div className="flex items-start justify-between gap-4 py-3 text-xs"><dt className="shrink-0 text-ink-mute">{t("watch.audioLanguages")}</dt><dd className="text-right font-medium">{show.audio_languages.join(", ")}</dd></div>}
+                {!!show.subtitle_languages?.length && <div className="flex items-start justify-between gap-4 py-3 text-xs"><dt className="shrink-0 text-ink-mute">{t("watch.subtitleLanguages")}</dt><dd className="text-right font-medium">{show.subtitle_languages.join(", ")}</dd></div>}
               </dl>
             </section>
             <section className="portal-tint-panel rounded-panel p-6">
@@ -298,6 +304,14 @@ export default function WatchShowPage({ params }: { params: Promise<{ slug: stri
           </section>
         )}
       </div>
+      {trailerOpen && trailerUrl && (
+        <div className="fixed inset-0 z-[80] grid place-items-center bg-black/80 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label={t("watch.watchTrailer")} onClick={() => setTrailerOpen(false)}>
+          <div className="relative w-full max-w-4xl overflow-hidden rounded-panel bg-black shadow-2xl" onClick={(event) => event.stopPropagation()}>
+            <button type="button" onClick={() => setTrailerOpen(false)} aria-label={t("watch.closeTrailer")} className="absolute right-3 top-3 z-10 grid size-10 place-items-center rounded-full bg-black/60 text-white hover:bg-black"><X className="size-5" /></button>
+            <video src={trailerUrl} controls autoPlay playsInline className="aspect-video w-full" />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

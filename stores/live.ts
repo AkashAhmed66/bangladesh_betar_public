@@ -25,6 +25,8 @@ interface LiveState {
   status: "idle" | "connecting" | "live" | "error";
   volume: number;
   muted: boolean;
+  /** Browser autoplay policy prevented one or more remote tracks from playing. */
+  audioBlocked: boolean;
 
   canSpeak: boolean; // broadcaster granted publish permission
   micOn: boolean; // the listener's mic is live
@@ -34,12 +36,18 @@ interface LiveState {
   disconnect: () => void;
   setVolume: (v: number) => void;
   toggleMute: () => void;
+  /** Retry remote audio playback from a user gesture. */
+  resumeAudio: () => Promise<void>;
   setMic: (on: boolean) => Promise<void>;
   raiseHand: () => Promise<void>;
   lowerHand: () => Promise<void>;
 }
 
 let room: Room | null = null;
+// Every connection attempt gets a generation. This prevents a late token,
+// track, or disconnect event from an old channel changing the new channel's
+// state when a listener switches quickly between stations.
+let connectionGeneration = 0;
 // One hidden <audio> element per subscribed remote track (the broadcaster and
 // any invited speakers), so every voice is heard — not just the latest one.
 const remoteAudio = new Map<string, HTMLAudioElement>();
@@ -48,15 +56,15 @@ function trackKey(track: RemoteTrack): string {
   return track.sid ?? "";
 }
 
-function attachRemote(track: RemoteTrack, muted: boolean, volume: number) {
+function attachRemote(track: RemoteTrack, muted: boolean, volume: number): HTMLAudioElement {
   const el = track.attach() as HTMLAudioElement;
   el.autoplay = true;
   el.muted = muted;
   el.volume = volume;
   el.style.display = "none";
   document.body.appendChild(el);
-  void el.play().catch(() => undefined);
   remoteAudio.set(trackKey(track), el);
+  return el;
 }
 
 function detachRemote(track: RemoteTrack) {
@@ -91,22 +99,26 @@ export const useLive = create<LiveState>((set, get) => ({
   status: "idle",
   volume: 0.9,
   muted: false,
+  audioBlocked: false,
   canSpeak: false,
   micOn: false,
   handRaised: false,
 
   connect: async (channelId, title) => {
+    const attempt = ++connectionGeneration;
     // Tear down any current live connection first.
-    if (room) {
+    const previousRoom = room;
+    room = null;
+    if (previousRoom) {
       try {
-        room.disconnect();
+        previousRoom.disconnect();
       } catch {
         /* noop */
       }
-      room = null;
     }
+    clearRemotes();
 
-    set({ channelId, channelTitle: title, status: "connecting", canSpeak: false, micOn: false, handRaised: false });
+    set({ channelId, channelTitle: title, status: "connecting", audioBlocked: false, canSpeak: false, micOn: false, handRaised: false });
 
     try {
       const creds = await post<LiveTokenResponse>(`/live-channels/${channelId}/token`);
@@ -114,20 +126,39 @@ export const useLive = create<LiveState>((set, get) => ({
       const { Room, RoomEvent } = await import("livekit-client");
 
       const r = new Room();
+      // A newer connect() may have started while the token/module was loading.
+      // Do not let this stale room subscribe or replace the current one.
+      if (attempt !== connectionGeneration) {
+        try { r.disconnect(); } catch { /* noop */ }
+        return;
+      }
       room = r;
 
       // Play each subscribed audio track (broadcaster + invited speakers) on its
       // own element so they mix rather than replace one another.
       r.on(RoomEvent.TrackSubscribed, (track: RemoteTrack) => {
-        if (track.kind === "audio") attachRemote(track, get().muted, get().volume);
+        if (track.kind !== "audio" || room !== r || attempt !== connectionGeneration) return;
+        const element = attachRemote(track, get().muted, get().volume);
+        void element.play().then(() => {
+          if (room === r && attempt === connectionGeneration) set({ audioBlocked: false });
+        }).catch(() => {
+          if (room === r && attempt === connectionGeneration) set({ audioBlocked: true });
+        });
       });
       r.on(RoomEvent.TrackUnsubscribed, (track: RemoteTrack) => {
-        if (track.kind === "audio") detachRemote(track);
+        if (track.kind === "audio" && room === r && attempt === connectionGeneration) detachRemote(track);
+      });
+
+      // LiveKit reports when browser autoplay has been blocked. The Dock gives
+      // the listener a visible, user-gesture button to call startAudio().
+      r.on(RoomEvent.AudioPlaybackStatusChanged, (allowed: boolean) => {
+        if (room === r && attempt === connectionGeneration) set({ audioBlocked: !allowed });
       });
 
       // The broadcaster granted/revoked our permission to speak. LiveKit pushes
       // this live (no reconnect), so reflect it in the UI immediately.
       r.on(RoomEvent.ParticipantPermissionsChanged, (_prev: unknown, participant: Participant) => {
+        if (room !== r || attempt !== connectionGeneration) return;
         if (participant !== r.localParticipant) return;
         const can = !!r.localParticipant.permissions?.canPublish;
         if (can) {
@@ -143,6 +174,8 @@ export const useLive = create<LiveState>((set, get) => ({
       });
 
       r.on(RoomEvent.Disconnected, () => {
+        if (room !== r || attempt !== connectionGeneration) return;
+        room = null;
         clearRemotes();
         if (get().channelId === channelId) {
           set({ status: "idle", channelId: null, channelTitle: null, canSpeak: false, micOn: false, handRaised: false });
@@ -154,15 +187,20 @@ export const useLive = create<LiveState>((set, get) => ({
       // Falls back to whatever the API returned if the env is not set.
       const wsUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL || creds.ws_url;
       await r.connect(wsUrl, creds.token);
+      if (room !== r || attempt !== connectionGeneration) {
+        try { r.disconnect(); } catch { /* noop */ }
+        return;
+      }
       // Seed speak permission in case it was already granted at/just before join.
-      set({ status: "live", canSpeak: !!r.localParticipant.permissions?.canPublish });
+      set({ status: "live", audioBlocked: !r.canPlaybackAudio, canSpeak: !!r.localParticipant.permissions?.canPublish });
     } catch (e) {
       console.error("Live connect failed", e);
-      set({ status: "error", channelId: null, channelTitle: null, canSpeak: false, micOn: false, handRaised: false });
+      if (attempt !== connectionGeneration) return;
+      set({ status: "error", audioBlocked: false, channelId: null, channelTitle: null, canSpeak: false, micOn: false, handRaised: false });
       useUi.getState().toast("Could not connect to the live broadcast.", "error");
       if (room) {
         try {
-          room.disconnect();
+          room?.disconnect();
         } catch {
           /* noop */
         }
@@ -172,16 +210,18 @@ export const useLive = create<LiveState>((set, get) => ({
   },
 
   disconnect: () => {
-    if (room) {
+    ++connectionGeneration;
+    const activeRoom = room;
+    room = null;
+    if (activeRoom) {
       try {
-        room.disconnect();
+        activeRoom.disconnect();
       } catch {
         /* noop */
       }
-      room = null;
     }
     clearRemotes();
-    set({ status: "idle", channelId: null, channelTitle: null, canSpeak: false, micOn: false, handRaised: false });
+    set({ status: "idle", audioBlocked: false, channelId: null, channelTitle: null, canSpeak: false, micOn: false, handRaised: false });
   },
 
   setVolume: (v) => {
@@ -199,6 +239,24 @@ export const useLive = create<LiveState>((set, get) => ({
       el.muted = muted;
     });
     set({ muted });
+  },
+
+  resumeAudio: async () => {
+    const activeRoom = room;
+    if (!activeRoom) return;
+    try {
+      await activeRoom.startAudio();
+      const { muted, volume } = get();
+      await Promise.all(Array.from(remoteAudio.values()).map((element) => {
+        element.volume = volume;
+        element.muted = muted;
+        return element.play();
+      }));
+      if (room === activeRoom) set({ audioBlocked: false });
+    } catch (e) {
+      console.error("Live audio resume failed", e);
+      if (room === activeRoom) set({ audioBlocked: true });
+    }
   },
 
   // Open or close the listener's own microphone (only once granted).

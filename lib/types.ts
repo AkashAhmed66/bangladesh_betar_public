@@ -357,7 +357,24 @@ export interface WatchEpisode {
     duration: string;
     position: number;
     has_video: boolean;
-    video_url: string | null;
+  video_url: string | null;
+  /** Optional editorial metadata supplied by the Watch admin portal. */
+  summary?: string | null;
+  summary_bn?: string | null;
+  trailer_url?: string | null;
+  age_rating?: string | null;
+  genres?: string[];
+  creators?: Array<string | WatchCredit>;
+  cast?: Array<string | WatchCredit>;
+  audio_languages?: string[];
+  subtitle_languages?: string[];
+  is_in_watchlist?: boolean;
+}
+
+export interface WatchCredit {
+  name: string;
+  role?: string | null;
+  photo_url?: string | null;
 }
 
 export interface WatchShow {
@@ -380,6 +397,15 @@ export interface WatchShow {
   published_at: string | null;
   episodes_count?: number;
   episodes: WatchEpisode[];
+  trailer_url?: string | null;
+  age_rating?: string | null;
+  genres?: string[];
+  creators?: Array<string | WatchCredit>;
+  cast?: Array<string | WatchCredit>;
+  age_restriction?: string | null;
+  audio_languages?: string[];
+  subtitle_languages?: string[];
+  is_in_watchlist?: boolean;
 }
 
 // ---- Auth / user ----
